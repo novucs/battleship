@@ -85,8 +85,8 @@ void set_new_flag(int newFlag);
 /********* Your tactics code starts here *********************/
 /*************************************************************/
 
-int up_down = MOVE_LEFT * MOVE_SLOW;
-int left_right = MOVE_UP * MOVE_FAST;
+int up_down = MOVE_UP * MOVE_FAST;
+int left_right = MOVE_LEFT * MOVE_FAST;
 
 int number_of_friends;
 struct ship friends[MAX_SHIPS];
@@ -106,19 +106,19 @@ bool is_friend(int index) {
 
 void tactics() {
 	if (me.y > 900) {
-		up_down = MOVE_DOWN * MOVE_SLOW;
+		up_down = MOVE_DOWN * MOVE_FAST;
 	}
 
 	if (me.x < 200) {
 		left_right = MOVE_RIGHT * MOVE_FAST;
 	}
 
-	if (me.y < 100) {
+	if (me.y < 200) {
 		up_down = MOVE_UP * MOVE_FAST;
 	}
 
 	if (me.x > 800) {
-		left_right = MOVE_LEFT * MOVE_SLOW;
+		left_right = MOVE_LEFT * MOVE_FAST;
 	}
 
 	for (int i = 0; i < number_of_ships; i++) {
@@ -142,8 +142,20 @@ void tactics() {
 			}
 		}
 
-		for (int i = 0; i < number_of_enemies; i++) {
-			fire_at_ship(enemies[i].x, enemies[i].y);
+		if (number_of_enemies > 0) {
+			// Persue enemy if only one is in sight.
+			if (number_of_enemies == 1) {
+				left_right = (enemies[0].x > me.x ? MOVE_RIGHT : MOVE_LEFT) * MOVE_FAST;
+				up_down = (enemies[0].y > me.y ? MOVE_UP : MOVE_DOWN) * MOVE_FAST;
+			}
+
+			// When more than one enemy can be seen, flee.
+			else {
+				left_right = (enemies[0].x > me.x ? MOVE_LEFT : MOVE_RIGHT) * MOVE_FAST;
+				up_down = (enemies[0].y > me.y ? MOVE_DOWN : MOVE_UP) * MOVE_FAST;
+			}
+
+			fire_at_ship(enemies[0].x, enemies[0].y);
 		}
 	}
 
@@ -267,10 +279,10 @@ void send_message(char* dest, char* source, char* msg) {
 	sprintf(MsgBuffer, "Message %s,%s,%s,%s", STUDENT_NUMBER, dest, source, msg);
 }
 
-void fire_at_ship(int X, int Y) {
+void fire_at_ship(int x, int y) {
 	fire = true;
-	fireX = X;
-	fireY = Y;
+	fireX = x;
+	fireY = y;
 }
 
 void move_in_direction(int x, int y) {
