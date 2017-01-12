@@ -1,7 +1,7 @@
 // BattleshipBot.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+#include <stdio.h>
 #include <winsock2.h>
 #include <math.h>
 
@@ -367,7 +367,7 @@ void set_new_flag(int newFlag)
 
 
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
 	char chr = '\0';
 
