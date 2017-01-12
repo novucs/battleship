@@ -46,7 +46,10 @@ WSADATA data;
 
 char InputBuffer  [MAX_BUFFER_SIZE];
 
-
+/*
+ * Firing range is 100
+ * Visible range is 200
+ */
 
 int myX;
 int myY;
@@ -54,12 +57,12 @@ int myHealth;
 int myFlag;
 int myType;
 
-int number_of_ships;
-int shipX[MAX_SHIPS];
-int shipY[MAX_SHIPS];
-int shipHealth[MAX_SHIPS];
-int shipFlag[MAX_SHIPS];
-int shipType[MAX_SHIPS];
+int number_of_ships; // Number of ships visible to us
+int shipX[MAX_SHIPS]; // X locations of each ship within range
+int shipY[MAX_SHIPS]; // Y locations of each ship within range
+int shipHealth[MAX_SHIPS]; // Health of all visible ships
+int shipFlag[MAX_SHIPS]; // Flag of each ship within range
+int shipType[MAX_SHIPS]; // Type of each ship within range
 
 bool message = false;
 char MsgBuffer [MAX_BUFFER_SIZE];
@@ -126,7 +129,7 @@ void tactics()
 {
 	int i;
 
-	if ( myY > 900) 
+	if ( myY > 900)
 	{
 		up_down = MOVE_DOWN*MOVE_SLOW;
 	}
@@ -166,8 +169,8 @@ void tactics()
 				friendY[number_of_friends] = shipY[i];
 				friendHealth[number_of_friends] = shipHealth[i];
 				friendFlag[number_of_friends] = shipFlag[i];
-				friendDistance[number_of_friends] = shipDistance[i];		
-				friendType[number_of_friends] = shipType[i];		
+				friendDistance[number_of_friends] = shipDistance[i];
+				friendType[number_of_friends] = shipType[i];
 				number_of_friends++;
 			}
 			else
@@ -176,8 +179,8 @@ void tactics()
 				enemyY[number_of_enemies] = shipY[i];
 				enemyHealth[number_of_enemies] = shipHealth[i];
 				enemyFlag[number_of_enemies] = shipFlag[i];
-				enemyDistance[number_of_enemies] = shipDistance[i];		
-				enemyType[number_of_enemies] = shipType[i];		
+				enemyDistance[number_of_enemies] = shipDistance[i];
+				enemyType[number_of_enemies] = shipType[i];
 				number_of_enemies++;
 			}
 		}
@@ -190,7 +193,7 @@ void tactics()
 
 	//char msg[100];
 	//sprintf_s(msg, "Im at %d %d", myX, myY);
-	//send_message("12345678", "23456789", msg);  // send my co-ordinates to myself 
+	//send_message("12345678", "23456789", msg);  // send my co-ordinates to myself
 
 	move_in_direction(left_right, up_down);
 }
@@ -377,20 +380,20 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	//sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  // Here we create our socket, which will be a UDP socket (SOCK_DGRAM).
 	//if (!sock)
-	//{	
-	//	printf("Socket creation failed!\n"); 
+	//{
+	//	printf("Socket creation failed!\n");
 	//}
 
 	sock_send = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  // Here we create our socket, which will be a UDP socket (SOCK_DGRAM).
 	if (!sock_send)
-	{	
-		printf("Socket creation failed!\n"); 
+	{
+		printf("Socket creation failed!\n");
 	}
 
 	sock_recv = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  // Here we create our socket, which will be a UDP socket (SOCK_DGRAM).
 	if (!sock_recv)
-	{	
-		printf("Socket creation failed!\n"); 
+	{
+		printf("Socket creation failed!\n");
 	}
 
 	memset(&sendto_addr, 0, sizeof(SOCKADDR_IN));
@@ -408,7 +411,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//	int ret = bind(sock_send, (SOCKADDR *)&receive_addr, sizeof(SOCKADDR));
 	if (ret)
 	{
-		printf("Bind failed! %d\n", WSAGetLastError());  
+		printf("Bind failed! %d\n", WSAGetLastError());
 	}
 
 	communicate_with_server();
@@ -424,4 +427,3 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	return 0;
 }
-
