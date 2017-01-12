@@ -4,6 +4,8 @@
 
 #pragma comment(lib, "wsock32.lib")
 
+typedef enum { false, true } bool;
+
 #define SHIPTYPE_BATTLESHIP "0"
 #define SHIPTYPE_FRIGATE "1"
 #define SHIPTYPE_SUBMARINE "2"
@@ -164,7 +166,7 @@ void tactics() {
 	}
 
 	//char msg[100];
-	//sprintf_s(msg, "Im at %d %d", myX, myY);
+	//sprintf(msg, "Im at %d %d", myX, myY);
 	//send_message("12345678", "23456789", msg);  // send my co-ordinates to myself
 
 	move_in_direction(left_right, up_down);
@@ -197,16 +199,16 @@ void communicate_with_server() {
 	int  rc;
 	char* p;
 
-	sprintf_s(buffer, "Register  %s,%s,%s,%s", STUDENT_NUMBER, STUDENT_FIRSTNAME, STUDENT_FAMILYNAME, MY_SHIP);
+	sprintf(buffer, "Register  %s,%s,%s,%s", STUDENT_NUMBER, STUDENT_FIRSTNAME, STUDENT_FAMILYNAME, MY_SHIP);
 	sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
 
 	while (true) {
 		if (!recvfrom(sock_recv, buffer, sizeof(buffer) - 1, 0, (SOCKADDR *) &receive_addr, &len) == SOCKET_ERROR) {
-			printf_s("recvfrom error = %d\n", WSAGetLastError());
+			printf("recvfrom error = %d\n", WSAGetLastError());
 			return;
 		}
 
-		p = ::inet_ntoa(receive_addr.sin_addr);
+		p = inet_ntoa(receive_addr.sin_addr);
 
 		if ((strcmp(IP_ADDRESS_SERVER, "127.0.0.1") != 0) && (strcmp(IP_ADDRESS_SERVER, p) != 0)) {
 			return;
@@ -262,30 +264,30 @@ void communicate_with_server() {
 		}
 
 		if (fire) {
-			sprintf_s(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, fireX, fireY);
+			sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, fireX, fireY);
 			sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
 			fire = false;
 		}
 
 		if (moveShip) {
-			sprintf_s(buffer, "Move %s,%d,%d", STUDENT_NUMBER, moveX, moveY);
+			sprintf(buffer, "Move %s,%d,%d", STUDENT_NUMBER, moveX, moveY);
 			rc = sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
 			moveShip = false;
 		}
 
 		if (setFlag) {
-			sprintf_s(buffer, "Flag %s,%d", STUDENT_NUMBER, new_flag);
+			sprintf(buffer, "Flag %s,%d", STUDENT_NUMBER, new_flag);
 			sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
 			setFlag = false;
 		}
 	}
 
-	printf_s("Student %s\n", STUDENT_NUMBER);
+	printf("Student %s\n", STUDENT_NUMBER);
 }
 
 void send_message(char* dest, char* source, char* msg) {
 	message = true;
-	sprintf_s(MsgBuffer, "Message %s,%s,%s,%s", STUDENT_NUMBER, dest, source, msg);
+	sprintf(MsgBuffer, "Message %s,%s,%s,%s", STUDENT_NUMBER, dest, source, msg);
 }
 
 void fire_at_ship(int X, int Y) {
