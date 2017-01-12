@@ -1,6 +1,3 @@
-// BattleshipBot.cpp : Defines the entry point for the console application.
-//
-
 #include <stdio.h>
 #include <winsock2.h>
 #include <math.h>
@@ -19,8 +16,8 @@
 #define IP_ADDRESS_SERVER "127.0.0.1"
 // #define IP_ADDRESS_SERVER "164.11.80.69"
 
-#define PORT_SEND 1924 // We define a port that we are going to use.
-#define PORT_RECEIVE 1925 // We define a port that we are going to use.
+#define PORT_SEND 1924
+#define PORT_RECEIVE 1925
 
 #define MAX_BUFFER_SIZE 500
 #define MAX_SHIPS 200
@@ -37,8 +34,8 @@
 SOCKADDR_IN sendto_addr;
 SOCKADDR_IN receive_addr;
 
-SOCKET sock_send;  // This is our socket, it is the handle to the IO address to read/write packets
-SOCKET sock_recv;  // This is our socket, it is the handle to the IO address to read/write packets
+SOCKET sock_send;
+SOCKET sock_recv;
 
 WSADATA data;
 
@@ -325,19 +322,14 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	//sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  // Here we create our socket, which will be a UDP socket (SOCK_DGRAM).
-	//if (!sock)
-	//{
-	//	printf("Socket creation failed!\n");
-	//}
-
-	sock_send = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  // Here we create our socket, which will be a UDP socket (SOCK_DGRAM).
+	// Here we create our sockets, which will be a UDP socket (SOCK_DGRAM).
+	sock_send = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (!sock_send) {
 		printf("Socket creation failed!\n");
 		return 0;
 	}
 
-	sock_recv = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  // Here we create our socket, which will be a UDP socket (SOCK_DGRAM).
+	sock_recv = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  /
 	if (!sock_recv) {
 		printf("Socket creation failed!\n");
 		return 0;
@@ -350,14 +342,12 @@ int main(int argc, char* argv[]) {
 
 	memset(&receive_addr, 0, sizeof(SOCKADDR_IN));
 	receive_addr.sin_family = AF_INET;
-	//	receive_addr.sin_addr.s_addr = inet_addr(IP_ADDRESS_SERVER);
 	receive_addr.sin_addr.s_addr = INADDR_ANY;
 	receive_addr.sin_port = htons(PORT_RECEIVE);
 
-	int ret = bind(sock_recv, (SOCKADDR *)&receive_addr, sizeof(SOCKADDR));
-	//	int ret = bind(sock_send, (SOCKADDR *)&receive_addr, sizeof(SOCKADDR));
-	if (ret) {
+	if (bind(sock_recv, (SOCKADDR *) &receive_addr, sizeof(SOCKADDR))) {
 		printf("Bind failed! %d\n", WSAGetLastError());
+		return 0;
 	}
 
 	communicate_with_server();
