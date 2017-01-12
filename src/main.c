@@ -155,7 +155,11 @@ void tactics() {
 				up_down = (enemies[0].y > me.y ? MOVE_DOWN : MOVE_UP) * MOVE_FAST;
 			}
 
-			fire_at_ship(enemies[0].x, enemies[0].y);
+			for (int i = 0; i < number_of_enemies; i++) {
+				if (enemies[i].distance <= 100) {
+					fire_at_ship(enemies[0].x, enemies[0].y);
+				}
+			}
 		}
 	}
 
