@@ -4,7 +4,7 @@
 
 #pragma comment(lib, "wsock32.lib")
 
-#define SHIPTYPE_BATTLESHIP	"0"
+#define SHIPTYPE_BATTLESHIP "0"
 #define SHIPTYPE_FRIGATE "1"
 #define SHIPTYPE_SUBMARINE "2"
 
