@@ -16,8 +16,8 @@
 #define STUDENT_FAMILYNAME	"Bloggs"
 #define MY_SHIP	SHIPTYPE_BATTLESHIP
 
-//#define IP_ADDRESS_SERVER	"127.0.0.1"
-#define IP_ADDRESS_SERVER "164.11.80.69"
+#define IP_ADDRESS_SERVER	"127.0.0.1"
+// #define IP_ADDRESS_SERVER "164.11.80.69"
 
 #define PORT_SEND	 1924 // We define a port that we are going to use.
 #define PORT_RECEIVE 1925 // We define a port that we are going to use.
