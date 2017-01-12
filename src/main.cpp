@@ -201,7 +201,7 @@ void communicate_with_server() {
 	sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
 
 	while (true) {
-		if (!recvfrom(sock_recv, buffer, sizeof(buffer)-1, 0, (SOCKADDR *)&receive_addr, &len) != SOCKET_ERROR) {
+		if (!recvfrom(sock_recv, buffer, sizeof(buffer) - 1, 0, (SOCKADDR *) &receive_addr, &len) == SOCKET_ERROR) {
 			printf_s("recvfrom error = %d\n", WSAGetLastError());
 			return;
 		}
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	sock_recv = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  /
+	sock_recv = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (!sock_recv) {
 		printf("Socket creation failed!\n");
 		return 0;
