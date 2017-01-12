@@ -1,4 +1,4 @@
-# Battleship - Computer and Network Systems Assignment 2
+# Battleship - CaNS Assignment 2
 A battleship client.
 
 ## How To (Compiling binary from source)
