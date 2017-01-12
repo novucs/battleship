@@ -48,21 +48,22 @@ char InputBuffer [MAX_BUFFER_SIZE];
  * Visible range is 200
  */
 
-int myX;
-int myY;
-int myHealth;
-int myFlag;
-int myType;
+struct ship {
+	int x;
+	int y;
+	int health;
+	int flag;
+	int type;
+	int distance;
+};
+
+struct ship me;
 
 int number_of_ships; // Number of ships visible to us
-int shipX[MAX_SHIPS]; // X locations of each ship within range
-int shipY[MAX_SHIPS]; // Y locations of each ship within range
-int shipHealth[MAX_SHIPS]; // Health of all visible ships
-int shipFlag[MAX_SHIPS]; // Flag of each ship within range
-int shipType[MAX_SHIPS]; // Type of each ship within range
+struct ship ships[MAX_SHIPS];
 
 bool message = false;
-char MsgBuffer [MAX_BUFFER_SIZE];
+char MsgBuffer[MAX_BUFFER_SIZE];
 
 bool fire = false;
 int fireX;
@@ -87,28 +88,16 @@ void set_new_flag(int newFlag);
 int up_down = MOVE_LEFT * MOVE_SLOW;
 int left_right = MOVE_UP * MOVE_FAST;
 
-int shipDistance[MAX_SHIPS];
-
 int number_of_friends;
-int friendX[MAX_SHIPS];
-int friendY[MAX_SHIPS];
-int friendHealth[MAX_SHIPS];
-int friendFlag[MAX_SHIPS];
-int friendDistance[MAX_SHIPS];
-int friendType[MAX_SHIPS];
+struct ship friends[MAX_SHIPS];
 
 int number_of_enemies;
-int enemyX[MAX_SHIPS];
-int enemyY[MAX_SHIPS];
-int enemyHealth[MAX_SHIPS];
-int enemyFlag[MAX_SHIPS];
-int enemyDistance[MAX_SHIPS];
-int enemyType[MAX_SHIPS];
+struct ship enemies[MAX_SHIPS];
 
-bool IsaFriend(int index) {
+bool is_friend(int index) {
 	bool rc = false;
 
-	if (shipFlag[index] == 123) {
+	if (ships[index].flag == 123) {
 		rc = true;  // I have just seen my friend 123
 	}
 
@@ -116,24 +105,25 @@ bool IsaFriend(int index) {
 }
 
 void tactics() {
-	if (myY > 900) {
+	if (me.y > 900) {
 		up_down = MOVE_DOWN * MOVE_SLOW;
 	}
 
-	if (myX < 200) {
+	if (me.x < 200) {
 		left_right = MOVE_RIGHT * MOVE_FAST;
 	}
 
-	if (myY < 100) {
+	if (me.y < 100) {
 		up_down = MOVE_UP * MOVE_FAST;
 	}
 
-	if (myX > 800) {
+	if (me.x > 800) {
 		left_right = MOVE_LEFT * MOVE_SLOW;
 	}
 
 	for (int i = 0; i < number_of_ships; i++) {
-		shipDistance[i] = (int) sqrt((double) ((shipX[i]-shipX[0]) * (shipX[i]-shipX[0]) + (shipY[i] - shipY[0]) * (shipY[i] - shipY[0])));
+		struct ship* ship = &ships[i];
+		ship->distance = (int) sqrt((double) (ship->x - me.x) * (ship->x - me.x) + (ship->y - me.y) * (ship->y - me.y));
 	}
 
 	number_of_friends = 0;
@@ -141,27 +131,19 @@ void tactics() {
 
 	if (number_of_ships > 1) {
 		for (int i = 1; i < number_of_ships; i++) {
-			if (IsaFriend(i)) {
-				friendX[number_of_friends] = shipX[i];
-				friendY[number_of_friends] = shipY[i];
-				friendHealth[number_of_friends] = shipHealth[i];
-				friendFlag[number_of_friends] = shipFlag[i];
-				friendDistance[number_of_friends] = shipDistance[i];
-				friendType[number_of_friends] = shipType[i];
+			struct ship ship = ships[i];
+
+			if (is_friend(i)) {
+				friends[number_of_friends] = ship;
 				number_of_friends++;
 			} else {
-				enemyX[number_of_enemies] = shipX[i];
-				enemyY[number_of_enemies] = shipY[i];
-				enemyHealth[number_of_enemies] = shipHealth[i];
-				enemyFlag[number_of_enemies] = shipFlag[i];
-				enemyDistance[number_of_enemies] = shipDistance[i];
-				enemyType[number_of_enemies] = shipType[i];
+				enemies[number_of_friends] = ship;
 				number_of_enemies++;
 			}
 		}
 
-		if (number_of_enemies > 0) {
-			fire_at_ship(enemyX[0], enemyY[0]);
+		for (int i = 0; i < number_of_enemies; i++) {
+			fire_at_ship(enemies[i].x, enemies[i].y);
 		}
 	}
 
@@ -172,8 +154,7 @@ void tactics() {
 	move_in_direction(left_right, up_down);
 }
 
-
-void messageReceived(char* msg) {
+void message_received(char* msg) {
 	int x;
 	int y;
 
@@ -183,7 +164,6 @@ void messageReceived(char* msg) {
 		printf("My friend is at %d %d\n", x, y);
 	}
 }
-
 
 /*************************************************************/
 /********* Your tactics code ends here ***********************/
@@ -215,7 +195,7 @@ void communicate_with_server() {
 		}
 
 		if (buffer[0] == 'M') {
-			messageReceived(buffer);
+			message_received(buffer);
 		} else {
 			i = 0;
 			j = 0;
@@ -224,18 +204,19 @@ void communicate_with_server() {
 
 			while ((!finished) && (i < 4096)) {
 				chr = buffer[i];
+				struct ship* ship = &ships[number_of_ships];
 
 				switch (chr) {
 					case '|':
 						InputBuffer[j] = '\0';
 						j = 0;
-						sscanf_s(InputBuffer, "%d,%d,%d,%d", &shipX[number_of_ships], &shipY[number_of_ships], &shipHealth[number_of_ships], &shipFlag[number_of_ships], &shipType[number_of_ships]);
+						sscanf(InputBuffer, "%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
 						number_of_ships++;
 						break;
 
 					case '\0':
 						InputBuffer[j] = '\0';
-						sscanf_s(InputBuffer, "%d,%d,%d,%d", &shipX[number_of_ships], &shipY[number_of_ships], &shipHealth[number_of_ships], &shipFlag[number_of_ships], &shipType[number_of_ships]);
+						sscanf(InputBuffer, "%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
 						number_of_ships++;
 						finished = true;
 						break;
@@ -249,11 +230,7 @@ void communicate_with_server() {
 				i++;
 			}
 
-			myX = shipX[0];
-			myY = shipY[0];
-			myHealth = shipHealth[0];
-			myFlag = shipFlag[0];
-			myType = shipType[0];
+			me = ships[0];
 		}
 
 		tactics();
