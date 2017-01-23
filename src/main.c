@@ -43,11 +43,6 @@ WSADATA data;
 
 char InputBuffer [MAX_BUFFER_SIZE];
 
-/*
- * Firing range is 100
- * Visible range is 200
- */
-
 struct ship {
 	int x;
 	int y;
@@ -85,6 +80,9 @@ void set_new_flag(int newFlag);
 /********* Your tactics code starts here *********************/
 /*************************************************************/
 
+int box_size = 300;
+int map_size = 500;
+
 int up_down = MOVE_UP * MOVE_FAST;
 int left_right = MOVE_LEFT * MOVE_FAST;
 
@@ -95,79 +93,137 @@ int number_of_enemies;
 struct ship enemies[MAX_SHIPS];
 
 bool is_friend(int index) {
-	bool rc = false;
+	// TODO: Create more secure friend system than flags.
 
-	if (ships[index].flag == 123) {
-		rc = true;  // I have just seen my friend 123
-	}
-
-	return rc;
+	// bool rc = false;
+	//
+	// if (ships[index].flag == 123) {
+	// 	rc = true;  // I have just seen my friend 123
+	// }
+	//
+	// return rc;
+	return false;
 }
 
+void first_move();
+void last_move();
+void calculate_distances();
+void search_relationships();
+void handle_enemies();
+
 void tactics() {
-	if (me.y > 900) {
-		up_down = MOVE_DOWN * MOVE_FAST;
-	}
 
-	if (me.x < 200) {
-		left_right = MOVE_RIGHT * MOVE_FAST;
-	}
+	// Move ship according to position on the map.
+	first_move();
 
-	if (me.y < 200) {
-		up_down = MOVE_UP * MOVE_FAST;
-	}
+	// Calculate the distance between ships.
+	calculate_distances();
 
-	if (me.x > 800) {
-		left_right = MOVE_LEFT * MOVE_FAST;
-	}
+	// Seperate friends from enemies.
+	search_relationships();
 
-	for (int i = 0; i < number_of_ships; i++) {
-		struct ship* ship = &ships[i];
-		ship->distance = (int) sqrt((double) (ship->x - me.x) * (ship->x - me.x) + (ship->y - me.y) * (ship->y - me.y));
-	}
+	// Handle all found enemies when found.
+	if (number_of_enemies > 0)
+		handle_enemies();
 
-	number_of_friends = 0;
-	number_of_enemies = 0;
-
-	if (number_of_ships > 1) {
-		for (int i = 1; i < number_of_ships; i++) {
-			struct ship ship = ships[i];
-
-			if (is_friend(i)) {
-				friends[number_of_friends] = ship;
-				number_of_friends++;
-			} else {
-				enemies[number_of_friends] = ship;
-				number_of_enemies++;
-			}
-		}
-
-		if (number_of_enemies > 0) {
-			// Persue enemy if only one is in sight.
-			if (number_of_enemies == 1) {
-				left_right = (enemies[0].x > me.x ? MOVE_RIGHT : MOVE_LEFT) * MOVE_FAST;
-				up_down = (enemies[0].y > me.y ? MOVE_UP : MOVE_DOWN) * MOVE_FAST;
-			}
-
-			// When more than one enemy can be seen, flee.
-			else {
-				left_right = (enemies[0].x > me.x ? MOVE_LEFT : MOVE_RIGHT) * MOVE_FAST;
-				up_down = (enemies[0].y > me.y ? MOVE_DOWN : MOVE_UP) * MOVE_FAST;
-			}
-
-			for (int i = 0; i < number_of_enemies; i++) {
-				if (enemies[i].distance <= 100) {
-					fire_at_ship(enemies[0].x, enemies[0].y);
-				}
-			}
-		}
-	}
+	// Ensure ship does not travel to the map center.
+	last_move();
 
 	//char msg[100];
 	//sprintf(msg, "Im at %d %d", myX, myY);
 	//send_message("12345678", "23456789", msg);  // send my co-ordinates to myself
 
 	move_in_direction(left_right, up_down);
+}
+
+void first_move() {
+	if (me.y > 950) {
+		up_down = MOVE_DOWN * MOVE_FAST;
+	}
+
+	if (me.y < 50) {
+		up_down = MOVE_UP * MOVE_FAST;
+	}
+
+	if (me.x < 50) {
+		left_right = MOVE_RIGHT * MOVE_FAST;
+	}
+
+	if (me.x > 950) {
+		left_right = MOVE_LEFT * MOVE_FAST;
+	}
+}
+
+void last_move() {
+	if (me.x < map_size + box_size && me.x > map_size - box_size &&
+			me.y < map_size + box_size && me.y > map_size - box_size) {
+		if (me.x > map_size) {
+			left_right = MOVE_RIGHT * MOVE_FAST;
+		} else {
+			left_right = MOVE_LEFT * MOVE_FAST;
+		}
+
+		if (me.y > map_size) {
+			up_down = MOVE_UP * MOVE_FAST;
+		} else {
+			up_down = MOVE_DOWN * MOVE_FAST;
+		}
+	}
+}
+
+void calculate_distances() {
+	for (int i = 0; i < number_of_ships; i++) {
+		struct ship* ship = &ships[i];
+		ship->distance = (int) sqrt((double) (ship->x - me.x) * (ship->x - me.x) + (ship->y - me.y) * (ship->y - me.y));
+	}
+}
+
+void search_relationships() {
+	// Reset the number of friend and enemy ships.
+	number_of_friends = 0;
+	number_of_enemies = 0;
+
+	// Do nothing more when unable to see other ships.
+	if (number_of_ships <= 1)
+		return;
+
+	for (int i = 1; i < number_of_ships; i++) {
+		struct ship ship = ships[i];
+
+		if (is_friend(i)) {
+			friends[number_of_friends] = ship;
+			number_of_friends++;
+		} else {
+			enemies[number_of_enemies] = ship;
+			number_of_enemies++;
+		}
+	}
+}
+
+void handle_enemies() {
+	// Locate the closest enemy.
+	struct ship target;
+	bool foundTarget = false;
+	int closestDistance = 0;
+
+	for (int i = 0; i < number_of_enemies; i++) {
+		if (!foundTarget || closestDistance > enemies[i].distance) {
+			target = enemies[i];
+			closestDistance = target.distance;
+			foundTarget = true;
+		}
+	}
+
+	// Persue the enemy.
+	left_right = (target.x > me.x ? MOVE_RIGHT : MOVE_LEFT) * MOVE_FAST;
+	up_down = (target.y > me.y ? MOVE_UP : MOVE_DOWN) * MOVE_FAST;
+
+	// Shoot enemy if within firing range.
+	if (closestDistance < 100)
+		fire_at_ship(target.x, target.y);
+
+	// Use the target ship flag.
+	me.flag = target.flag;
 }
 
 void message_received(char* msg) {
