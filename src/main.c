@@ -79,6 +79,31 @@ void set_new_flag(int newFlag);
 /*************************************************************/
 /********* Your tactics code starts here *********************/
 /*************************************************************/
+char *key = "JKXCFxsR7pG4CovkfhwBfWHFFqxbxhUaia1jwHsO \
+						 B72hImzDHw2J8IakZCc6BHzyhdvkxDxBpjr60Jar \
+						 3LqVOJN8tXCHYJSB6j9ToT8cdq7McjDTnohmiOSv \
+						 9Q9qLa8lVPkTnYMF1NdUuYDozObbDKtX1qoyKzez \
+						 n8aCLLbRy8kKGimBF7co9HKcpfdbVSTePAxDAZ6P \
+						 1xwE3UbBYf8z5DJY7wevXjDAKqcPaLCkvG5INHwQ \
+						 3naPbov5fNgrHkWHxjU4V1EkYIWiseQMTU1XrgEW \
+						 vd7Sd317oVRQ8XbDzOPieXYLZbsw1p4gO7xQzpqj \
+						 1myMpMa3gDCStUKKF1ihwQQOFRT4srnMIbEi9O5R \
+						 Ok2UKZ1MtmsTvrOi6kPTDIVcjBIbQyxxarTQoXEn \
+						 jyNmjDe81dp4czzRjA1A5FkkN9dvX7gYYB6T7coB \
+						 jdTx6X4gJmD4WtjjafGY1gnZmBlLsDIL54t3op4S \
+						 6utazo8brp48AuHrEfzvjdg4VIi2DT5x4YsE2XLb \
+						 Ktw9QVWVGE6SZR9n8LjDJLXrqvpI6OPc6JkDDbDl \
+						 kHBpj8KVYgJ27p6z1bgjnNbplJLLbhigQFf7uFkH \
+						 b1U58J3Gcznv2jFuSKZb5dajVVrdIgYzkyJ18hbE \
+						 ip8n1vvyi8QmHp5RJnGRZPFSmFR9fwqhuhjc2JqH \
+						 zaQYvcNAGa3MDMvT9uWgCv3tCNFku4A5BQVe9EiM \
+						 SJDl9fmQcB3aO5rZNyzK5cOmNj1gGJNxJSKcRFII \
+						 GBxQZOvmQ5ZRVMcrYXKCmykRQD0ZOFQjqA2LO5Ym \
+						 bSyebN4AUexy2mYMxi1S1PV1IvAZd9ErMELFM2Yl \
+						 6qMCJ65SqEomDlcykAUatLtTqSxcNwh2KRX1TXdI \
+						 1UoaV5eF3QcFL3mh94IAUJkKfHYuR1YgvKqGyYC1 \
+						 fYqAgtEro6ioiM8jFJwzx8vsAvURQecC1Wj195kW \
+						 wXSOfinLBGLZi4jm3ytrVn3Nzk23i31d34LcPMFm";
 
 int box_size = 300;
 int map_size = 500;
@@ -129,9 +154,9 @@ void tactics() {
 	// Ensure ship does not travel to the map center.
 	last_move();
 
-	//char msg[100];
-	//sprintf(msg, "Im at %d %d", myX, myY);
-	//send_message("12345678", "23456789", msg);  // send my co-ordinates to myself
+	char msg[100];
+	sprintf(msg, "%d %d", me.x, me.y);
+	send_message("12345678", "23456789", msg);  // send my co-ordinates to myself
 
 	move_in_direction(left_right, up_down);
 }
@@ -230,11 +255,19 @@ void message_received(char* msg) {
 	int x;
 	int y;
 
-	printf("%s\n", msg);
+	sscanf_s(msg, "Message %d, %d, %s", &x, &y, MsgBuffer);
+	xor_encrypt(MsgBuffer);
+	// printf("%s\n", MsgBuffer);
 
-	if (sscanf_s(msg, "Message 12345678, 23456789, Im at %d %d", &x, &y) == 2) {
+	if (sscanf_s(MsgBuffer, "%d %d", &x, &y) == 2) {
 		printf("My friend is at %d %d\n", x, y);
 	}
+}
+
+void xor_encrypt(char *msg) {
+  for (int i = 0; i < strlen(msg); i++) {
+    msg[i] ^= key[i];
+  }
 }
 
 /*************************************************************/
@@ -313,8 +346,10 @@ void communicate_with_server() {
 		}
 
 		if (fire) {
-			sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, fireX, fireY);
-			sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
+			for (int i = 0; i < 2; i++) {
+				sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, fireX, fireY);
+				sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
+			}
 			fire = false;
 		}
 
@@ -336,6 +371,7 @@ void communicate_with_server() {
 
 void send_message(char* dest, char* source, char* msg) {
 	message = true;
+	xor_encrypt(msg);
 	sprintf(MsgBuffer, "Message %s,%s,%s,%s", STUDENT_NUMBER, dest, source, msg);
 }
 
