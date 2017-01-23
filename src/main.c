@@ -80,30 +80,30 @@ void set_new_flag(int newFlag);
 /********* Your tactics code starts here *********************/
 /*************************************************************/
 char *key = "JKXCFxsR7pG4CovkfhwBfWHFFqxbxhUaia1jwHsO \
-						 B72hImzDHw2J8IakZCc6BHzyhdvkxDxBpjr60Jar \
-						 3LqVOJN8tXCHYJSB6j9ToT8cdq7McjDTnohmiOSv \
-						 9Q9qLa8lVPkTnYMF1NdUuYDozObbDKtX1qoyKzez \
-						 n8aCLLbRy8kKGimBF7co9HKcpfdbVSTePAxDAZ6P \
-						 1xwE3UbBYf8z5DJY7wevXjDAKqcPaLCkvG5INHwQ \
-						 3naPbov5fNgrHkWHxjU4V1EkYIWiseQMTU1XrgEW \
-						 vd7Sd317oVRQ8XbDzOPieXYLZbsw1p4gO7xQzpqj \
-						 1myMpMa3gDCStUKKF1ihwQQOFRT4srnMIbEi9O5R \
-						 Ok2UKZ1MtmsTvrOi6kPTDIVcjBIbQyxxarTQoXEn \
-						 jyNmjDe81dp4czzRjA1A5FkkN9dvX7gYYB6T7coB \
-						 jdTx6X4gJmD4WtjjafGY1gnZmBlLsDIL54t3op4S \
-						 6utazo8brp48AuHrEfzvjdg4VIi2DT5x4YsE2XLb \
-						 Ktw9QVWVGE6SZR9n8LjDJLXrqvpI6OPc6JkDDbDl \
-						 kHBpj8KVYgJ27p6z1bgjnNbplJLLbhigQFf7uFkH \
-						 b1U58J3Gcznv2jFuSKZb5dajVVrdIgYzkyJ18hbE \
-						 ip8n1vvyi8QmHp5RJnGRZPFSmFR9fwqhuhjc2JqH \
-						 zaQYvcNAGa3MDMvT9uWgCv3tCNFku4A5BQVe9EiM \
-						 SJDl9fmQcB3aO5rZNyzK5cOmNj1gGJNxJSKcRFII \
-						 GBxQZOvmQ5ZRVMcrYXKCmykRQD0ZOFQjqA2LO5Ym \
-						 bSyebN4AUexy2mYMxi1S1PV1IvAZd9ErMELFM2Yl \
-						 6qMCJ65SqEomDlcykAUatLtTqSxcNwh2KRX1TXdI \
-						 1UoaV5eF3QcFL3mh94IAUJkKfHYuR1YgvKqGyYC1 \
-						 fYqAgtEro6ioiM8jFJwzx8vsAvURQecC1Wj195kW \
-						 wXSOfinLBGLZi4jm3ytrVn3Nzk23i31d34LcPMFm";
+	B72hImzDHw2J8IakZCc6BHzyhdvkxDxBpjr60Jar \
+	3LqVOJN8tXCHYJSB6j9ToT8cdq7McjDTnohmiOSv \
+	9Q9qLa8lVPkTnYMF1NdUuYDozObbDKtX1qoyKzez \
+	n8aCLLbRy8kKGimBF7co9HKcpfdbVSTePAxDAZ6P \
+	1xwE3UbBYf8z5DJY7wevXjDAKqcPaLCkvG5INHwQ \
+	3naPbov5fNgrHkWHxjU4V1EkYIWiseQMTU1XrgEW \
+	vd7Sd317oVRQ8XbDzOPieXYLZbsw1p4gO7xQzpqj \
+	1myMpMa3gDCStUKKF1ihwQQOFRT4srnMIbEi9O5R \
+	Ok2UKZ1MtmsTvrOi6kPTDIVcjBIbQyxxarTQoXEn \
+	jyNmjDe81dp4czzRjA1A5FkkN9dvX7gYYB6T7coB \
+	jdTx6X4gJmD4WtjjafGY1gnZmBlLsDIL54t3op4S \
+	6utazo8brp48AuHrEfzvjdg4VIi2DT5x4YsE2XLb \
+	Ktw9QVWVGE6SZR9n8LjDJLXrqvpI6OPc6JkDDbDl \
+	kHBpj8KVYgJ27p6z1bgjnNbplJLLbhigQFf7uFkH \
+	b1U58J3Gcznv2jFuSKZb5dajVVrdIgYzkyJ18hbE \
+	ip8n1vvyi8QmHp5RJnGRZPFSmFR9fwqhuhjc2JqH \
+	zaQYvcNAGa3MDMvT9uWgCv3tCNFku4A5BQVe9EiM \
+	SJDl9fmQcB3aO5rZNyzK5cOmNj1gGJNxJSKcRFII \
+	GBxQZOvmQ5ZRVMcrYXKCmykRQD0ZOFQjqA2LO5Ym \
+	bSyebN4AUexy2mYMxi1S1PV1IvAZd9ErMELFM2Yl \
+	6qMCJ65SqEomDlcykAUatLtTqSxcNwh2KRX1TXdI \
+	1UoaV5eF3QcFL3mh94IAUJkKfHYuR1YgvKqGyYC1 \
+	fYqAgtEro6ioiM8jFJwzx8vsAvURQecC1Wj195kW \
+	wXSOfinLBGLZi4jm3ytrVn3Nzk23i31d34LcPMFm";
 
 int box_size = 300;
 int map_size = 500;
