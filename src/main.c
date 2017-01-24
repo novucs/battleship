@@ -315,13 +315,13 @@ void communicate_with_server() {
 					case '|':
 						InputBuffer[j] = '\0';
 						j = 0;
-						sscanf(InputBuffer, "%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
+						sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
 						number_of_ships++;
 						break;
 
 					case '\0':
 						InputBuffer[j] = '\0';
-						sscanf(InputBuffer, "%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
+						sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
 						number_of_ships++;
 						finished = true;
 						break;
