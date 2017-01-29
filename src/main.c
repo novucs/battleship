@@ -10,13 +10,13 @@ typedef enum { false, true } bool;
 #define SHIPTYPE_FRIGATE "1"
 #define SHIPTYPE_SUBMARINE "2"
 
-#define STUDENT_NUMBER "12345678"
-#define STUDENT_FIRSTNAME "Fred"
-#define STUDENT_FAMILYNAME "Bloggs"
+#define STUDENT_NUMBER "16002374"
+#define STUDENT_FIRSTNAME "Billy"
+#define STUDENT_FAMILYNAME "Jenkins"
 #define MY_SHIP SHIPTYPE_BATTLESHIP
 
-#define IP_ADDRESS_SERVER "127.0.0.1"
-// #define IP_ADDRESS_SERVER "164.11.80.69"
+//#define IP_ADDRESS_SERVER "127.0.0.1"
+#define IP_ADDRESS_SERVER "164.11.80.69"
 
 #define PORT_SEND 1924
 #define PORT_RECEIVE 1925
@@ -41,7 +41,7 @@ SOCKET sock_recv;
 
 WSADATA data;
 
-char InputBuffer [MAX_BUFFER_SIZE];
+char InputBuffer[MAX_BUFFER_SIZE];
 
 struct ship {
 	int x;
@@ -117,24 +117,13 @@ struct ship friends[MAX_SHIPS];
 int number_of_enemies;
 struct ship enemies[MAX_SHIPS];
 
-bool is_friend(int index) {
-	// TODO: Create more secure friend system than flags.
-
-	// bool rc = false;
-	//
-	// if (ships[index].flag == 123) {
-	// 	rc = true;  // I have just seen my friend 123
-	// }
-	//
-	// return rc;
-	return false;
-}
-
 void first_move();
 void last_move();
 void calculate_distances();
 void search_relationships();
 void handle_enemies();
+void xor_encrypt(char *msg);
+bool is_friend(int friendId);
 
 void tactics() {
 
@@ -155,8 +144,8 @@ void tactics() {
 	last_move();
 
 	char msg[100];
-	sprintf(msg, "%d %d", me.x, me.y);
-	send_message("12345678", "23456789", msg);  // send my co-ordinates to myself
+	sprintf(msg, "%d %d", me.x + left_right, me.y + up_down);
+	send_message("16002374", "16002374", msg);  // send my co-ordinates to myself
 
 	move_in_direction(left_right, up_down);
 }
@@ -181,16 +170,18 @@ void first_move() {
 
 void last_move() {
 	if (me.x < map_size + box_size && me.x > map_size - box_size &&
-			me.y < map_size + box_size && me.y > map_size - box_size) {
+		me.y < map_size + box_size && me.y > map_size - box_size) {
 		if (me.x > map_size) {
 			left_right = MOVE_RIGHT * MOVE_FAST;
-		} else {
+		}
+		else {
 			left_right = MOVE_LEFT * MOVE_FAST;
 		}
 
 		if (me.y > map_size) {
 			up_down = MOVE_UP * MOVE_FAST;
-		} else {
+		}
+		else {
 			up_down = MOVE_DOWN * MOVE_FAST;
 		}
 	}
@@ -199,7 +190,7 @@ void last_move() {
 void calculate_distances() {
 	for (int i = 0; i < number_of_ships; i++) {
 		struct ship* ship = &ships[i];
-		ship->distance = (int) sqrt((double) (ship->x - me.x) * (ship->x - me.x) + (ship->y - me.y) * (ship->y - me.y));
+		ship->distance = (int)sqrt((double)(ship->x - me.x) * (ship->x - me.x) + (ship->y - me.y) * (ship->y - me.y));
 	}
 }
 
@@ -218,7 +209,8 @@ void search_relationships() {
 		if (is_friend(i)) {
 			friends[number_of_friends] = ship;
 			number_of_friends++;
-		} else {
+		}
+		else {
 			enemies[number_of_enemies] = ship;
 			number_of_enemies++;
 		}
@@ -251,23 +243,48 @@ void handle_enemies() {
 	me.flag = target.flag;
 }
 
+// 16002374 = will
+// 16000587 = josh
+// 15019771 = jake
+// 16014980 = gareth
+
+int friendIds[] = {16002374, 16000587, 15019771, 16014980};
+
+#define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])
+
 void message_received(char* msg) {
+	int idFrom;
+	int idTo;
 	int x;
 	int y;
 
-	sscanf_s(msg, "Message %d, %d, %s", &x, &y, MsgBuffer);
-	xor_encrypt(MsgBuffer);
-	// printf("%s\n", MsgBuffer);
+	if (sscanf(msg, "Message %d, %d, %500[^\n]", &idTo, &idFrom, MsgBuffer) != 3) {
+		return;
+	}
 
-	if (sscanf_s(MsgBuffer, "%d %d", &x, &y) == 2) {
-		printf("My friend is at %d %d\n", x, y);
+	xor_encrypt(MsgBuffer);
+
+	if (is_friend(idFrom)) {
+		if (sscanf(MsgBuffer, "%d %d", &x, &y) == 2) {
+			printf("Coords %d %d %d %d\n", x, y, me.x, me.y);
+		}
 	}
 }
 
+bool is_friend(int friendId) {
+	for (int i = 0; i < ARRAY_SIZE(friendIds); i++) {
+		if (friendIds[i] == friendId) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void xor_encrypt(char *msg) {
-  for (int i = 0; i < strlen(msg); i++) {
-    msg[i] ^= key[i];
-  }
+	for (int i = 0; i < strlen(msg); i++) {
+		msg[i] ^= key[i % ARRAY_SIZE(key)];
+	}
 }
 
 /*************************************************************/
@@ -288,7 +305,7 @@ void communicate_with_server() {
 	sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
 
 	while (true) {
-		if (!recvfrom(sock_recv, buffer, sizeof(buffer) - 1, 0, (SOCKADDR *) &receive_addr, &len) == SOCKET_ERROR) {
+		if (!recvfrom(sock_recv, buffer, sizeof(buffer) - 1, 0, (SOCKADDR *)&receive_addr, &len) == SOCKET_ERROR) {
 			printf("recvfrom error = %d\n", WSAGetLastError());
 			return;
 		}
@@ -301,7 +318,8 @@ void communicate_with_server() {
 
 		if (buffer[0] == 'M') {
 			message_received(buffer);
-		} else {
+		}
+		else {
 			i = 0;
 			j = 0;
 			finished = false;
@@ -312,24 +330,24 @@ void communicate_with_server() {
 				struct ship* ship = &ships[number_of_ships];
 
 				switch (chr) {
-					case '|':
-						InputBuffer[j] = '\0';
-						j = 0;
-						sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
-						number_of_ships++;
-						break;
+				case '|':
+					InputBuffer[j] = '\0';
+					j = 0;
+					sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
+					number_of_ships++;
+					break;
 
-					case '\0':
-						InputBuffer[j] = '\0';
-						sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
-						number_of_ships++;
-						finished = true;
-						break;
+				case '\0':
+					InputBuffer[j] = '\0';
+					sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
+					number_of_ships++;
+					finished = true;
+					break;
 
-					default:
-						InputBuffer[j] = chr;
-						j++;
-						break;
+				default:
+					InputBuffer[j] = chr;
+					j++;
+					break;
 				}
 
 				i++;
@@ -383,9 +401,9 @@ void fire_at_ship(int x, int y) {
 
 void move_in_direction(int x, int y) {
 	if (x < -2) x = -2;
-	if (x >  2) x =  2;
+	if (x >  2) x = 2;
 	if (y < -2) y = -2;
-	if (y >  2) y =  2;
+	if (y >  2) y = 2;
 
 	moveShip = true;
 	moveX = x;
@@ -432,7 +450,7 @@ int main(int argc, char* argv[]) {
 	receive_addr.sin_addr.s_addr = INADDR_ANY;
 	receive_addr.sin_port = htons(PORT_RECEIVE);
 
-	if (bind(sock_recv, (SOCKADDR *) &receive_addr, sizeof(SOCKADDR))) {
+	if (bind(sock_recv, (SOCKADDR *)&receive_addr, sizeof(SOCKADDR))) {
 		printf("Bind failed! %d\n", WSAGetLastError());
 		return 0;
 	}
