@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <winsock2.h>
 #include <math.h>
+#include <time.h>
+#include <iostream>
+#include <vector>
+#include <unordered_set>
 
 #pragma comment(lib, "wsock32.lib")
-
-typedef enum { false, true } bool;
 
 #define SHIPTYPE_BATTLESHIP "0"
 #define SHIPTYPE_FRIGATE "1"
@@ -13,10 +15,10 @@ typedef enum { false, true } bool;
 #define STUDENT_NUMBER "16002374"
 #define STUDENT_FIRSTNAME "Billy"
 #define STUDENT_FAMILYNAME "Jenkins"
-#define MY_SHIP SHIPTYPE_BATTLESHIP
+#define MY_SHIP SHIPTYPE_SUBMARINE
 
-//#define IP_ADDRESS_SERVER "127.0.0.1"
-#define IP_ADDRESS_SERVER "164.11.80.69"
+#define IP_ADDRESS_SERVER "127.0.0.1"
+// #define IP_ADDRESS_SERVER "164.11.80.69"
 
 #define PORT_SEND 1924
 #define PORT_RECEIVE 1925
@@ -43,19 +45,35 @@ WSADATA data;
 
 char InputBuffer[MAX_BUFFER_SIZE];
 
-struct ship {
-	int x;
-	int y;
-	int health;
-	int flag;
-	int type;
-	int distance;
+class Ship {
+	public:
+		int x;
+		int y;
+		int health;
+		int flag;
+		int type;
+		int distance;
+
+		bool operator== (Ship &other) {
+			if (this == &other) return true;
+			return x == other.x &&
+				y == other.y &&
+				health == other.health &&
+				flag == other.flag &&
+				type == other.type;
+		}
 };
 
-struct ship me;
+Ship me;
+std::vector<Ship> ships;
+std::vector<Ship> friends;
+std::vector<Ship> enemies;
 
-int number_of_ships; // Number of ships visible to us
-struct ship ships[MAX_SHIPS];
+// 16002374 = will
+// 16000587 = josh
+// 15019771 = jake
+// 16014980 = gareth
+std::unordered_set<int> friendIds = {16002374, 16000587, 15019771, 16014980};
 
 bool message = false;
 char MsgBuffer[MAX_BUFFER_SIZE];
@@ -79,7 +97,7 @@ void set_new_flag(int newFlag);
 /*************************************************************/
 /********* Your tactics code starts here *********************/
 /*************************************************************/
-char *key = "JKXCFxsR7pG4CovkfhwBfWHFFqxbxhUaia1jwHsO \
+std::string key = "JKXCFxsR7pG4CovkfhwBfWHFFqxbxhUaia1jwHsO \
 	B72hImzDHw2J8IakZCc6BHzyhdvkxDxBpjr60Jar \
 	3LqVOJN8tXCHYJSB6j9ToT8cdq7McjDTnohmiOSv \
 	9Q9qLa8lVPkTnYMF1NdUuYDozObbDKtX1qoyKzez \
@@ -111,21 +129,24 @@ int map_size = 500;
 int up_down = MOVE_UP * MOVE_FAST;
 int left_right = MOVE_LEFT * MOVE_FAST;
 
-int number_of_friends;
-struct ship friends[MAX_SHIPS];
-
-int number_of_enemies;
-struct ship enemies[MAX_SHIPS];
-
 void first_move();
 void last_move();
 void calculate_distances();
 void search_relationships();
 void handle_enemies();
 void xor_encrypt(char *msg);
-bool is_friend(int friendId);
+bool is_friend(Ship ship);
+
+int avoidX;
+int avoidY;
+time_t lastAvoidSet = 0;
+
+int targetX;
+int targetY;
+time_t lastTargetSet = 0;
 
 void tactics() {
+	time_t now = time(0);
 
 	// Move ship according to position on the map.
 	first_move();
@@ -136,17 +157,120 @@ void tactics() {
 	// Seperate friends from enemies.
 	search_relationships();
 
-	// Handle all found enemies when found.
-	if (number_of_enemies > 0)
-		handle_enemies();
+	Ship target;
+	bool foundTarget;
 
-	// Ensure ship does not travel to the map center.
-	last_move();
+	for (Ship enemy : enemies) {
+		if (!foundTarget ||
+				(enemy.distance < target.distance) &&
+				(enemy.type != 1 && target.type == 1) &&
+				(enemy.type == 0 && target.type != 0) &&
+				(enemy.health < target.health)) {
+			target = enemy;
+			foundTarget = true;
+			targetX = target.x;
+			targetY = target.y;
+			lastTargetSet = 0;
+		}
+	}
 
-	char msg[100];
-	sprintf(msg, "%d %d", me.x + left_right, me.y + up_down);
-	send_message("16002374", "16002374", msg);  // send my co-ordinates to myself
+	// Persue the enemy.
+	if (foundTarget) {
+		left_right = (target.x > me.x ? MOVE_RIGHT : MOVE_LEFT) * MOVE_FAST;
+		up_down = (target.y > me.y ? MOVE_UP : MOVE_DOWN) * MOVE_FAST;
 
+		// Shoot enemy.
+		fire_at_ship(target.x, target.y);
+
+		// Use the target ship flag.
+		set_new_flag(target.flag);
+	} else if (now < lastTargetSet - 3) {
+		left_right = (targetX > me.x ? MOVE_RIGHT : MOVE_LEFT) * MOVE_FAST;
+		up_down = (targetY > me.y ? MOVE_UP : MOVE_DOWN) * MOVE_FAST;
+	}
+
+	bool packFound = false;
+
+	for (Ship enemy1 : enemies) {
+
+		int enemiesInRange = 0;
+		int totalX = enemy1.x;
+		int totalY = enemy1.y;
+
+		for (Ship enemy2 : enemies) {
+
+			if (enemy1 == enemy2) {
+				continue;
+			}
+
+			int x = enemy1.x - enemy2.x;
+			int y = enemy1.y - enemy2.y;
+			int distance = (int) sqrt(x*x + y*y);
+
+			if (distance < 15) {
+				enemiesInRange++;
+				totalX += enemy2.x;
+				totalY += enemy2.y;
+			}
+		}
+
+		if (enemiesInRange > 1) {
+			set_new_flag(enemy1.flag);
+
+			int meanX = totalX / enemiesInRange;
+			int meanY = totalY / enemiesInRange;
+
+			if (packFound) {
+				avoidX += meanX;
+				avoidX /= 2;
+
+				avoidY += meanY;
+				avoidY /= 2;
+			} else {
+				avoidX = meanX;
+				avoidY = meanY;
+				lastAvoidSet = now;
+			}
+		}
+	}
+
+	for (Ship enemy : enemies) {
+		if (enemy.type == 1 ||
+				(enemy.type == 2 && (enemy.health - 1) > me.health) ||
+				(enemy.type == 1 && enemy.distance <= 10)) {
+			if (now < lastAvoidSet + 4) {
+				avoidX += enemy.x;
+				avoidX /= 2;
+
+				avoidY += enemy.y;
+				avoidY /= 2;
+			} else {
+				avoidX = enemy.x;
+				avoidY = enemy.y;
+				lastAvoidSet = now;
+			}
+		}
+	}
+
+	// Do all other sorts of super cool stuff i guess maybe? idk
+
+	if (now < lastAvoidSet + 4) {
+		left_right = (avoidX > me.x ? MOVE_LEFT : MOVE_RIGHT) * MOVE_FAST;
+		up_down = (avoidY > me.y ? MOVE_DOWN : MOVE_UP) * MOVE_FAST;
+	}
+
+	//
+	// // Handle all found enemies when found.
+	// if (!enemies.empty())
+	// 	handle_enemies();
+	//
+	// // Ensure ship does not travel to the map center.
+	// last_move();
+	//
+	// char msg[100];
+	// sprintf(msg, "%d %d", me.x + left_right, me.y + up_down);
+	// send_message("16002374", "16002374", msg);  // send my co-ordinates to myself
+	//
 	move_in_direction(left_right, up_down);
 }
 
@@ -166,66 +290,57 @@ void first_move() {
 	if (me.x > 950) {
 		left_right = MOVE_LEFT * MOVE_FAST;
 	}
-}
 
-void last_move() {
 	if (me.x < map_size + box_size && me.x > map_size - box_size &&
 		me.y < map_size + box_size && me.y > map_size - box_size) {
 		if (me.x > map_size) {
 			left_right = MOVE_RIGHT * MOVE_FAST;
-		}
-		else {
+		} else {
 			left_right = MOVE_LEFT * MOVE_FAST;
 		}
 
 		if (me.y > map_size) {
 			up_down = MOVE_UP * MOVE_FAST;
-		}
-		else {
+		} else {
 			up_down = MOVE_DOWN * MOVE_FAST;
 		}
 	}
 }
 
 void calculate_distances() {
-	for (int i = 0; i < number_of_ships; i++) {
-		struct ship* ship = &ships[i];
-		ship->distance = (int)sqrt((double)(ship->x - me.x) * (ship->x - me.x) + (ship->y - me.y) * (ship->y - me.y));
+	int x, y;
+
+	for (Ship ship : ships) {
+		x = ship.x - me.x;
+		y = ship.y - me.y;
+		ship.distance = (int) sqrt(x*x + y*y);
 	}
 }
 
 void search_relationships() {
-	// Reset the number of friend and enemy ships.
-	number_of_friends = 0;
-	number_of_enemies = 0;
+	enemies.clear();
+	friends.clear();
+	for (Ship ship : ships) {
+		if (ship == me)
+			continue;
 
-	// Do nothing more when unable to see other ships.
-	if (number_of_ships <= 1)
-		return;
-
-	for (int i = 1; i < number_of_ships; i++) {
-		struct ship ship = ships[i];
-
-		if (is_friend(i)) {
-			friends[number_of_friends] = ship;
-			number_of_friends++;
-		}
-		else {
-			enemies[number_of_enemies] = ship;
-			number_of_enemies++;
+		if (is_friend(ship)) {
+			friends.push_back(ship);
+		} else {
+			enemies.push_back(ship);
 		}
 	}
 }
 
 void handle_enemies() {
 	// Locate the closest enemy.
-	struct ship target;
+	Ship target;
 	bool foundTarget = false;
 	int closestDistance = 0;
 
-	for (int i = 0; i < number_of_enemies; i++) {
-		if (!foundTarget || closestDistance > enemies[i].distance) {
-			target = enemies[i];
+	for (Ship enemy : enemies) {
+		if (!foundTarget || closestDistance > enemy.distance) {
+			target = enemy;
 			closestDistance = target.distance;
 			foundTarget = true;
 		}
@@ -243,15 +358,6 @@ void handle_enemies() {
 	me.flag = target.flag;
 }
 
-// 16002374 = will
-// 16000587 = josh
-// 15019771 = jake
-// 16014980 = gareth
-
-int friendIds[] = {16002374, 16000587, 15019771, 16014980};
-
-#define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])
-
 void message_received(char* msg) {
 	int idFrom;
 	int idTo;
@@ -264,26 +370,21 @@ void message_received(char* msg) {
 
 	xor_encrypt(MsgBuffer);
 
-	if (is_friend(idFrom)) {
+	if (friendIds.count(idFrom)) {
 		if (sscanf(MsgBuffer, "%d %d", &x, &y) == 2) {
 			printf("Coords %d %d %d %d\n", x, y, me.x, me.y);
 		}
 	}
 }
 
-bool is_friend(int friendId) {
-	for (int i = 0; i < ARRAY_SIZE(friendIds); i++) {
-		if (friendIds[i] == friendId) {
-			return true;
-		}
-	}
-
+bool is_friend(Ship ship) {
+	// TODO: Implement friend finding algorithm.
 	return false;
 }
 
 void xor_encrypt(char *msg) {
 	for (int i = 0; i < strlen(msg); i++) {
-		msg[i] ^= key[i % ARRAY_SIZE(key)];
+		msg[i] ^= key[i % key.length()];
 	}
 }
 
@@ -323,25 +424,25 @@ void communicate_with_server() {
 			i = 0;
 			j = 0;
 			finished = false;
-			number_of_ships = 0;
+			ships.clear();
 
 			while ((!finished) && (i < 4096)) {
 				chr = buffer[i];
-				struct ship* ship = &ships[number_of_ships];
+				Ship ship;
 
 				switch (chr) {
 				case '|':
 					InputBuffer[j] = '\0';
 					j = 0;
-					sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
-					number_of_ships++;
+					sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship.x), &(ship.y), &(ship.health), &(ship.flag), &(ship.type));
+					ships.push_back(ship);
 					break;
 
 				case '\0':
 					InputBuffer[j] = '\0';
-					sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship->x), &(ship->y), &(ship->health), &(ship->flag), &(ship->type));
-					number_of_ships++;
+					sscanf(InputBuffer, "%d,%d,%d,%d,%d", &(ship.x), &(ship.y), &(ship.health), &(ship.flag), &(ship.type));
 					finished = true;
+					ships.push_back(ship);
 					break;
 
 				default:
@@ -353,7 +454,7 @@ void communicate_with_server() {
 				i++;
 			}
 
-			me = ships[0];
+			me = ships.at(0);
 		}
 
 		tactics();
@@ -364,10 +465,8 @@ void communicate_with_server() {
 		}
 
 		if (fire) {
-			for (int i = 0; i < 2; i++) {
-				sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, fireX, fireY);
-				sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
-			}
+			sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, fireX, fireY);
+			sendto(sock_send, buffer, strlen(buffer), 0, (SOCKADDR *)&sendto_addr, sizeof(SOCKADDR));
 			fire = false;
 		}
 
