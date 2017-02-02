@@ -35,25 +35,25 @@ void tactics() {
 }
 
 void read_ship(char* message) {
-  int x;
-  int y;
-  int health;
-  int flag;
-  int type = 0;
+	int x;
+	int y;
+	int health;
+	int flag;
+	int type = 0;
 
 	sscanf(message, "%d,%d,%d,%d,%d", &x, &y, &health, &flag, &type);
 
-  ship* created = new ship(x, y, health, flag, type);
-  ships.push_back(created);
+	ship* created = new ship(x, y, health, flag, type);
+	ships.push_back(created);
 }
 
 void read_ships(char* message) {
 	ships.clear();
 
-  char buffer[512];
+	char buffer[512];
 	int i = 0;
 	int j = 0;
-  int length = strlen(message) + 1;
+	int length = strlen(message) + 1;
 	bool finished = false;
 
 	while (!finished && i < length) {
@@ -82,20 +82,20 @@ void read_ships(char* message) {
 }
 
 void send(connection connection, char* message) {
-  SOCKADDR_IN address = connection.get_address();
+	SOCKADDR_IN address = connection.get_address();
 	sendto(connection.get_socket(), message, strlen(message), 0, (SOCKADDR *) &address, sizeof(SOCKADDR));
 }
 
 bool receive(connection connection, char* buffer, int size) {
 	int len = sizeof(SOCKADDR);
-  SOCKADDR_IN address = connection.get_address();
+	SOCKADDR_IN address = connection.get_address();
 	return recvfrom(connection.get_socket(), buffer, size - 1, 0, (SOCKADDR *) &address, &len) != SOCKET_ERROR;
 }
 
 void run() {
 	char buffer[4096];
 
-	sprintf(buffer, "Register  %s,%s,%s,%s", STUDENT_NUMBER, STUDENT_FIRSTNAME, STUDENT_FAMILYNAME, MY_SHIP);
+	sprintf(buffer, "Register	%s,%s,%s,%s", STUDENT_NUMBER, STUDENT_FIRSTNAME, STUDENT_FAMILYNAME, MY_SHIP);
 	send(server, buffer);
 
 	for (;;) {
@@ -116,25 +116,25 @@ void run() {
 }
 
 void fire_at_ship(int x, int y) {
-  char buffer[512];
+	char buffer[512];
 	sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, x, y);
 	send(server, buffer);
 }
 
 void move_in_direction(int x, int y) {
-  char buffer[512];
+	char buffer[512];
 	sprintf(buffer, "Move %s,%d,%d", STUDENT_NUMBER, x, y);
 	send(server, buffer);
 }
 
 void set_flag(int flag) {
-  char buffer[512];
+	char buffer[512];
 	sprintf(buffer, "Flag %s,%d", STUDENT_NUMBER, flag);
 	send(server, buffer);
 }
 
 void setup_windows() {
-  WSADATA data;
+	WSADATA data;
 
 	if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
 		exit(0);
@@ -142,18 +142,18 @@ void setup_windows() {
 }
 
 SOCKET create_socket() {
-  SOCKET created = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	SOCKET created = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-  if (!created) {
-    printf("Socket creation failed!\n");
-    exit(0);
-  }
+	if (!created) {
+		printf("Socket creation failed!\n");
+		exit(0);
+	}
 
-  return created;
+	return created;
 }
 
 void bind(SOCKET socket, SOCKADDR_IN address) {
-  bool failed = bind(socket, (SOCKADDR *) &address, sizeof(SOCKADDR));
+	bool failed = bind(socket, (SOCKADDR *) &address, sizeof(SOCKADDR));
 
 	if (failed) {
 		printf("Bind failed! %d\n", WSAGetLastError());
@@ -162,12 +162,12 @@ void bind(SOCKET socket, SOCKADDR_IN address) {
 }
 
 int main(int argc, char* argv[]) {
-  setup_windows();
+	setup_windows();
 
-  server.set_socket(create_socket());
-  client.set_socket(create_socket());
+	server.set_socket(create_socket());
+	client.set_socket(create_socket());
 
-  bind(client.get_socket(), client.get_address());
+	bind(client.get_socket(), client.get_address());
 
 	run();
 
