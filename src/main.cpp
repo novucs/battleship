@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
+#include "ship.hpp"
+#include "connection.hpp"
 
 #pragma comment(lib, "wsock32.lib")
 
@@ -13,56 +15,15 @@
 #define STUDENT_FAMILYNAME "Jenkins"
 #define MY_SHIP "2"
 
-class Connection {
-  public:
-    int port;
-    SOCKET socket;
-    SOCKADDR_IN address;
+connection client = create(1925);
+connection server = create("127.0.0.1", 1924);
+// connection zombie;
+// connection master;
 
-    Connection() {
-    }
-
-    Connection(u_short port) {
-      address.sin_family = AF_INET;
-      address.sin_addr.s_addr = INADDR_ANY;
-      address.sin_port = htons(port);
-    }
-
-    Connection(u_short port, char* hostname) {
-      address.sin_family = AF_INET;
-      address.sin_addr.s_addr = inet_addr(hostname);
-      address.sin_port = htons(port);
-    }
-};
-
-Connection client(1925);
-Connection server(1924, "127.0.0.1");
-Connection zombie;
-Connection master;
-
-class Ship {
-	public:
-		int x;
-		int y;
-		int health;
-		int flag;
-		int type;
-		int distance;
-
-		bool operator== (Ship &other) {
-			if (this == &other) return true;
-			return x == other.x &&
-				y == other.y &&
-				health == other.health &&
-				flag == other.flag &&
-				type == other.type;
-		}
-};
-
-Ship me;
-std::vector<Ship> ships;
-std::vector<Ship> friends;
-std::vector<Ship> enemies;
+ship* me;
+std::vector<ship*> ships;
+std::vector<ship*> friends;
+std::vector<ship*> enemies;
 
 // 16002374 = will
 // 16000587 = josh
@@ -74,10 +35,16 @@ void tactics() {
 }
 
 void read_ship(char* message) {
-	Ship ship;
-	sscanf(message, "%d,%d,%d,%d,%d",
-		&(ship.x), &(ship.y), &(ship.health), &(ship.flag), &(ship.type));
-	ships.push_back(ship);
+  int x;
+  int y;
+  int health;
+  int flag;
+  int type = 0;
+
+	sscanf(message, "%d,%d,%d,%d,%d", &x, &y, &health, &flag, &type);
+
+  ship* created = new ship(x, y, health, flag, type);
+  ships.push_back(created);
 }
 
 void read_ships(char* message) {
@@ -114,13 +81,15 @@ void read_ships(char* message) {
 	me = ships.at(0);
 }
 
-void send(Connection connection, char* message) {
-	sendto(connection.socket, message, strlen(message), 0, (SOCKADDR *) &connection.address, sizeof(SOCKADDR));
+void send(connection connection, char* message) {
+  SOCKADDR_IN address = connection.get_address();
+	sendto(connection.get_socket(), message, strlen(message), 0, (SOCKADDR *) &address, sizeof(SOCKADDR));
 }
 
-bool receive(Connection connection, char* buffer, int size) {
+bool receive(connection connection, char* buffer, int size) {
 	int len = sizeof(SOCKADDR);
-	return recvfrom(connection.socket, buffer, size - 1, 0, (SOCKADDR *) &connection.address, &len) != SOCKET_ERROR;
+  SOCKADDR_IN address = connection.get_address();
+	return recvfrom(connection.get_socket(), buffer, size - 1, 0, (SOCKADDR *) &address, &len) != SOCKET_ERROR;
 }
 
 void run() {
@@ -172,13 +141,15 @@ void setup_windows() {
 	}
 }
 
-void setup_socket(SOCKET *sock) {
-  *sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+SOCKET create_socket() {
+  SOCKET created = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-  if (!socket) {
+  if (!created) {
     printf("Socket creation failed!\n");
     exit(0);
   }
+
+  return created;
 }
 
 void bind(SOCKET socket, SOCKADDR_IN address) {
@@ -193,15 +164,15 @@ void bind(SOCKET socket, SOCKADDR_IN address) {
 int main(int argc, char* argv[]) {
   setup_windows();
 
-  setup_socket(&server.socket);
-  setup_socket(&client.socket);
+  server.set_socket(create_socket());
+  client.set_socket(create_socket());
 
-  bind(client.socket, client.address);
+  bind(client.get_socket(), client.get_address());
 
 	run();
 
-	closesocket(server.socket);
-	closesocket(client.socket);
+	closesocket(server.get_socket());
+	closesocket(client.get_socket());
 
 	WSACleanup();
 
