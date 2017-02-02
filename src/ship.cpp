@@ -30,7 +30,7 @@ int ship::get_type() {
 }
 
 int ship::distance_to(ship* other) {
-	int differenceX = other->x - x;
-	int differenceY = other->y - y;
-	return sqrt((differenceX * differenceX) + (differenceY * differenceY));
+	int x = other->x - this->x;
+	int y = other->y - this->y;
+	return sqrt((x * x) + (y * y));
 }

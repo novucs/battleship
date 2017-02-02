@@ -9,11 +9,11 @@ class connection {
 		SOCKADDR_IN address;
 
 	public:
+		connection(SOCKADDR_IN address);
 		int get_port();
 		SOCKET get_socket();
 		void set_socket(SOCKET socket);
 		SOCKADDR_IN get_address();
-		connection(SOCKADDR_IN address);
 };
 
 connection create(u_short port);
