@@ -95,7 +95,7 @@ void network_manager::send_flag(int flag) {
 }
 
 void network_manager::respawn(int ship_type) {
-	std::ostringstream message;
+	std::stringstream message;
 	message << "Register  " << STUDENT_NUMBER << ',' << STUDENT_FIRSTNAME << ',' << STUDENT_FAMILYNAME << ',' << ship_type;
 	send(server, strdup(message.str().c_str()));
 }
