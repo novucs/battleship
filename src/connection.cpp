@@ -1,6 +1,6 @@
 #include "connection.hpp"
 
-connection* inner_create(u_long host, u_short port);
+connection* inner_create_connection(u_long host, u_short port);
 
 connection::connection(SOCKADDR_IN address) {
 	this->address = address;
@@ -22,20 +22,20 @@ SOCKADDR_IN connection::get_address() {
 	return address;
 }
 
-connection create(u_short port) {
+connection create_connection(u_short port) {
 	port = htons(port);
-	connection* created = inner_create(INADDR_ANY, port);
+	connection* created = inner_create_connection(INADDR_ANY, port);
 	return *created;
 }
 
-connection create(char* hostname, u_short port) {
+connection create_connection(char* hostname, u_short port) {
 	u_long host = inet_addr(hostname);
 	port = htons(port);
-	connection* created = inner_create(host, port);
+	connection* created = inner_create_connection(host, port);
 	return *created;
 }
 
-connection* inner_create(u_long host, u_short port) {
+connection* inner_create_connection(u_long host, u_short port) {
 	SOCKADDR_IN address;
 	memset(&address, 0, sizeof(address));
 	address.sin_family = AF_INET;

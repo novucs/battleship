@@ -1,16 +1,10 @@
 # -*- MakeFile -*-
 
-master: target/master.exe
-	cd target && wine master.exe
+run: target/battleship.exe
+	cd target && wine battleship.exe
 
-zombie: target/zombie.exe
-	cd target && wine zombie.exe
-
-target/master.exe: target target/bot-master.o target/connection.o target/main.o target/network_manager.o target/ship.o
-	x86_64-w64-mingw32-g++ target/bot-master.o target/connection.o target/main.o target/network_manager.o target/ship.o -o target/master.exe -lws2_32
-
-target/zombie.exe: target target/bot-zombie.o target/connection.o target/main.o target/network_manager.o target/ship.o
-	x86_64-w64-mingw32-g++ target/bot-zombie.o target/connection.o target/main.o target/network_manager.o target/ship.o -o target/zombie.exe -lws2_32
+target/battleship.exe: target target/bot-master.o target/bot-zombie.o target/connection.o target/main.o target/network_manager.o target/ship.o
+	x86_64-w64-mingw32-g++ target/bot-master.o target/bot-zombie.o target/connection.o target/main.o target/network_manager.o target/ship.o -o target/battleship.exe -lws2_32
 
 target/bot-master.o: src/bot-master.cpp src/bot.hpp src/network_manager.hpp
 	x86_64-w64-mingw32-g++ -c src/bot-master.cpp -o target/bot-master.o -lws2_32

@@ -1,5 +1,4 @@
-#ifndef __SHIP_HPP_INCLUDED__
-#define __SHIP_HPP_INCLUDED__
+#pragma once
 
 class ship {
 	private:
@@ -18,5 +17,3 @@ class ship {
 		int get_type();
 		int distance_to(ship* other);
 };
-
-#endif

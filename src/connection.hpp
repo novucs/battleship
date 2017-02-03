@@ -1,5 +1,5 @@
-#ifndef __CONNECTION_HPP_INCLUDED__
-#define __CONNECTION_HPP_INCLUDED__
+#pragma once
+
 #include <winsock2.h>
 
 class connection {
@@ -16,7 +16,5 @@ class connection {
 		SOCKADDR_IN get_address();
 };
 
-connection create(u_short port);
-connection create(char* hostname, u_short port);
-
-#endif
+connection create_connection(u_short port);
+connection create_connection(char* hostname, u_short port);

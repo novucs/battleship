@@ -1,5 +1,6 @@
-#ifndef __NETWORK_MANAGER_HPP_INCLUDED__
-#define __NETWORK_MANAGER_HPP_INCLUDED__
+#pragma once
+#pragma comment(lib, "wsock32.lib")
+
 #include <vector>
 #include "connection.hpp"
 #include "settings.hpp"
@@ -7,8 +8,8 @@
 
 class network_manager {
 	private:
-		connection server = create(1924);
-		connection client = create(SERVER_IP, 1925);
+		connection server = create_connection(SERVER_PORT);
+		connection client = create_connection(SERVER_IP, CLIENT_PORT);
 	public:
 		network_manager();
 		connection get_server();
@@ -19,13 +20,11 @@ class network_manager {
 		bool receive(connection connection, char* buffer, int size);
 		std::vector<ship*> load_ships(char* message);
 		ship* load_ship(char* message);
-		void fire_at_ship(int x, int y);
-		void move_in_direction(int x, int y);
-		void set_flag(int flag);
+		void send_fire(int x, int y);
+		void send_move(int x, int y);
+		void send_flag(int flag);
 		void respawn(int ship_type);
 };
 
 SOCKET create_socket();
 void bind(SOCKET socket, SOCKADDR_IN address);
-
-#endif

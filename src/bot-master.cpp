@@ -1,30 +1,13 @@
 #include <iostream>
 #include <math.h>
-#include <unordered_set>
 #include <vector>
-
-#include "bot.hpp"
-#include "connection.hpp"
+#include "bot-master.hpp"
 #include "settings.hpp"
-#include "ship.hpp"
 
-network_manager net;
-ship* me;
-std::vector<ship*> ships;
-
-// 16002374 = will
-// 16000587 = josh
-// 15019771 = jake
-// 16014980 = gareth
-std::unordered_set<int> friendIds = {16002374, 16000587, 15019771, 16014980};
-
-void tactics() {
-}
-
-void run() {
+void bot_master::run() {
 	net.setup();
 	char buffer[4096];
-	net.respawn(0);
+	net.respawn(BOT_CLASS);
 
 	std::cout << std::endl << "===========================" << std::endl;
 	std::cout << std::endl << "     Master bot loaded     " << std::endl;
@@ -41,7 +24,6 @@ void run() {
 		}
 
 		ships = net.load_ships(buffer);
-		tactics();
 	}
 	net.close();
 }

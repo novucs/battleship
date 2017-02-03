@@ -32,7 +32,6 @@ void network_manager::setup() {
 void network_manager::close() {
 	closesocket(server.get_socket());
 	closesocket(client.get_socket());
-
 	WSACleanup();
 }
 
@@ -93,19 +92,19 @@ bool network_manager::receive(connection connection, char* buffer, int size) {
 	return recvfrom(connection.get_socket(), buffer, size - 1, 0, (SOCKADDR *) &address, &len) != SOCKET_ERROR;
 }
 
-void network_manager::fire_at_ship(int x, int y) {
+void network_manager::send_fire(int x, int y) {
 	char buffer[128];
 	sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, x, y);
 	send(server, buffer);
 }
 
-void network_manager::move_in_direction(int x, int y) {
+void network_manager::send_move(int x, int y) {
 	char buffer[128];
 	sprintf(buffer, "Move %s,%d,%d", STUDENT_NUMBER, x, y);
 	send(server, buffer);
 }
 
-void network_manager::set_flag(int flag) {
+void network_manager::send_flag(int flag) {
 	char buffer[128];
 	sprintf(buffer, "Flag %s,%d", STUDENT_NUMBER, flag);
 	send(server, buffer);

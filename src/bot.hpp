@@ -1,8 +1,11 @@
-#ifndef __BOT_HPP_INCLUDED__
-#define __BOT_HPP_INCLUDED__
+#pragma once
 
+#include <unordered_set>
 #include "network_manager.hpp"
+#include "ship.hpp"
 
-void run();
-
-#endif
+class bot {
+	public:
+		virtual ~bot() {}
+		virtual void run() = 0;
+};
