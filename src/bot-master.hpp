@@ -1,6 +1,8 @@
 #pragma once
 
 #include "bot.hpp"
+#include "network_manager.hpp"
+#include "ship.hpp"
 
 class bot_master : public bot {
 	private:

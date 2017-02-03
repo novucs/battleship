@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bot.hpp"
+#include "network_manager.hpp"
 
 class bot_zombie : public bot {
 	private:
