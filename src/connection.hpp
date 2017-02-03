@@ -1,6 +1,7 @@
 #pragma once
 
-#include <winsock2.h>
+#include <string>
+#include <ws2tcpip.h>
 
 class connection {
 	private:
@@ -17,4 +18,4 @@ class connection {
 };
 
 connection create_connection(u_short port);
-connection create_connection(char* hostname, u_short port);
+connection create_connection(std::string hostname, u_short port);

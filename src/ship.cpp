@@ -29,7 +29,7 @@ int ship::get_type() {
 	return type;
 }
 
-int ship::distance_to(ship* other) {
+double ship::distance_to(ship* other) {
 	int x = other->x - this->x;
 	int y = other->y - this->y;
 	return sqrt((x * x) + (y * y));

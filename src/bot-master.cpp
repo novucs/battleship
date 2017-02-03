@@ -24,7 +24,7 @@ void bot_master::run() {
 			continue;
 		}
 
-		ships = net.load_ships(buffer);
+		ships = net.read_ships(buffer);
 	}
 
 	net.close();

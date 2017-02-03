@@ -22,7 +22,7 @@
 #define FRIGATE 1
 #define SUBMARINE 2
 
-#define BOT_TYPE ZOMBIE_BOT
+#define BOT_TYPE MASTER_BOT
 #define BOT_CLASS BATTLESHIP
 
 extern std::unordered_set<int> friend_ids;

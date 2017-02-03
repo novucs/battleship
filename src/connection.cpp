@@ -28,8 +28,8 @@ connection create_connection(u_short port) {
 	return *created;
 }
 
-connection create_connection(char* hostname, u_short port) {
-	u_long host = inet_addr(hostname);
+connection create_connection(std::string hostname, u_short port) {
+	u_long host = inet_addr(hostname.c_str());
 	port = htons(port);
 	connection* created = inner_create_connection(host, port);
 	return *created;

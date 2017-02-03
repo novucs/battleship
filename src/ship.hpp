@@ -15,5 +15,5 @@ class ship {
 		int get_health();
 		int get_flag();
 		int get_type();
-		int distance_to(ship* other);
+		double distance_to(ship* other);
 };

@@ -17,7 +17,7 @@ file(GLOB_RECURSE sources src/*.cpp src/*.hpp)
 add_executable(battleship.exe ${sources})
 
 # Provide all warning output on compile.
-target_compile_options(battleship.exe PUBLIC -Wall)
+target_compile_options(battleship.exe PUBLIC -Wall -Wno-unknown-pragmas)
 
 # Link Windows libraries.
-target_link_libraries(battleship.exe ws2_32 mswsock)
+target_link_libraries(battleship.exe wsock32 ws2_32)

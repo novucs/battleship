@@ -1,5 +1,4 @@
 #pragma once
-#pragma comment(lib, "wsock32.lib")
 
 #include <vector>
 #include "connection.hpp"
@@ -18,8 +17,7 @@ class network_manager {
 		void close();
 		void send(connection connection, char* message);
 		bool receive(connection connection, char* buffer, int size);
-		std::vector<ship*> load_ships(char* message);
-		ship* load_ship(char* message);
+		std::vector<ship*> read_ships(char* message);
 		void send_fire(int x, int y);
 		void send_move(int x, int y);
 		void send_flag(int flag);

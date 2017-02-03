@@ -1,4 +1,5 @@
-#include <stdio.h>
+#include <iostream>
+#include <sstream>
 #include "network_manager.hpp"
 
 network_manager::network_manager() {
@@ -35,47 +36,30 @@ void network_manager::close() {
 	WSACleanup();
 }
 
-ship* network_manager::load_ship(char* message) {
+std::vector<ship*> network_manager::read_ships(char* message) {
+	std::vector<ship*> ships;
+	std::stringstream stream(message);
+
 	int x;
 	int y;
 	int health;
 	int flag;
 	int type = 0;
+	char separator;
 
-	sscanf(message, "%d,%d,%d,%d,%d", &x, &y, &health, &flag, &type);
+	while (!stream.eof()) {
+		stream >> x >> separator;
+		stream >> y >> separator;
+		stream >> health >> separator;
+		stream >> flag >> separator;
 
-	return new ship(x, y, health, flag, type);
-}
-
-std::vector<ship*> network_manager::load_ships(char* message) {
-	std::vector<ship*> ships;
-
-	char buffer[512];
-	int i = 0;
-	int j = 0;
-	int length = strlen(message) + 1;
-	bool finished = false;
-
-	while (!finished && i < length) {
-		char chr = message[i];
-
-		switch (chr) {
-			case '\0':
-				finished = true;
-			// ... flow through ...
-			case '|':
-				ships.push_back(load_ship(buffer));
-				buffer[j] = '\0';
-				j = 0;
-				break;
-
-			default:
-				buffer[j] = chr;
-				j++;
-				break;
+		if (separator != '|') {
+			stream >> type >> separator;
+		} else {
+			type = BOT_CLASS;
 		}
 
-		i++;
+		ships.push_back(new ship(x, y, health, flag, type));
 	}
 
 	return ships;
@@ -93,34 +77,34 @@ bool network_manager::receive(connection connection, char* buffer, int size) {
 }
 
 void network_manager::send_fire(int x, int y) {
-	char buffer[128];
-	sprintf(buffer, "Fire %s,%d,%d", STUDENT_NUMBER, x, y);
-	send(server, buffer);
+	std::stringstream message("Fire ");
+	message << STUDENT_NUMBER << ',' << x << ',' << y;
+	send(server, strdup(message.str().c_str()));
 }
 
 void network_manager::send_move(int x, int y) {
-	char buffer[128];
-	sprintf(buffer, "Move %s,%d,%d", STUDENT_NUMBER, x, y);
-	send(server, buffer);
+	std::stringstream message("Move ");
+	message << STUDENT_NUMBER << ',' << x << ',' << y;
+	send(server, strdup(message.str().c_str()));
 }
 
 void network_manager::send_flag(int flag) {
-	char buffer[128];
-	sprintf(buffer, "Flag %s,%d", STUDENT_NUMBER, flag);
-	send(server, buffer);
+	std::stringstream message("Flag ");
+	message << STUDENT_NUMBER << ',' << flag;
+	send(server, strdup(message.str().c_str()));
 }
 
 void network_manager::respawn(int ship_type) {
-	char buffer[128];
-	sprintf(buffer, "Register  %s,%s,%s,%d", STUDENT_NUMBER, STUDENT_FIRSTNAME, STUDENT_FAMILYNAME, ship_type);
-	send(server, buffer);
+	std::ostringstream message;
+	message << "Register  " << STUDENT_NUMBER << ',' << STUDENT_FIRSTNAME << ',' << STUDENT_FAMILYNAME << ',' << ship_type;
+	send(server, strdup(message.str().c_str()));
 }
 
 SOCKET create_socket() {
 	SOCKET created = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (!created) {
-		printf("Socket creation failed!\n");
+		std::cout << "Socket creation failed!" << std::endl;
 		exit(0);
 	}
 
@@ -128,10 +112,10 @@ SOCKET create_socket() {
 }
 
 void bind(SOCKET socket, SOCKADDR_IN address) {
-	bool failed = bind(socket, (SOCKADDR *) &address, sizeof(SOCKADDR));
+	bool failed = (bool) bind(socket, (SOCKADDR *) &address, sizeof(SOCKADDR));
 
 	if (failed) {
-		printf("Bind failed! %d\n", WSAGetLastError());
+		std::cout << "Bind failed!" << WSAGetLastError() << std::endl;
 		exit(0);
 	}
 }

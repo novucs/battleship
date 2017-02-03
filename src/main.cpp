@@ -1,3 +1,6 @@
+#pragma comment(lib, "wsock32.lib")
+#pragma comment(lib, "Ws2_32.lib")
+
 #include "bot.hpp"
 #include "bot-master.hpp"
 #include "bot-zombie.hpp"
