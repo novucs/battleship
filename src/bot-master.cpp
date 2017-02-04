@@ -1,9 +1,5 @@
 #include <chrono>
 #include <iostream>
-#include <memory>
-#include <math.h>
-#include <vector>
-#include <thread>
 #include "bot-master.hpp"
 #include "main.hpp"
 
@@ -14,14 +10,12 @@ void bot_master::run() {
 	std::cout << std::endl << "     Master bot loaded     " << std::endl;
 	std::cout << std::endl << "===========================" << std::endl;
 
-	std::vector<std::thread> zombie_threads;
-
-	for (std::vector<std::thread>::size_type i = 0; i < zombie_ips.size(); i++) {
+	for (std::vector<std::string>::size_type i = 0; i < zombie_ips.size(); i++) {
 		std::thread zombie_thread(&bot_master::zombie_loop, this, i);
 		zombie_threads.push_back(std::move(zombie_thread));
 	}
 
-	std::thread server_thread(&bot_master::server_loop, this);
+	server_thread = std::thread(&bot_master::server_loop, this);
 
 	getchar();
 

