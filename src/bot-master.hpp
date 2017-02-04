@@ -7,8 +7,14 @@
 class bot_master : public bot {
 	private:
 		network_manager net;
-		ship* me;
-		std::vector<ship*> ships;
+		connection master = create_connection(master_port);
+		std::vector<connection> zombies;
+		ship me;
+		std::vector<ship> ships;
 	public:
 		void run();
+		void setup();
+		void zombie_loop(int id);
+		void server_loop();
+		void perform_tactics();
 };

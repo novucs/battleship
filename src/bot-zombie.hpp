@@ -6,8 +6,8 @@
 class bot_zombie : public bot {
 	private:
 		network_manager net;
-		connection master = create_connection(MASTER_PORT);
-		connection zombie = create_connection(MASTER_IP, ZOMBIE_PORT);
+		connection master = create_connection(master_ip, master_port);
+		connection zombie = create_connection(zombie_port);
 	public:
 		void run();
 		void setup();

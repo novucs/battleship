@@ -9,6 +9,7 @@ class ship {
 		int type;
 
 	public:
+		ship() {};
 		ship(int x, int y, int health, int flag, int type);
 		int get_x();
 		int get_y();
