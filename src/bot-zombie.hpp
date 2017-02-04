@@ -13,7 +13,7 @@ class bot_zombie : public bot {
 		connection zombie = create_connection(zombie_port);
 	public:
 		void run();
-		void setup();
+		bool setup();
 		void relay_server();
 		void relay_master();
 		void close();

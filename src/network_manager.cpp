@@ -10,26 +10,21 @@ connection network_manager::get_client() {
 	return client;
 }
 
-void setup_windows() {
-	WSADATA data;
-
-	if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
-		exit(0);
-	}
+bool network_manager::setup() {
+	return setup_windows() &&
+		server.create_socket() &&
+		client.create_socket() &&
+		client.attach();
 }
 
-void network_manager::setup() {
-	setup_windows();
-
-	server.set_socket(create_socket());
-	client.set_socket(create_socket());
-
-	bind(client.get_socket(), client.get_address());
+bool network_manager::setup_windows() {
+	WSADATA data;
+	return WSAStartup(MAKEWORD(2, 2), &data) == 0;
 }
 
 void network_manager::close() {
-	closesocket(server.get_socket());
-	closesocket(client.get_socket());
+	server.close_socket();
+	client.close_socket();
 	WSACleanup();
 }
 
@@ -67,13 +62,17 @@ void network_manager::send(connection connection, char* message) {
 	sendto(connection.get_socket(), message, strlen(message), 0, (SOCKADDR *) &address, sizeof(SOCKADDR));
 }
 
-bool network_manager::receive(connection from, connection to, char* buffer, int size) {
+int network_manager::receive(connection from, connection to, char* buffer, int size) {
 	int len = sizeof(SOCKADDR);
 	SOCKADDR_IN address = to.get_address();
 
 	if (recvfrom(to.get_socket(), buffer, size - 1, 0, (SOCKADDR *) &address, &len) == SOCKET_ERROR) {
+		// Do not print error when interrupted.
+		if (WSAGetLastError() == 10004) {
+			return RETREIVE_FAIL;
+		}
 		std::cout << "Failed to receive data: " << WSAGetLastError() << std::endl;
-		exit(0);
+		return RETREIVE_FAIL;
 	}
 
 	char* expected_address = inet_ntoa(from.get_address().sin_addr);
@@ -82,10 +81,10 @@ bool network_manager::receive(connection from, connection to, char* buffer, int 
 	// Spoof detected if not given the expected address.
 	if (strcmp(expected_address, "127.0.0.1") != 0 &&
 			strcmp(expected_address, actual_address) != 0) {
-		return false;
+		return RETREIVE_IGNORE;
 	}
 
-	return true;
+	return RETREIVE_SUCCESS;
 }
 
 void network_manager::send_fire(int x, int y) {
@@ -110,24 +109,4 @@ void network_manager::respawn(int ship_type) {
 	std::stringstream message;
 	message << "Register  " << student_number << ',' << student_firstname << ',' << student_familyname << ',' << ship_type;
 	send(server, strdup(message.str().c_str()));
-}
-
-SOCKET create_socket() {
-	SOCKET created = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-	if (!created) {
-		std::cout << "Socket creation failed!" << std::endl;
-		exit(0);
-	}
-
-	return created;
-}
-
-void bind(SOCKET socket, SOCKADDR_IN address) {
-	bool failed = (bool) bind(socket, (SOCKADDR *) &address, sizeof(SOCKADDR));
-
-	if (failed) {
-		std::cout << "Bind failed!" << WSAGetLastError() << std::endl;
-		exit(0);
-	}
 }

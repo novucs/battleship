@@ -3,7 +3,9 @@
 #include "main.hpp"
 
 void bot_zombie::run() {
-	setup();
+	if (!setup()) {
+		return;
+	}
 
 	std::cout << std::endl << "===========================" << std::endl;
 	std::cout << std::endl << "     Zombie bot loaded     " << std::endl;
@@ -12,28 +14,36 @@ void bot_zombie::run() {
 	relay_server_thread = std::thread(&bot_zombie::relay_server, this);
 	relay_master_thread = std::thread(&bot_zombie::relay_master, this);
 
+	// Wait for user input.
+	std::cout << std::endl << "Enter commands here, type '/help' for help." << std::endl;
 	getchar();
 
 	close();
-	exit(0);
 }
 
-void bot_zombie::setup() {
-	net.setup();
+bool bot_zombie::setup() {
+	if (!net.setup() ||
+			!master.create_socket() ||
+			!zombie.create_socket() ||
+			!zombie.attach()) {
+		return false;
+	}
+
 	net.respawn(bot_class);
-
-	master.set_socket(create_socket());
-	zombie.set_socket(create_socket());
-
-	bind(zombie.get_socket(), zombie.get_address());
+	return true;
 }
 
 void bot_zombie::relay_server() {
 	char buffer[4096];
 
 	for (;;) {
-		if (!net.receive(master, zombie, buffer, sizeof(buffer))) {
-			continue;
+		switch (net.receive(master, zombie, buffer, sizeof(buffer))) {
+			case RETREIVE_SUCCESS:
+				break;
+			case RETREIVE_FAIL:
+				return;
+			case RETREIVE_IGNORE:
+				continue;
 		}
 
 		net.send(net.get_server(), buffer);
@@ -44,8 +54,13 @@ void bot_zombie::relay_master() {
 	char buffer[4096];
 
 	for (;;) {
-		if (!net.receive(net.get_server(), net.get_client(), buffer, sizeof(buffer))) {
-			continue;
+		switch (net.receive(net.get_server(), net.get_client(), buffer, sizeof(buffer))) {
+			case RETREIVE_SUCCESS:
+				break;
+			case RETREIVE_FAIL:
+				return;
+			case RETREIVE_IGNORE:
+				continue;
 		}
 
 		net.send(master, buffer);
@@ -57,4 +72,7 @@ void bot_zombie::close() {
 	closesocket(master.get_socket());
 	closesocket(zombie.get_socket());
 	WSACleanup();
+
+	relay_server_thread.join();
+	relay_master_thread.join();
 }

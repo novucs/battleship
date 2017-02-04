@@ -1,6 +1,7 @@
 #pragma comment(lib, "wsock32.lib")
 #pragma comment(lib, "ws2_32.lib")
 
+#include <iostream>
 #include "bot.hpp"
 #include "bot-master.hpp"
 #include "bot-zombie.hpp"
@@ -52,5 +53,6 @@ void load_bot() {
 int main(int argc, char* argv[]) {
 	load_bot();
 	bot->run();
+	system("pause");
 	return 0;
 }

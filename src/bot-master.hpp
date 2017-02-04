@@ -16,8 +16,9 @@ class bot_master : public bot {
 		std::vector<ship> ships;
 	public:
 		void run();
-		void setup();
+		bool setup();
 		void zombie_loop(int id);
 		void server_loop();
 		void perform_tactics();
+		void close();
 };

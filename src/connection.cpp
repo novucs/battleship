@@ -1,3 +1,5 @@
+#include <iostream>
+#include <winsock2.h>
 #include "connection.hpp"
 
 connection* inner_create_connection(u_long host, u_short port);
@@ -11,15 +13,44 @@ int connection::get_port() {
 }
 
 SOCKET connection::get_socket() {
-	return socket;
-}
-
-void connection::set_socket(SOCKET socket) {
-	this->socket = socket;
+	return m_socket;
 }
 
 SOCKADDR_IN connection::get_address() {
 	return address;
+}
+
+bool connection::create_socket() {
+	if (m_socket != 0) {
+		std::cout << "Socket creation failed: Connection already has a socket!" << std::endl;
+		return false;
+	}
+
+	SOCKET created = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	if (!created) {
+		std::cout << "Socket creation failed: " << WSAGetLastError() << std::endl;
+		return false;
+	}
+
+	m_socket = created;
+
+	return true;
+}
+
+void connection::close_socket() {
+	closesocket(m_socket);
+}
+
+bool connection::attach() {
+	bool failed = (bool) bind(m_socket, (SOCKADDR *) &address, sizeof(SOCKADDR));
+
+	if (failed) {
+		std::cout << "Bind failed: " << WSAGetLastError() << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 connection create_connection(u_short port) {

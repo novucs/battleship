@@ -4,7 +4,9 @@
 #include "main.hpp"
 
 void bot_master::run() {
-	setup();
+	if (!setup()) {
+		return;
+	}
 
 	std::cout << std::endl << "===========================" << std::endl;
 	std::cout << std::endl << "     Master bot loaded     " << std::endl;
@@ -17,25 +19,28 @@ void bot_master::run() {
 
 	server_thread = std::thread(&bot_master::server_loop, this);
 
+	// Wait for user input.
+	std::cout << std::endl << "Enter commands here, type '/help' for help." << std::endl;
 	getchar();
 
-	net.close();
-	exit(0);
+	close();
 }
 
-void bot_master::setup() {
-	net.setup();
-	net.respawn(bot_class);
+bool bot_master::setup() {
+	if (!net.setup() || !master.create_socket() || !master.attach()) {
+		return false;
+	}
 
 	for (std::string zombie_ip : zombie_ips) {
 		connection zombie = create_connection(zombie_ip, zombie_port);
-		zombie.set_socket(create_socket());
+		if (!zombie.create_socket()) {
+			continue;
+		}
 		zombies.push_back(std::move(zombie));
 	}
 
-	master.set_socket(create_socket());
-
-	bind(master.get_socket(), master.get_address());
+	net.respawn(bot_class);
+	return true;
 }
 
 void bot_master::zombie_loop(int id) {
@@ -43,8 +48,13 @@ void bot_master::zombie_loop(int id) {
 	connection zombie = zombies[id];
 
 	for (;;) {
-		if (!net.receive(zombie, master, buffer, sizeof(buffer))) {
-			continue;
+		switch (net.receive(zombie, master, buffer, sizeof(buffer))) {
+			case RETREIVE_SUCCESS:
+				break;
+			case RETREIVE_FAIL:
+				return;
+			case RETREIVE_IGNORE:
+				continue;
 		}
 
 		if (buffer[0] == 'M') {
@@ -59,8 +69,13 @@ void bot_master::server_loop() {
 	char buffer[4096];
 
 	for (;;) {
-		if (!net.receive(net.get_server(), net.get_client(), buffer, sizeof(buffer))) {
-			continue;
+		switch (net.receive(net.get_server(), net.get_client(), buffer, sizeof(buffer))) {
+			case RETREIVE_SUCCESS:
+				break;
+			case RETREIVE_FAIL:
+				return;
+			case RETREIVE_IGNORE:
+				continue;
 		}
 
 		if (buffer[0] == 'M') {
@@ -77,4 +92,22 @@ void bot_master::server_loop() {
 }
 
 void bot_master::perform_tactics() {
+}
+
+void bot_master::close() {
+	net.close();
+
+	for (connection zombie : zombies) {
+		zombie.close_socket();
+	}
+
+	master.close_socket();
+
+	WSACleanup();
+
+	server_thread.join();
+
+	for (std::thread& zombie_thread : zombie_threads) {
+		zombie_thread.join();
+	}
 }
