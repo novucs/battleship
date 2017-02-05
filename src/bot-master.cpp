@@ -177,26 +177,6 @@ bool bot_master::contains_similar(std::vector<ship>& ships, ship to_check) {
 }
 
 void bot_master::perform_tactics() {
-	std::cout << "allies: ";
-	for (ship& ally : ally_ships) {
-		std::cout << ally.get_x() << ',';
-		std::cout << ally.get_y() << ',';
-		std::cout << ally.get_health() << ',';
-		std::cout << ally.get_flag() << ',';
-		std::cout << '|';
-	}
-
-	std::cout << "\tenemies: ";
-
-	for (ship& enemy : enemy_ships) {
-		std::cout << enemy.get_x() << ',';
-		std::cout << enemy.get_y() << ',';
-		std::cout << enemy.get_health() << ',';
-		std::cout << enemy.get_flag() << ',';
-		std::cout << '|';
-	}
-
-	std::cout << std::endl;
 }
 
 void bot_master::close() {
