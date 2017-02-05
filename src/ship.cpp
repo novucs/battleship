@@ -29,8 +29,16 @@ int ship::get_type() {
 	return type;
 }
 
-double ship::distance_to(ship* other) {
-	int x = other->x - this->x;
-	int y = other->y - this->y;
+double ship::distance_to(ship& other) {
+	int x = other.get_x() - this->x;
+	int y = other.get_y() - this->y;
 	return sqrt((x * x) + (y * y));
+}
+
+bool operator==(ship& ship1, ship& ship2) {
+	return ship1.get_x() == ship2.get_x() &&
+		ship1.get_y() == ship2.get_y() &&
+		ship1.get_health() == ship2.get_health() &&
+		ship1.get_flag() == ship2.get_flag() &&
+		ship1.get_type() == ship2.get_type();
 }

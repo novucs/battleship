@@ -1,4 +1,3 @@
-#include <iostream>
 #include <sstream>
 #include "main.hpp"
 #include "protocol_utils.hpp"

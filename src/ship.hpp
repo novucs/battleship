@@ -16,5 +16,7 @@ class ship {
 		int get_health();
 		int get_flag();
 		int get_type();
-		double distance_to(ship* other);
+		double distance_to(ship& other);
 };
+
+bool operator==(ship& ship1, ship& ship2);

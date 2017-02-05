@@ -138,10 +138,7 @@ bool bot_master::merge_ships() {
 
 bool bot_master::contains_similar(std::vector<ship>& ships, ship to_check) {
 	for (ship& s : ships) {
-		if (s.get_x() == to_check.get_x() &&
-				s.get_y() == to_check.get_y() &&
-				s.get_health() == to_check.get_health() &&
-				s.get_flag() == to_check.get_flag()) {
+		if (s == to_check) {
 			return true;
 		}
 	}

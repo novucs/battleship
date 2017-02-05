@@ -16,12 +16,12 @@ u_short zombie_port = 13338;
 
 const int zombie_type = 0;
 const int master_type = 1;
-int bot_type = zombie_type;
+int bot_type = master_type;
 
 const int battleship_class = 0;
 const int frigate_class = 1;
 const int submarine_class = 2;
-int bot_class = submarine_class;
+int bot_class = battleship_class;
 
 bot* bot;
 
