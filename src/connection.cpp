@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <winsock2.h>
 #include "connection.hpp"
 
@@ -51,6 +52,64 @@ bool connection::attach() {
 	}
 
 	return true;
+}
+
+void connection::send(char* message) {
+	sendto(m_socket, message, strlen(message), 0, (SOCKADDR *) &address, sizeof(SOCKADDR));
+}
+
+int connection::receive(connection from, char* buffer, int size) {
+	int len = sizeof(SOCKADDR);
+	SOCKADDR_IN address = this->get_address();
+
+	if (recvfrom(m_socket, buffer, size - 1, 0, (SOCKADDR *) &address, &len) == SOCKET_ERROR) {
+		// Do not print error when interrupted.
+		if (WSAGetLastError() == 10004) {
+			return RETREIVE_FAIL;
+		}
+
+		std::cout << "Failed to receive data: " << WSAGetLastError() << std::endl;
+		return RETREIVE_FAIL;
+	}
+
+	char* expected_address = inet_ntoa(from.get_address().sin_addr);
+	char* actual_address = inet_ntoa(address.sin_addr);
+
+	// Spoof detected if not given the expected address.
+	if (strcmp(expected_address, "127.0.0.1") != 0 &&
+			strcmp(expected_address, actual_address) != 0) {
+		return RETREIVE_IGNORE;
+	}
+
+	return RETREIVE_SUCCESS;
+}
+
+void connection::send_fire(student sender, int x, int y) {
+	std::stringstream message;
+	message << "Fire " << sender.get_id() << ',' << x << ',' << y;
+	send(strdup(message.str().c_str()));
+}
+
+void connection::send_move(student sender, int x, int y) {
+	std::stringstream message;
+	message << "Move " << sender.get_id() << ',' << x << ',' << y;
+	send(strdup(message.str().c_str()));
+}
+
+void connection::send_flag(student sender, int flag) {
+	std::stringstream message;
+	message << "Flag " << sender.get_id() << ',' << flag;
+	send(strdup(message.str().c_str()));
+}
+
+void connection::send_respawn(student sender, int ship_type) {
+	std::stringstream message;
+	message << "Register  ";
+	message << sender.get_id() << ',';
+	message << sender.get_forename() << ',';
+	message << sender.get_surname() << ',';
+	message << ship_type;
+	send(strdup(message.str().c_str()));
 }
 
 connection create_connection(u_short port) {

@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <sstream>
 #include "bot-master.hpp"
 #include "main.hpp"
 
@@ -20,7 +21,11 @@ void bot_master::run() {
 }
 
 bool bot_master::setup() {
-	if (!net.setup() || !master.create_socket() || !master.attach()) {
+	if (!server.create_socket() ||
+			!client.create_socket() ||
+			!client.attach() ||
+			!master.create_socket() ||
+			!master.attach()) {
 		return false;
 	}
 
@@ -39,7 +44,7 @@ bool bot_master::setup() {
 
 	server_thread = std::thread(&bot_master::server_loop, this);
 
-	net.respawn(bot_class);
+	server.send_respawn(identity, bot_class);
 	return true;
 }
 
@@ -47,7 +52,7 @@ void bot_master::zombie_loop(student ally, connection zombie) {
 	char buffer[4096];
 
 	for (;;) {
-		switch (net.receive(zombie, master, buffer, sizeof(buffer))) {
+		switch (master.receive(zombie, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -60,7 +65,7 @@ void bot_master::zombie_loop(student ally, connection zombie) {
 			continue;
 		}
 
-		ships = net.read_ships(buffer);
+		ships = read_ships(buffer);
 	}
 }
 
@@ -68,7 +73,7 @@ void bot_master::server_loop() {
 	char buffer[4096];
 
 	for (;;) {
-		switch (net.receive(net.get_server(), net.get_client(), buffer, sizeof(buffer))) {
+		switch (client.receive(server, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -81,7 +86,7 @@ void bot_master::server_loop() {
 			continue;
 		}
 
-		ships = net.read_ships(buffer);
+		ships = read_ships(buffer);
 
 		// Ghetto sleep to receive zombie data.
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -90,17 +95,46 @@ void bot_master::server_loop() {
 	}
 }
 
+std::vector<ship> bot_master::read_ships(char* message) {
+	std::vector<ship> ships;
+	std::stringstream stream(message);
+
+	int x;
+	int y;
+	int health;
+	int flag;
+	int type = 0;
+	char separator;
+
+	while (!stream.eof()) {
+		stream >> x >> separator;
+		stream >> y >> separator;
+		stream >> health >> separator;
+		stream >> flag >> separator;
+
+		if (separator != '|') {
+			stream >> type >> separator;
+		} else {
+			type = bot_class;
+		}
+
+		ships.push_back(ship(x, y, health, flag, type));
+	}
+
+	return ships;
+}
+
 void bot_master::perform_tactics() {
 }
 
 void bot_master::close() {
-	net.close();
+	server.close_socket();
+	client.close_socket();
+	master.close_socket();
 
 	for (connection zombie : zombies) {
 		zombie.close_socket();
 	}
-
-	master.close_socket();
 
 	WSACleanup();
 

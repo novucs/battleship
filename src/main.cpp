@@ -49,6 +49,11 @@ std::vector<student> allies = {
 	)
 };
 
+bool setup_networking() {
+	WSADATA data;
+	return WSAStartup(MAKEWORD(2, 2), &data) == 0;
+}
+
 void load_bot() {
 	switch (bot_type) {
 		case master_type:
@@ -61,8 +66,14 @@ void load_bot() {
 }
 
 int main(int argc, char* argv[]) {
-	load_bot();
-	bot->run();
+	if (!setup_networking()) {
+		std::cout << "Failed to initialize WinSock2: " << WSAGetLastError() << std::endl;
+	} else {
+		load_bot();
+		bot->run();
+	}
+
 	system("pause");
+	std::cout << std::endl << "Goodbye!" << std::endl;
 	return 0;
 }

@@ -19,7 +19,9 @@ void bot_zombie::run() {
 }
 
 bool bot_zombie::setup() {
-	if (!net.setup() ||
+	if (!server.create_socket() ||
+			!client.create_socket() ||
+			!client.attach() ||
 			!master.create_socket() ||
 			!zombie.create_socket() ||
 			!zombie.attach()) {
@@ -29,7 +31,7 @@ bool bot_zombie::setup() {
 	relay_server_thread = std::thread(&bot_zombie::relay_server, this);
 	relay_master_thread = std::thread(&bot_zombie::relay_master, this);
 
-	net.respawn(bot_class);
+	server.send_respawn(identity, bot_class);
 	return true;
 }
 
@@ -37,7 +39,7 @@ void bot_zombie::relay_server() {
 	char buffer[4096];
 
 	for (;;) {
-		switch (net.receive(master, zombie, buffer, sizeof(buffer))) {
+		switch (zombie.receive(master, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -46,7 +48,7 @@ void bot_zombie::relay_server() {
 				continue;
 		}
 
-		net.send(net.get_server(), buffer);
+		server.send(buffer);
 	}
 }
 
@@ -54,7 +56,7 @@ void bot_zombie::relay_master() {
 	char buffer[4096];
 
 	for (;;) {
-		switch (net.receive(net.get_server(), net.get_client(), buffer, sizeof(buffer))) {
+		switch (client.receive(server, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -63,14 +65,15 @@ void bot_zombie::relay_master() {
 				continue;
 		}
 
-		net.send(master, buffer);
+		master.send(buffer);
 	}
 }
 
 void bot_zombie::close() {
-	net.close();
-	closesocket(master.get_socket());
-	closesocket(zombie.get_socket());
+	server.close_socket();
+	client.close_socket();
+	master.close_socket();
+	zombie.close_socket();
 	WSACleanup();
 
 	relay_server_thread.join();
