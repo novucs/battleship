@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <thread>
 #include <vector>
 #include "bot.hpp"
@@ -17,14 +18,19 @@ class bot_master : public bot {
 		std::thread server_thread;
 		std::vector<std::thread> zombie_threads;
 		ship me;
-		std::vector<ship> ships;
+		std::vector<ship> ally_ships;
+		std::vector<ship> enemy_ships;
+		std::mutex loaded_ships_mutex;
+		std::vector<std::vector<ship>> loaded_ships;
 
 	public:
 		void run();
 		bool setup();
-		void zombie_loop(student ally, connection zombie);
+		void zombie_loop(int id, student ally, connection zombie);
 		void server_loop();
 		std::vector<ship> read_ships(char* message);
+		bool merge_ships();
+		bool contains_similar(std::vector<ship>& ships, ship to_check);
 		void perform_tactics();
 		void close();
 };

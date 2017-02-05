@@ -29,7 +29,10 @@ bool bot_master::setup() {
 		return false;
 	}
 
-	for (student ally : allies) {
+	loaded_ships.resize(allies.size() + 1);
+
+	for (std::vector<student>::size_type i = 0; i < allies.size(); i++) {
+		student ally = allies[i];
 		connection zombie = create_connection(ally.get_ip(), zombie_port);
 
 		if (!zombie.create_socket()) {
@@ -38,7 +41,7 @@ bool bot_master::setup() {
 
 		zombies.push_back(std::move(zombie));
 
-		std::thread zombie_thread(&bot_master::zombie_loop, this, ally, zombie);
+		std::thread zombie_thread(&bot_master::zombie_loop, this, (i + 1), ally, zombie);
 		zombie_threads.push_back(std::move(zombie_thread));
 	}
 
@@ -48,7 +51,7 @@ bool bot_master::setup() {
 	return true;
 }
 
-void bot_master::zombie_loop(student ally, connection zombie) {
+void bot_master::zombie_loop(int id, student ally, connection zombie) {
 	char buffer[4096];
 
 	for (;;) {
@@ -65,7 +68,9 @@ void bot_master::zombie_loop(student ally, connection zombie) {
 			continue;
 		}
 
-		ships = read_ships(buffer);
+		loaded_ships_mutex.lock();
+		loaded_ships.at(id) = read_ships(buffer);
+		loaded_ships_mutex.unlock();
 	}
 }
 
@@ -86,10 +91,14 @@ void bot_master::server_loop() {
 			continue;
 		}
 
-		ships = read_ships(buffer);
+		loaded_ships.at(0) = read_ships(buffer);
 
 		// Ghetto sleep to receive zombie data.
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+		if (!merge_ships()) {
+			continue;
+		}
 
 		perform_tactics();
 	}
@@ -124,7 +133,70 @@ std::vector<ship> bot_master::read_ships(char* message) {
 	return ships;
 }
 
+bool bot_master::merge_ships() {
+	loaded_ships_mutex.lock();
+	ally_ships.clear();
+	enemy_ships.clear();
+
+	if (loaded_ships.empty() || loaded_ships.at(0).empty()) {
+		return false;
+	}
+
+	me = loaded_ships.at(0).at(0);
+
+	for (std::vector<ship>& ships : loaded_ships) {
+		if (!ships.empty() && !contains_similar(ally_ships, ships.at(0))) {
+			ally_ships.push_back(ships.at(0));
+		}
+	}
+
+	for (std::vector<ship>& ships : loaded_ships) {
+		for (ship& ship : ships) {
+			if (!contains_similar(ally_ships, ship) && !contains_similar(enemy_ships, ship)) {
+				enemy_ships.push_back(ship);
+			}
+		}
+	}
+
+	loaded_ships.clear();
+	loaded_ships.resize(allies.size() + 1);
+	loaded_ships_mutex.unlock();
+	return true;
+}
+
+bool bot_master::contains_similar(std::vector<ship>& ships, ship to_check) {
+	for (ship& s : ships) {
+		if (s.get_x() == to_check.get_x() &&
+				s.get_y() == to_check.get_y() &&
+				s.get_health() == to_check.get_health() &&
+				s.get_flag() == to_check.get_flag()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void bot_master::perform_tactics() {
+	std::cout << "allies: ";
+	for (ship& ally : ally_ships) {
+		std::cout << ally.get_x() << ',';
+		std::cout << ally.get_y() << ',';
+		std::cout << ally.get_health() << ',';
+		std::cout << ally.get_flag() << ',';
+		std::cout << '|';
+	}
+
+	std::cout << "\tenemies: ";
+
+	for (ship& enemy : enemy_ships) {
+		std::cout << enemy.get_x() << ',';
+		std::cout << enemy.get_y() << ',';
+		std::cout << enemy.get_health() << ',';
+		std::cout << enemy.get_flag() << ',';
+		std::cout << '|';
+	}
+
+	std::cout << std::endl;
 }
 
 void bot_master::close() {
@@ -132,7 +204,7 @@ void bot_master::close() {
 	client.close_socket();
 	master.close_socket();
 
-	for (connection zombie : zombies) {
+	for (connection& zombie : zombies) {
 		zombie.close_socket();
 	}
 
