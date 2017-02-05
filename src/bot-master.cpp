@@ -32,7 +32,7 @@ bool bot_master::setup() {
 	loaded_ships.resize(allies.size() + 1);
 
 	for (std::vector<student>::size_type i = 0; i < allies.size(); i++) {
-		student ally = allies[i];
+		student ally = allies.at(i);
 		connection zombie = create_connection(ally.get_ip(), zombie_port);
 
 		if (!zombie.create_socket()) {
