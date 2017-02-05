@@ -28,7 +28,6 @@ class bot_master : public bot {
 		bool setup();
 		void zombie_loop(int id, student ally, connection zombie);
 		void server_loop();
-		std::vector<ship> read_ships(char* message);
 		bool merge_ships();
 		bool contains_similar(std::vector<ship>& ships, ship to_check);
 		void perform_tactics();

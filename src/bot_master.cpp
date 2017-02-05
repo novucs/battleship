@@ -3,6 +3,7 @@
 #include <sstream>
 #include "bot_master.hpp"
 #include "main.hpp"
+#include "protocol_utils.hpp"
 
 void bot_master::run() {
 	if (!setup()) {
@@ -102,35 +103,6 @@ void bot_master::server_loop() {
 
 		perform_tactics();
 	}
-}
-
-std::vector<ship> bot_master::read_ships(char* message) {
-	std::vector<ship> ships;
-	std::stringstream stream(message);
-
-	int x;
-	int y;
-	int health;
-	int flag;
-	int type = 0;
-	char separator;
-
-	while (!stream.eof()) {
-		stream >> x >> separator;
-		stream >> y >> separator;
-		stream >> health >> separator;
-		stream >> flag >> separator;
-
-		if (separator != '|') {
-			stream >> type >> separator;
-		} else {
-			type = bot_class;
-		}
-
-		ships.push_back(ship(x, y, health, flag, type));
-	}
-
-	return ships;
 }
 
 bool bot_master::merge_ships() {
