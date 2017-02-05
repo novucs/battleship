@@ -1,15 +1,13 @@
 #pragma once
 
 #include <vector>
+#include "bot.hpp"
+#include "connection.hpp"
 #include "ship.hpp"
-
-extern std::string student_number;
-extern std::string student_firstname;
-extern std::string student_familyname;
+#include "student.hpp"
 
 extern std::string server_ip;
 extern std::string master_ip;
-extern std::vector<std::string> zombie_ips;
 
 extern u_short server_port;
 extern u_short client_port;
@@ -25,4 +23,5 @@ extern const int frigate_class;
 extern const int submarine_class;
 extern int bot_class;
 
-extern std::vector<int> friend_ids;
+extern student identity;
+extern std::vector<student> allies;

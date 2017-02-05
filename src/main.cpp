@@ -2,20 +2,12 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #include <iostream>
-#include "bot.hpp"
 #include "bot-master.hpp"
 #include "bot-zombie.hpp"
 #include "main.hpp"
 
-std::string student_number = "16002374";
-std::string student_firstname = "Billy";
-std::string student_familyname = "Jenkins";
-
 std::string server_ip = "127.0.0.1";
 std::string master_ip = "127.0.0.1";
-std::vector<std::string> zombie_ips = {
-	"127.0.0.1"
-};
 
 u_short server_port = 1924;
 u_short client_port = 1925;
@@ -31,13 +23,31 @@ const int frigate_class = 1;
 const int submarine_class = 2;
 int bot_class = battleship_class;
 
-// 16002374 = will
-// 16000587 = josh
-// 15019771 = jake
-// 16014980 = gareth
-std::vector<int> friend_ids = {16002374, 16000587, 15019771, 16014980};
-
 bot* bot;
+
+student identity(
+	"16002374",
+	"William", "Randall",
+	"127.0.0.1"
+);
+
+std::vector<student> allies = {
+	student(
+		"16000587",
+		"Joshua", "Ramini",
+		"127.0.0.1"
+	),
+	student(
+		"15019771",
+		"Jacob", "Johnston",
+		"127.0.0.1"
+	),
+	student(
+		"16014980",
+		"Gareth", "Perry",
+		"127.0.0.1"
+	)
+};
 
 void load_bot() {
 	switch (bot_type) {

@@ -89,24 +89,28 @@ int network_manager::receive(connection from, connection to, char* buffer, int s
 
 void network_manager::send_fire(int x, int y) {
 	std::stringstream message;
-	message << "Fire " << student_number << ',' << x << ',' << y;
+	message << "Fire " << identity.get_id() << ',' << x << ',' << y;
 	send(server, strdup(message.str().c_str()));
 }
 
 void network_manager::send_move(int x, int y) {
 	std::stringstream message;
-	message << "Move " << student_number << ',' << x << ',' << y;
+	message << "Move " << identity.get_id() << ',' << x << ',' << y;
 	send(server, strdup(message.str().c_str()));
 }
 
 void network_manager::send_flag(int flag) {
 	std::stringstream message;
-	message << "Flag " << student_number << ',' << flag;
+	message << "Flag " << identity.get_id() << ',' << flag;
 	send(server, strdup(message.str().c_str()));
 }
 
 void network_manager::respawn(int ship_type) {
 	std::stringstream message;
-	message << "Register  " << student_number << ',' << student_firstname << ',' << student_familyname << ',' << ship_type;
+	message << "Register  ";
+	message << identity.get_id() << ',';
+	message << identity.get_forename() << ',';
+	message << identity.get_surname() << ',';
+	message << ship_type;
 	send(server, strdup(message.str().c_str()));
 }

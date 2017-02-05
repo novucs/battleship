@@ -11,9 +11,6 @@ void bot_zombie::run() {
 	std::cout << std::endl << "     Zombie bot loaded     " << std::endl;
 	std::cout << std::endl << "===========================" << std::endl;
 
-	relay_server_thread = std::thread(&bot_zombie::relay_server, this);
-	relay_master_thread = std::thread(&bot_zombie::relay_master, this);
-
 	// Wait for user input.
 	std::cout << std::endl << "Enter commands here, type '/help' for help." << std::endl;
 	getchar();
@@ -28,6 +25,9 @@ bool bot_zombie::setup() {
 			!zombie.attach()) {
 		return false;
 	}
+
+	relay_server_thread = std::thread(&bot_zombie::relay_server, this);
+	relay_master_thread = std::thread(&bot_zombie::relay_master, this);
 
 	net.respawn(bot_class);
 	return true;

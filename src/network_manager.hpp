@@ -14,6 +14,7 @@ class network_manager {
 		connection server = create_connection(server_ip, server_port);
 		connection client = create_connection(client_port);
 		bool setup_windows();
+
 	public:
 		connection get_server();
 		connection get_client();

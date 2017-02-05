@@ -11,6 +11,7 @@ class bot_zombie : public bot {
 		std::thread relay_master_thread;
 		connection master = create_connection(master_ip, master_port);
 		connection zombie = create_connection(zombie_port);
+
 	public:
 		void run();
 		bool setup();

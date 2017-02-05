@@ -12,13 +12,6 @@ void bot_master::run() {
 	std::cout << std::endl << "     Master bot loaded     " << std::endl;
 	std::cout << std::endl << "===========================" << std::endl;
 
-	for (std::vector<std::string>::size_type i = 0; i < zombie_ips.size(); i++) {
-		std::thread zombie_thread(&bot_master::zombie_loop, this, i);
-		zombie_threads.push_back(std::move(zombie_thread));
-	}
-
-	server_thread = std::thread(&bot_master::server_loop, this);
-
 	// Wait for user input.
 	std::cout << std::endl << "Enter commands here, type '/help' for help." << std::endl;
 	getchar();
@@ -31,21 +24,27 @@ bool bot_master::setup() {
 		return false;
 	}
 
-	for (std::string zombie_ip : zombie_ips) {
-		connection zombie = create_connection(zombie_ip, zombie_port);
+	for (student ally : allies) {
+		connection zombie = create_connection(ally.get_ip(), zombie_port);
+
 		if (!zombie.create_socket()) {
 			continue;
 		}
+
 		zombies.push_back(std::move(zombie));
+
+		std::thread zombie_thread(&bot_master::zombie_loop, this, ally, zombie);
+		zombie_threads.push_back(std::move(zombie_thread));
 	}
+
+	server_thread = std::thread(&bot_master::server_loop, this);
 
 	net.respawn(bot_class);
 	return true;
 }
 
-void bot_master::zombie_loop(int id) {
+void bot_master::zombie_loop(student ally, connection zombie) {
 	char buffer[4096];
-	connection zombie = zombies[id];
 
 	for (;;) {
 		switch (net.receive(zombie, master, buffer, sizeof(buffer))) {
