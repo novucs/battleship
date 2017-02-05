@@ -1,7 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
-#include "bot-master.hpp"
+#include "bot_master.hpp"
 #include "main.hpp"
 
 void bot_master::run() {

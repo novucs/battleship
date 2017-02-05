@@ -1,5 +1,5 @@
 #include <iostream>
-#include "bot-zombie.hpp"
+#include "bot_zombie.hpp"
 #include "main.hpp"
 
 void bot_zombie::run() {

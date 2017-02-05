@@ -2,8 +2,8 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #include <iostream>
-#include "bot-master.hpp"
-#include "bot-zombie.hpp"
+#include "bot_master.hpp"
+#include "bot_zombie.hpp"
 #include "main.hpp"
 
 std::string server_ip = "127.0.0.1";
