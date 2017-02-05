@@ -105,6 +105,11 @@ void connection::send_respawn(student sender, int ship_type) {
 	send(message);
 }
 
+void connection::send_ships(std::vector<ship> ships) {
+	char* message = strdup(write_ships(ships).c_str());
+	send(message);
+}
+
 connection create_connection(u_short port) {
 	port = htons(port);
 	connection* created = inner_create_connection(INADDR_ANY, port);

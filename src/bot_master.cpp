@@ -70,7 +70,7 @@ void bot_master::zombie_loop(int id, student ally, connection zombie) {
 		}
 
 		loaded_ships_mutex.lock();
-		loaded_ships.at(id) = read_ships(buffer);
+		loaded_ships.at(id) = read_ships(false, buffer);
 		loaded_ships_mutex.unlock();
 	}
 }
@@ -92,7 +92,7 @@ void bot_master::server_loop() {
 			continue;
 		}
 
-		loaded_ships.at(0) = read_ships(buffer);
+		loaded_ships.at(0) = read_ships(true, buffer);
 
 		// Ghetto sleep to receive zombie data.
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));

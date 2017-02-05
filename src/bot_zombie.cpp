@@ -1,6 +1,8 @@
+#include <ctype.h>
 #include <iostream>
 #include "bot_zombie.hpp"
 #include "main.hpp"
+#include "protocol_utils.hpp"
 
 void bot_zombie::run() {
 	if (!setup()) {
@@ -65,7 +67,12 @@ void bot_zombie::relay_master() {
 				continue;
 		}
 
-		master.send(buffer);
+		if (isdigit(buffer[0])) {
+			// Parse ships first and then send, to include our own ship type.
+			server.send_ships(read_ships(true, buffer));
+		} else {
+				master.send(buffer);
+		}
 	}
 }
 

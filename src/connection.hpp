@@ -5,7 +5,9 @@
 #define RETREIVE_IGNORE 2
 
 #include <string>
+#include <vector>
 #include <ws2tcpip.h>
+#include "ship.hpp"
 #include "student.hpp"
 
 class connection {
@@ -28,6 +30,7 @@ class connection {
 		void send_move(student sender, int x, int y);
 		void send_flag(student sender, int flag);
 		void send_respawn(student sender, int ship_type);
+		void send_ships(std::vector<ship> ships);
 };
 
 connection create_connection(u_short port);

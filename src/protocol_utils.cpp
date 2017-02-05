@@ -1,8 +1,9 @@
+#include <iostream>
 #include <sstream>
 #include "main.hpp"
 #include "protocol_utils.hpp"
 
-std::vector<ship> read_ships(char* message) {
+std::vector<ship> read_ships(bool convert, char* message) {
 	std::vector<ship> ships;
 	std::stringstream stream(message);
 
@@ -19,10 +20,11 @@ std::vector<ship> read_ships(char* message) {
 		stream >> health >> separator;
 		stream >> flag >> separator;
 
-		if (separator != '|') {
-			stream >> type >> separator;
-		} else {
+		if (convert) {
 			type = bot_class;
+			convert = false;
+		} else {
+			stream >> type >> separator;
 		}
 
 		ships.push_back(ship(x, y, health, flag, type));
@@ -57,4 +59,20 @@ std::string write_respawn(student sender, int ship_type) {
 	message << sender.get_surname() << ',';
 	message << ship_type;
 	return message.str();
+}
+
+std::string write_ships(std::vector<ship> ships) {
+	std::stringstream message;
+
+	for (ship& s : ships) {
+		message << s.get_x() << ',';
+		message << s.get_y() << ',';
+		message << s.get_health() << ',';
+		message << s.get_flag() << ',';
+		message << s.get_type() << '|';
+	}
+
+	std::string str = message.str();
+	str.pop_back();
+	return str;
 }
