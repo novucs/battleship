@@ -28,10 +28,12 @@ Both:
 
 ## Compiling from source
 Linux:
+
 1. In terminal, locate to the project `cd ~/Documents/battleship`
 2. Execute the compile and run shell script `./battleship`
 
 Windows:
+
 1. Open VisualStudio `File->New->Project From Existing Code...`
 2. Select `Visual C++` then click `Next`
 3. Set the file location to where you cloned it in src e.g. `~/Documents/battleship/src`
@@ -51,6 +53,7 @@ Windows:
 
 ## Reset code to what was last pulled
 This is useful for when you wish to pull more recent changes, but you've made changes that you want to discard. Normally you'd have to start over with a new project, but this will save you a lot of time.
+
 1. Find the latest commit hash `git log` then `q` (it should be the first one listed)
 2. A commit hash looks something like this `a2746de68499fadf45b0cd38fc091b4d4e7d1e75`
 3. Reset the code back to the original state, discarding your changes `git reset --hard a2746de68499fadf45b0cd38fc091b4d4e7d1e75`
