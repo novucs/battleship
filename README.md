@@ -56,7 +56,7 @@ This is useful for when you wish to pull more recent changes, but you've made ch
 
 1. Find the latest commit hash `git log` then `q` (it should be the first one listed)
 2. A commit hash looks something like this `a2746de68499fadf45b0cd38fc091b4d4e7d1e75`
-3. Reset the code back to the original state, discarding your changes `git reset --hard a2746de68499fadf45b0cd38fc091b4d4e7d1e75`
+3. Reset the code back to the original state, discarding your changes `git reset --hard <insert hash here>`
 
 ## Battleship tactics documentation
 You will be required to request access. Let me know when you've requested and I can confirm you are the one with the link.
