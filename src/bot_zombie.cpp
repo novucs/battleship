@@ -41,6 +41,8 @@ void bot_zombie::relay_server() {
 	char buffer[4096];
 
 	for (;;) {
+		memset(buffer, '\0', sizeof(buffer));
+
 		switch (zombie.receive(master, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
@@ -58,6 +60,8 @@ void bot_zombie::relay_master() {
 	char buffer[4096];
 
 	for (;;) {
+		memset(buffer, '\0', sizeof(buffer));
+
 		switch (client.receive(server, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;

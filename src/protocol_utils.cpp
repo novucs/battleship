@@ -13,7 +13,7 @@ std::vector<ship> read_ships(bool convert, char* message) {
 	int type = 0;
 	char separator;
 
-	while (!stream.eof()) {
+	while (!stream.eof() && stream.good()) {
 		stream >> x >> separator;
 		stream >> y >> separator;
 		stream >> health >> separator;

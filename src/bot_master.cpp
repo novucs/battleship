@@ -57,6 +57,8 @@ void bot_master::zombie_loop(int id, student ally, connection zombie) {
 	char buffer[4096];
 
 	for (;;) {
+		memset(buffer, '\0', sizeof(buffer));
+
 		switch (master.receive(zombie, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
@@ -87,6 +89,8 @@ void bot_master::server_loop() {
 	char buffer[4096];
 
 	for (;;) {
+		memset(buffer, '\0', sizeof(buffer));
+
 		switch (client.receive(server, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
