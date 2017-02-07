@@ -31,6 +31,7 @@ bool bot_master::setup() {
 	}
 
 	loaded_ships.resize(allies.size() + 1);
+	identity.set_connection(std::move(client));
 
 	for (std::vector<student>::size_type i = 0; i < allies.size(); i++) {
 		student& ally = allies.at(i);
@@ -99,6 +100,7 @@ void bot_master::server_loop() {
 			continue;
 		}
 
+		loaded_ships_mutex.lock();
 		loaded_ships.at(0) = read_ships(true, buffer);
 
 		// Ghetto sleep to receive zombie data.
@@ -109,11 +111,11 @@ void bot_master::server_loop() {
 		}
 
 		perform_tactics();
+		loaded_ships_mutex.unlock();
 	}
 }
 
 bool bot_master::merge_ships() {
-	loaded_ships_mutex.lock();
 	enemy_ships.clear();
 
 	if (loaded_ships.empty() || loaded_ships.at(0).empty()) {
@@ -121,6 +123,7 @@ bool bot_master::merge_ships() {
 	}
 
 	me = loaded_ships.at(0).at(0);
+	identity.set_ship(std::move(me));
 
 	for (std::vector<ship>& ships : loaded_ships) {
 		for (ship& ship : ships) {
@@ -132,7 +135,6 @@ bool bot_master::merge_ships() {
 
 	loaded_ships.clear();
 	loaded_ships.resize(allies.size() + 1);
-	loaded_ships_mutex.unlock();
 	return true;
 }
 
