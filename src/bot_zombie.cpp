@@ -33,7 +33,7 @@ bool bot_zombie::setup() {
 	relay_server_thread = std::thread(&bot_zombie::relay_server, this);
 	relay_master_thread = std::thread(&bot_zombie::relay_master, this);
 
-	server.send_respawn(identity, bot_class);
+	server.send_respawn(identity, ship_type);
 	return true;
 }
 

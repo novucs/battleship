@@ -49,7 +49,7 @@ bool bot_master::setup() {
 
 	server_thread = std::thread(&bot_master::server_loop, this);
 
-	server.send_respawn(identity, bot_class);
+	server.send_respawn(identity, ship_type);
 	return true;
 }
 
@@ -131,7 +131,7 @@ bool bot_master::merge_ships() {
 
 	for (std::vector<ship>& ships : loaded_ships) {
 		for (ship& ship : ships) {
-			if (!is_ally(ship) && !is_enemy(ship)) {
+			if (!is_ally(ship) && !is_enemy(ship) && ship != me) {
 				enemy_ships.push_back(ship);
 			}
 		}

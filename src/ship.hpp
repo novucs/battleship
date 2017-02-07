@@ -16,7 +16,13 @@ class ship {
 		int get_health();
 		int get_flag();
 		int get_type();
+		int get_range();
+		int get_final_range();
+		bool can_damage(ship& victim);
+		int get_damage(ship& victim);
+		int get_final_damage(ship& victim);
 		double distance_to(ship& other);
 };
 
 bool operator==(ship& ship1, ship& ship2);
+bool operator!=(ship& ship1, ship& ship2);

@@ -14,14 +14,8 @@ u_short client_port = 1925;
 u_short master_port = 13337;
 u_short zombie_port = 13338;
 
-const int zombie_type = 0;
-const int master_type = 1;
-int bot_type = master_type;
-
-const int battleship_class = 0;
-const int frigate_class = 1;
-const int submarine_class = 2;
-int bot_class = battleship_class;
+int bot_type = BOT_TYPE_MASTER;
+int ship_type = SHIP_TYPE_BATTLESHIP;
 
 bot* bot;
 
@@ -56,10 +50,10 @@ bool setup_networking() {
 
 void load_bot() {
 	switch (bot_type) {
-		case master_type:
+		case BOT_TYPE_MASTER:
 			bot = new bot_master();
 			break;
-		case zombie_type:
+		case BOT_TYPE_ZOMBIE:
 			bot = new bot_zombie();
 			break;
 	}
