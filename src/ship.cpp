@@ -37,14 +37,14 @@ double ship::distance_to(ship& other) {
 }
 
 int ship::get_range() {
-  switch (type) {
-    case SHIP_TYPE_BATTLESHIP:
+	switch (type) {
+		case SHIP_TYPE_BATTLESHIP:
 			return 100;
-    case SHIP_TYPE_FRIGATE:
+		case SHIP_TYPE_FRIGATE:
 			return 75;
-    case SHIP_TYPE_SUBMARINE:
+		case SHIP_TYPE_SUBMARINE:
 			return 50;
-  }
+	}
 	return 0;
 }
 
@@ -64,32 +64,32 @@ int ship::get_damage(ship& victim) {
 
 	switch (attacker_ship_type) {
 		case SHIP_TYPE_BATTLESHIP:
-	    switch (victim_ship_type) {
-        case SHIP_TYPE_BATTLESHIP:
+			switch (victim_ship_type) {
+				case SHIP_TYPE_BATTLESHIP:
 					return 1;
-        case SHIP_TYPE_FRIGATE:
+				case SHIP_TYPE_FRIGATE:
 					return 2;
-        case SHIP_TYPE_SUBMARINE:
+				case SHIP_TYPE_SUBMARINE:
 					return 3;
-	    }
+			}
 		case SHIP_TYPE_FRIGATE:
-	    switch (victim_ship_type) {
-        case SHIP_TYPE_BATTLESHIP:
+			switch (victim_ship_type) {
+				case SHIP_TYPE_BATTLESHIP:
 					return 1;
-        case SHIP_TYPE_FRIGATE:
+				case SHIP_TYPE_FRIGATE:
 					return 1;
-        case SHIP_TYPE_SUBMARINE:
+				case SHIP_TYPE_SUBMARINE:
 					return 2;
-	    }
+			}
 		case SHIP_TYPE_SUBMARINE:
-	    switch (victim_ship_type) {
-        case SHIP_TYPE_BATTLESHIP:
+			switch (victim_ship_type) {
+				case SHIP_TYPE_BATTLESHIP:
 					return 2;
-        case SHIP_TYPE_FRIGATE:
+				case SHIP_TYPE_FRIGATE:
 					return 2;
-        case SHIP_TYPE_SUBMARINE:
+				case SHIP_TYPE_SUBMARINE:
 					return 2;
-	    }
+			}
 	}
 
 	return 0;
