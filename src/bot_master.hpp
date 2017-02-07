@@ -14,11 +14,9 @@ class bot_master : public bot {
 		connection server = create_connection(server_ip, server_port);
 		connection client = create_connection(client_port);
 		connection master = create_connection(master_port);
-		std::vector<connection> zombies;
 		std::thread server_thread;
 		std::vector<std::thread> zombie_threads;
 		ship me;
-		std::vector<ship> ally_ships;
 		std::vector<ship> enemy_ships;
 		std::mutex loaded_ships_mutex;
 		std::vector<std::vector<ship>> loaded_ships;
@@ -29,7 +27,8 @@ class bot_master : public bot {
 		void zombie_loop(int id, student ally, connection zombie);
 		void server_loop();
 		bool merge_ships();
-		bool contains_similar(std::vector<ship>& ships, ship to_check);
+		bool is_ally(ship& to_check);
+		bool is_enemy(ship& to_check);
 		void perform_tactics();
 		void close();
 };

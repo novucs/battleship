@@ -8,15 +8,17 @@
 #include <vector>
 #include <ws2tcpip.h>
 #include "ship.hpp"
-#include "student.hpp"
+
+class student;
 
 class connection {
 	private:
 		int port;
-		SOCKET m_socket {0};
 		SOCKADDR_IN address;
 
 	public:
+		SOCKET m_socket {0};
+		connection();
 		connection(SOCKADDR_IN address);
 		int get_port();
 		SOCKET get_socket();

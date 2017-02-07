@@ -3,8 +3,12 @@
 #include <winsock2.h>
 #include "connection.hpp"
 #include "protocol_utils.hpp"
+#include "student.hpp"
 
 connection* inner_create_connection(u_long host, u_short port);
+
+connection::connection() {
+}
 
 connection::connection(SOCKADDR_IN address) {
 	this->address = address;

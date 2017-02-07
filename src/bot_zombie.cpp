@@ -69,9 +69,9 @@ void bot_zombie::relay_master() {
 
 		if (isdigit(buffer[0])) {
 			// Parse ships first and then send, to include our own ship type.
-			server.send_ships(read_ships(true, buffer));
+			master.send_ships(read_ships(true, buffer));
 		} else {
-				master.send(buffer);
+			master.send(buffer);
 		}
 	}
 }

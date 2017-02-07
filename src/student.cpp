@@ -22,3 +22,19 @@ std::string student::get_surname() {
 std::string student::get_ip() {
 	return ip;
 }
+
+ship student::get_ship() {
+	return m_ship;
+}
+
+void student::set_ship(ship ship) {
+	m_ship = ship;
+}
+
+connection student::get_connection() {
+	return m_connection;
+}
+
+void student::set_connection(connection connection) {
+	m_connection = connection;
+}
