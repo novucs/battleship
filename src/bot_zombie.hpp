@@ -9,10 +9,10 @@ class bot_zombie : public bot {
 	private:
 		std::thread relay_server_thread;
 		std::thread relay_master_thread;
-		connection server = create_connection(server_ip, server_port);
-		connection client = create_connection(client_port);
-		connection master = create_connection(master_ip, master_port);
-		connection zombie = create_connection(zombie_port);
+		connection server_connection = create_connection(server_ip, server_port);
+		connection client_connection = create_connection(client_port);
+		connection master_connection = create_connection(master.get_ip(), master_port);
+		connection zombie_connection = create_connection(zombie_port);
 
 	public:
 		void run();

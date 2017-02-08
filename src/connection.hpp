@@ -9,8 +9,6 @@
 #include <ws2tcpip.h>
 #include "ship.hpp"
 
-class student;
-
 class connection {
 	private:
 		int port;
@@ -28,11 +26,12 @@ class connection {
 		bool attach();
 		void send(char* message);
 		int receive(connection from, char* buffer, int size);
-		void send_fire(student sender, int x, int y);
-		void send_move(student sender, int x, int y);
-		void send_flag(student sender, int flag);
-		void send_respawn(student sender, int ship_type);
 		void send_ships(std::vector<ship> ships);
+		void send_fire(std::string id, int x, int y);
+		void send_move(std::string id, int x, int y);
+		void send_flag(std::string id, int flag);
+		void send_respawn(std::string id, std::string forename, std::string surname,
+			int ship_type);
 };
 
 connection create_connection(u_short port);

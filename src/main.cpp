@@ -6,42 +6,46 @@
 #include "bot_zombie.hpp"
 #include "main.hpp"
 
+int bot_type = BOT_TYPE_MASTER;
+
 std::string server_ip = "127.0.0.1";
-std::string master_ip = "127.0.0.1";
 
 u_short server_port = 1924;
 u_short client_port = 1925;
 u_short master_port = 13337;
 u_short zombie_port = 13338;
 
-int bot_type = BOT_TYPE_MASTER;
-int ship_type = SHIP_TYPE_BATTLESHIP;
-
-bot* bot;
-
-student identity(
+student master(
 	"16002374",
 	"William", "Randall",
-	"127.0.0.1"
+	"127.0.0.1",
+	SHIP_TYPE_BATTLESHIP
 );
 
-std::vector<student> allies = {
+std::vector<student> zombies = {
 	student(
 		"16000587",
 		"Joshua", "Ramini",
-		"127.0.0.1"
+		"127.0.0.1",
+		SHIP_TYPE_BATTLESHIP
 	),
 	student(
 		"15019771",
 		"Jacob", "Johnston",
-		"127.0.0.1"
+		"127.0.0.1",
+		SHIP_TYPE_BATTLESHIP
 	),
 	student(
 		"16014980",
 		"Gareth", "Perry",
-		"127.0.0.1"
+		"127.0.0.1",
+		SHIP_TYPE_BATTLESHIP
 	)
 };
+
+student& identity = master;
+
+bot* bot;
 
 bool setup_networking() {
 	WSADATA data;

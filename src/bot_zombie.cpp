@@ -21,19 +21,17 @@ void bot_zombie::run() {
 }
 
 bool bot_zombie::setup() {
-	if (!server.create_socket() ||
-			!client.create_socket() ||
-			!client.attach() ||
-			!master.create_socket() ||
-			!zombie.create_socket() ||
-			!zombie.attach()) {
+	if (!server_connection.create_socket() ||
+			!client_connection.create_socket() ||
+			!client_connection.attach() ||
+			!master_connection.create_socket() ||
+			!zombie_connection.create_socket() ||
+			!zombie_connection.attach()) {
 		return false;
 	}
 
 	relay_server_thread = std::thread(&bot_zombie::relay_server, this);
 	relay_master_thread = std::thread(&bot_zombie::relay_master, this);
-
-	server.send_respawn(identity, ship_type);
 	return true;
 }
 
@@ -43,7 +41,7 @@ void bot_zombie::relay_server() {
 	for (;;) {
 		memset(buffer, '\0', sizeof(buffer));
 
-		switch (zombie.receive(master, buffer, sizeof(buffer))) {
+		switch (zombie_connection.receive(master_connection, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -52,7 +50,7 @@ void bot_zombie::relay_server() {
 				continue;
 		}
 
-		server.send(buffer);
+		server_connection.send(buffer);
 	}
 }
 
@@ -62,7 +60,7 @@ void bot_zombie::relay_master() {
 	for (;;) {
 		memset(buffer, '\0', sizeof(buffer));
 
-		switch (client.receive(server, buffer, sizeof(buffer))) {
+		switch (client_connection.receive(server_connection, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -73,18 +71,18 @@ void bot_zombie::relay_master() {
 
 		if (isdigit(buffer[0])) {
 			// Parse ships first and then send, to include our own ship type.
-			master.send_ships(read_ships(true, buffer));
+			master_connection.send_ships(read_ships(true, buffer));
 		} else {
-			master.send(buffer);
+			master_connection.send(buffer);
 		}
 	}
 }
 
 void bot_zombie::close() {
-	server.close_socket();
-	client.close_socket();
-	master.close_socket();
-	zombie.close_socket();
+	server_connection.close_socket();
+	client_connection.close_socket();
+	master_connection.close_socket();
+	zombie_connection.close_socket();
 	WSACleanup();
 
 	relay_server_thread.join();

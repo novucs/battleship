@@ -3,7 +3,6 @@
 #include <winsock2.h>
 #include "connection.hpp"
 #include "protocol_utils.hpp"
-#include "student.hpp"
 
 connection* inner_create_connection(u_long host, u_short port);
 
@@ -89,28 +88,29 @@ int connection::receive(connection from, char* buffer, int size) {
 	return RETREIVE_SUCCESS;
 }
 
-void connection::send_fire(student sender, int x, int y) {
-	char* message = strdup(write_fire(sender, x, y).c_str());
-	send(message);
-}
-
-void connection::send_move(student sender, int x, int y) {
-	char* message = strdup(write_move(sender, x, y).c_str());
-	send(message);
-}
-
-void connection::send_flag(student sender, int flag) {
-	char* message = strdup(write_flag(sender, flag).c_str());
-	send(message);
-}
-
-void connection::send_respawn(student sender, int ship_type) {
-	char* message = strdup(write_respawn(sender, ship_type).c_str());
-	send(message);
-}
-
 void connection::send_ships(std::vector<ship> ships) {
 	char* message = strdup(write_ships(ships).c_str());
+	send(message);
+}
+
+void connection::send_fire(std::string id, int x, int y) {
+	char* message = strdup(write_fire(id, x, y).c_str());
+	send(message);
+}
+
+void connection::send_move(std::string id, int x, int y) {
+	char* message = strdup(write_move(id, x, y).c_str());
+	send(message);
+}
+
+void connection::send_flag(std::string id, int flag) {
+	char* message = strdup(write_flag(id, flag).c_str());
+	send(message);
+}
+
+void connection::send_respawn(std::string id, std::string forename,
+		std::string surname, int ship_type) {
+	char* message = strdup(write_respawn(id, forename, surname, ship_type).c_str());
 	send(message);
 }
 

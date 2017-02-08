@@ -22,44 +22,49 @@ void bot_master::run() {
 }
 
 bool bot_master::setup() {
-	if (!server.create_socket() ||
-			!client.create_socket() ||
-			!client.attach() ||
-			!master.create_socket() ||
-			!master.attach()) {
+	if (!server_connection.create_socket() ||
+			!client_connection.create_socket() ||
+			!client_connection.attach() ||
+			!master_connection.create_socket() ||
+			!master_connection.attach()) {
 		return false;
 	}
 
-	loaded_ships.resize(allies.size() + 1);
-	identity.set_connection(std::move(client));
+	loaded_ships.resize(zombies.size() + 1);
+	master.set_connection(std::move(client_connection));
 
-	for (std::vector<student>::size_type i = 0; i < allies.size(); i++) {
-		student& ally = allies.at(i);
-		connection zombie = create_connection(ally.get_ip(), zombie_port);
+	for (std::vector<student>::size_type i = 0; i < zombies.size(); i++) {
+		student& zombie = zombies.at(i);
+		connection zombie_connection = create_connection(zombie.get_ip(), zombie_port);
 
-		if (!zombie.create_socket()) {
+		if (!zombie_connection.create_socket()) {
 			continue;
 		}
 
-		ally.set_connection(std::move(zombie));
+		zombie.set_connection(std::move(zombie_connection));
 
-		std::thread zombie_thread(&bot_master::zombie_loop, this, (i + 1), ally, zombie);
+		std::thread zombie_thread(&bot_master::zombie_loop, this, (i + 1), zombie, zombie_connection);
 		zombie_threads.push_back(std::move(zombie_thread));
 	}
 
 	server_thread = std::thread(&bot_master::server_loop, this);
 
-	server.send_respawn(identity, ship_type);
+	master.send_respawn();
+
+	for (student& zombie : zombies) {
+		zombie.send_respawn();
+	}
+
 	return true;
 }
 
-void bot_master::zombie_loop(int id, student ally, connection zombie) {
+void bot_master::zombie_loop(int id, student zombie, connection zombie_connection) {
 	char buffer[4096];
 
 	for (;;) {
 		memset(buffer, '\0', sizeof(buffer));
 
-		switch (master.receive(zombie, buffer, sizeof(buffer))) {
+		switch (master_connection.receive(zombie_connection, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -78,7 +83,7 @@ void bot_master::zombie_loop(int id, student ally, connection zombie) {
 		loaded_ships.at(id) = ships;
 
 		if (!ships.empty()) {
-			ally.set_ship(std::move(ships.at(0)));
+			zombie.set_ship(std::move(ships.at(0)));
 		}
 
 		loaded_ships_mutex.unlock();
@@ -91,7 +96,7 @@ void bot_master::server_loop() {
 	for (;;) {
 		memset(buffer, '\0', sizeof(buffer));
 
-		switch (client.receive(server, buffer, sizeof(buffer))) {
+		switch (client_connection.receive(server_connection, buffer, sizeof(buffer))) {
 			case RETREIVE_SUCCESS:
 				break;
 			case RETREIVE_FAIL:
@@ -127,24 +132,24 @@ bool bot_master::merge_ships() {
 	}
 
 	master_ship = loaded_ships.at(0).at(0);
-	identity.set_ship(std::move(master_ship));
+	master.set_ship(std::move(master_ship));
 
 	for (std::vector<ship>& ships : loaded_ships) {
 		for (ship& ship : ships) {
-			if (!is_ally(ship) && !is_enemy(ship) && ship != master_ship) {
+			if (!is_zombie(ship) && !is_enemy(ship) && ship != master_ship) {
 				enemy_ships.push_back(ship);
 			}
 		}
 	}
 
 	loaded_ships.clear();
-	loaded_ships.resize(allies.size() + 1);
+	loaded_ships.resize(zombies.size() + 1);
 	return true;
 }
 
-bool bot_master::is_ally(ship& to_check) {
-	for (student& ally : allies) {
-		ship ship = ally.get_ship();
+bool bot_master::is_zombie(ship& to_check) {
+	for (student& zombie : zombies) {
+		ship ship = zombie.get_ship();
 		if (ship == to_check) {
 			return true;
 		}
@@ -183,18 +188,18 @@ void bot_master::perform_tactics() {
 		int move_x = target.get_x() > master_ship.get_x() ? 2 : -2;
 		int move_y = target.get_x() > master_ship.get_y() ? 2 : -2;
 
-		server.send_move(identity, move_x, move_y);
-		server.send_fire(identity, target.get_x(), target.get_y());
+		master.send_move(move_x, move_y);
+		master.send_fire(target.get_x(), target.get_y());
 
 		// ... and make the zombie ships do the same.
-		for (student& ally : allies) {
-			ship ally_ship = ally.get_ship();
+		for (student& zombie : zombies) {
+			ship zombie_ship = zombie.get_ship();
 
-			move_x = target.get_x() > ally_ship.get_x() ? 2 : -2;
-			move_y = target.get_y() > ally_ship.get_y() ? 2 : -2;
+			move_x = target.get_x() > zombie_ship.get_x() ? 2 : -2;
+			move_y = target.get_y() > zombie_ship.get_y() ? 2 : -2;
 
-			ally.get_connection().send_move(ally, move_x, move_y);
-			ally.get_connection().send_fire(ally, move_x, move_y);
+			zombie.send_move(move_x, move_y);
+			zombie.send_fire(move_x, move_y);
 		}
 	}
 
@@ -204,28 +209,27 @@ void bot_master::perform_tactics() {
 		int move_x = 900 > master_ship.get_x() ? 1 : -1;
 		int move_y = 900 > master_ship.get_y() ? 1 : -1;
 
-		server.send_move(identity, move_x, move_y);
+		master.send_move(move_x, move_y);
 
 		// ... and make the zombies move towards the master bot.
-		for (student& ally : allies) {
-			ship ally_ship = ally.get_ship();
+		for (student& zombie : zombies) {
+			ship zombie_ship = zombie.get_ship();
 
-			move_x = master_ship.get_x() > ally_ship.get_x() ? 2 : -2;
-			move_y = master_ship.get_y() > ally_ship.get_y() ? 2 : -2;
+			move_x = master_ship.get_x() > zombie_ship.get_x() ? 2 : -2;
+			move_y = master_ship.get_y() > zombie_ship.get_y() ? 2 : -2;
 
-			ally.get_connection().send_move(ally, move_x, move_y);
+			zombie.send_move(move_x, move_y);
 		}
 	}
 }
 
 void bot_master::close() {
-	server.close_socket();
-	client.close_socket();
-	master.close_socket();
+	server_connection.close_socket();
+	client_connection.close_socket();
+	master_connection.close_socket();
 
-	for (student& ally : allies) {
-		connection c = ally.get_connection();
-		c.close_socket();
+	for (student& zombie : zombies) {
+		zombie.get_connection().close_socket();
 	}
 
 	WSACleanup();
