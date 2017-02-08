@@ -49,18 +49,18 @@ void student::set_connection(connection connection) {
 	m_connection = connection;
 }
 
-void student::send_fire(int x, int y) {
+void student::fire(int x, int y) {
 	m_connection.send_fire(id, x, y);
 }
 
-void student::send_move(int x, int y) {
+void student::move(int x, int y) {
 	m_connection.send_move(id, x, y);
 }
 
-void student::send_flag(int flag) {
+void student::flag(int flag) {
 	m_connection.send_flag(id, flag);
 }
 
-void student::send_respawn() {
+void student::respawn() {
 	m_connection.send_respawn(id, forename, surname, next_ship_type);
 }

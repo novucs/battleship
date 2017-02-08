@@ -27,8 +27,8 @@ class student {
 		void set_ship(ship ship);
 		connection get_connection();
 		void set_connection(connection connection);
-		void send_fire(int x, int y);
-		void send_move(int x, int y);
-		void send_flag(int flag);
-		void send_respawn();
+		void fire(int x, int y);
+		void move(int x, int y);
+		void flag(int flag);
+		void respawn();
 };

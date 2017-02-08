@@ -49,10 +49,10 @@ bool bot_master::setup() {
 
 	server_thread = std::thread(&bot_master::server_loop, this);
 
-	master.send_respawn();
+	master.respawn();
 
 	for (student& zombie : zombies) {
-		zombie.send_respawn();
+		zombie.respawn();
 	}
 
 	return true;
@@ -190,8 +190,8 @@ void bot_master::perform_tactics() {
 		int fire_x = target.get_x();
 		int fire_y = target.get_y();
 
-		master.send_move(move_x, move_y);
-		master.send_fire(fire_x, fire_y);
+		master.move(move_x, move_y);
+		master.fire(fire_x, fire_y);
 
 		// ... and make the zombie ships do the same.
 		for (student& zombie : zombies) {
@@ -200,8 +200,8 @@ void bot_master::perform_tactics() {
 			move_x = target.get_x() > zombie_ship.get_x() ? 2 : -2;
 			move_y = target.get_y() > zombie_ship.get_y() ? 2 : -2;
 
-			zombie.send_move(move_x, move_y);
-			zombie.send_fire(fire_x, fire_y);
+			zombie.move(move_x, move_y);
+			zombie.fire(fire_x, fire_y);
 		}
 	}
 
@@ -211,7 +211,7 @@ void bot_master::perform_tactics() {
 		int move_x = 900 > master_ship.get_x() ? 1 : -1;
 		int move_y = 900 > master_ship.get_y() ? 1 : -1;
 
-		master.send_move(move_x, move_y);
+		master.move(move_x, move_y);
 
 		// ... and make the zombies move towards the master bot.
 		for (student& zombie : zombies) {
@@ -220,7 +220,7 @@ void bot_master::perform_tactics() {
 			move_x = master_ship.get_x() > zombie_ship.get_x() ? 2 : -2;
 			move_y = master_ship.get_y() > zombie_ship.get_y() ? 2 : -2;
 
-			zombie.send_move(move_x, move_y);
+			zombie.move(move_x, move_y);
 		}
 	}
 }
