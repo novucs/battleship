@@ -126,12 +126,12 @@ bool bot_master::merge_ships() {
 		return false;
 	}
 
-	me = loaded_ships.at(0).at(0);
-	identity.set_ship(std::move(me));
+	master_ship = loaded_ships.at(0).at(0);
+	identity.set_ship(std::move(master_ship));
 
 	for (std::vector<ship>& ships : loaded_ships) {
 		for (ship& ship : ships) {
-			if (!is_ally(ship) && !is_enemy(ship) && ship != me) {
+			if (!is_ally(ship) && !is_enemy(ship) && ship != master_ship) {
 				enemy_ships.push_back(ship);
 			}
 		}
@@ -162,10 +162,59 @@ bool bot_master::is_enemy(ship& to_check) {
 }
 
 void bot_master::perform_tactics() {
-	server.send_move(identity, 2, 2);
+	// Locate the nearest enemy ship to the master bot ...
+	ship target;
+	double lowest_distance = 0;
+	bool target_found = false;
 
-	for (student& ally : allies) {
-		ally.get_connection().send_move(ally, 2, 2);
+	for (ship& enemy_ship : enemy_ships) {
+		double distance = master_ship.distance_to(target);
+
+		if (!target_found || distance < lowest_distance) {
+			target = enemy_ship;
+			lowest_distance = distance;
+			target_found = true;
+		}
+	}
+
+	// ... if an enemy was found...
+	if (target_found) {
+		// ... move the master ship towards and fire at it ...
+		int move_x = target.get_x() > master_ship.get_x() ? 2 : -2;
+		int move_y = target.get_x() > master_ship.get_y() ? 2 : -2;
+
+		server.send_move(identity, move_x, move_y);
+		server.send_fire(identity, target.get_x(), target.get_y());
+
+		// ... and make the zombie ships do the same.
+		for (student& ally : allies) {
+			ship ally_ship = ally.get_ship();
+
+			move_x = target.get_x() > ally_ship.get_x() ? 2 : -2;
+			move_y = target.get_y() > ally_ship.get_y() ? 2 : -2;
+
+			ally.get_connection().send_move(ally, move_x, move_y);
+			ally.get_connection().send_fire(ally, move_x, move_y);
+		}
+	}
+
+	// ... otherwise ...
+	else {
+		// ... move the master bot slowly towards the top right corner ...
+		int move_x = 900 > master_ship.get_x() ? 1 : -1;
+		int move_y = 900 > master_ship.get_y() ? 1 : -1;
+
+		server.send_move(identity, move_x, move_y);
+
+		// ... and make the zombies move towards the master bot.
+		for (student& ally : allies) {
+			ship ally_ship = ally.get_ship();
+
+			move_x = master_ship.get_x() > ally_ship.get_x() ? 2 : -2;
+			move_y = master_ship.get_y() > ally_ship.get_y() ? 2 : -2;
+
+			ally.get_connection().send_move(ally, move_x, move_y);
+		}
 	}
 }
 

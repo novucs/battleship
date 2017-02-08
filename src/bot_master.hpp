@@ -16,7 +16,7 @@ class bot_master : public bot {
 		connection master = create_connection(master_port);
 		std::thread server_thread;
 		std::vector<std::thread> zombie_threads;
-		ship me;
+		ship master_ship;
 		std::vector<ship> enemy_ships;
 		std::mutex loaded_ships_mutex;
 		std::vector<std::vector<ship>> loaded_ships;
