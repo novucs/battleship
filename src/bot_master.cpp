@@ -187,9 +187,11 @@ void bot_master::perform_tactics() {
 		// ... move the master ship towards and fire at it ...
 		int move_x = target.get_x() > master_ship.get_x() ? 2 : -2;
 		int move_y = target.get_x() > master_ship.get_y() ? 2 : -2;
+		int fire_x = target.get_x();
+		int fire_y = target.get_y();
 
 		master.send_move(move_x, move_y);
-		master.send_fire(target.get_x(), target.get_y());
+		master.send_fire(fire_x, fire_y);
 
 		// ... and make the zombie ships do the same.
 		for (student& zombie : zombies) {
@@ -199,7 +201,7 @@ void bot_master::perform_tactics() {
 			move_y = target.get_y() > zombie_ship.get_y() ? 2 : -2;
 
 			zombie.send_move(move_x, move_y);
-			zombie.send_fire(move_x, move_y);
+			zombie.send_fire(fire_x, fire_y);
 		}
 	}
 
