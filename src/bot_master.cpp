@@ -31,7 +31,7 @@ bool bot_master::setup() {
 	}
 
 	loaded_ships.resize(zombies.size() + 1);
-	master.set_connection(std::move(client_connection));
+	master.set_connection(std::move(server_connection));
 
 	for (std::vector<student>::size_type i = 0; i < zombies.size(); i++) {
 		student& zombie = zombies.at(i);
