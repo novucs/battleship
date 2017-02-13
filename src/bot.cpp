@@ -242,7 +242,6 @@ void bot::perform_tactics() {
 	int avoid_total_weight = 0;
 	int avoid_x = 0;
 	int avoid_y = 0;
-	bool avoid_in_use = false;
 	std::unordered_map<int, int> flag_weights;
 
 	for (ship& enemy_ship : enemy_ships) {
@@ -261,7 +260,6 @@ void bot::perform_tactics() {
 		avoid_x += weight * enemy_ship.get_x();
 		avoid_y += weight * enemy_ship.get_y();
 		avoid_total_weight += weight;
-		avoid_in_use = true;
 	}
 
 	if (avoid_total_weight > 0) {
@@ -319,13 +317,43 @@ void bot::perform_tactics() {
 		}
 	}
 
+	int avoid_threshold = 0;
+
 	if (target_found) {
-		if (this_ship.get_range() >= this_ship.distance_to(target)) {
+		// Fire at target if theres a chance to damage.
+		if (this_ship.get_final_damage(target) > 0) {
 			fire(target.get_x(), target.get_y());
+		}
+
+		// Move towards target if our range is larger than theirs and we'll be
+		// moving into a safe spot.
+		if (target.get_final_range() + 2 < this_ship.distance_to(target) &&
+				target.get_final_range() <= this_ship.get_final_range()) {
+			move_x = this_ship.get_x() < target.get_x() ? 2 : -2;
+			move_y = this_ship.get_y() < target.get_y() ? 2 : -2;
+			avoid_threshold += this_ship.get_final_damage(target);
+		}
+
+		// Otherwise move away.
+		else {
+			move_x = this_ship.get_x() > target.get_x() ? 2 : -2;
+			move_y = this_ship.get_y() > target.get_y() ? 2 : -2;
 		}
 	}
 
-	if (avoid_in_use) {
+	// Increase the avoid threshold when not fully grouped and movement is
+	// counter productive to the group.
+	if (nearby_allies.size() < active_allies) {
+		if (this_ship.get_x() > avoid_x && move_x < 0) {
+			avoid_threshold += 2;
+		}
+
+		if (this_ship.get_y() > avoid_y && move_y < 0) {
+			avoid_threshold += 2;
+		}
+	}
+
+	if (avoid_total_weight > avoid_threshold) {
 		move_x = this_ship.get_x() > avoid_x ? 2 : -2;
 		move_y = this_ship.get_y() > avoid_y ? 2 : -2;
 	}
