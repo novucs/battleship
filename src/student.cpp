@@ -39,3 +39,11 @@ connection student::get_connection() {
 void student::set_connection(connection connection) {
 	m_connection = connection;
 }
+
+bool student::is_connected() {
+	return connected;
+}
+
+void student::set_connected(bool connected) {
+	this->connected = connected;
+}

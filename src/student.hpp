@@ -12,6 +12,7 @@ class student {
 		std::string ip;
 		ship m_ship;
 		connection m_connection;
+		bool connected;
 
 	public:
 		student(std::string id, std::string forename, std::string surname,
@@ -24,4 +25,6 @@ class student {
 		void set_ship(ship ship);
 		connection get_connection();
 		void set_connection(connection connection);
+		bool is_connected();
+		void set_connected(bool connected);
 };

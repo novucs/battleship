@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 #include "bot.hpp"
 #include "main.hpp"
 #include "protocol_utils.hpp"
@@ -43,7 +44,7 @@ bool bot::setup() {
 
 		ally.set_connection(std::move(ally_connection));
 
-		std::thread hive_mind_thread(&bot::hive_mind_loop, this, (i + 1), ally, ally_connection);
+		std::thread hive_mind_thread(&bot::hive_mind_loop, this, i);
 		hive_mind_threads.push_back(std::move(hive_mind_thread));
 	}
 
@@ -54,8 +55,10 @@ bool bot::setup() {
 	return true;
 }
 
-void bot::hive_mind_loop(int id, student ally, connection ally_connection) {
+void bot::hive_mind_loop(int id) {
 	char buffer[4096];
+	student& ally = allies.at(id);
+	connection ally_connection = ally.get_connection();
 
 	for (;;) {
 		memset(buffer, '\0', sizeof(buffer));
@@ -76,9 +79,10 @@ void bot::hive_mind_loop(int id, student ally, connection ally_connection) {
 		loaded_ships_mutex.lock();
 
 		std::vector<ship> ships = read_ships(false, buffer);
-		loaded_ships.at(id) = ships;
+		loaded_ships.at(id + 1) = ships;
 
 		if (!ships.empty()) {
+			ally.set_connected(true);
 			ally.set_ship(std::move(ships.at(0)));
 		}
 
@@ -123,6 +127,12 @@ void bot::server_loop() {
 		}
 
 		perform_tactics();
+
+		// Flag allies as not connected for next tick, allowing them to correct this.
+		for (student& ally : allies) {
+			ally.set_connected(false);
+		}
+
 		loaded_ships_mutex.unlock();
 	}
 }
@@ -134,12 +144,12 @@ bool bot::merge_ships() {
 		return false;
 	}
 
-	master_ship = loaded_ships.at(0).at(0);
-	identity.set_ship(std::move(master_ship));
+	this_ship = loaded_ships.at(0).at(0);
+	identity.set_ship(std::move(this_ship));
 
 	for (std::vector<ship>& ships : loaded_ships) {
 		for (ship& ship : ships) {
-			if (!is_ally(ship) && !is_enemy(ship) && ship != master_ship) {
+			if (!is_ally(ship) && !is_enemy(ship) && ship != this_ship) {
 				enemy_ships.push_back(ship);
 			}
 		}
@@ -189,6 +199,142 @@ void bot::respawn() {
 }
 
 void bot::perform_tactics() {
+	// Apply default movement: towards map center.
+	int move_x = this_ship.get_x() < 500 ? 2 : -2;
+	int move_y = this_ship.get_y() < 500 ? 2 : -2;
+
+	// Calculate:
+	// - number of connected allies
+	// - nearby allies
+	// - the overall center between all allies
+	std::size_t active_allies = 0;
+	std::vector<ship> nearby_allies;
+	int center_x = this_ship.get_x();
+	int center_y = this_ship.get_y();
+
+	for (student& ally : allies) {
+		if (!ally.is_connected()) {
+			continue;
+		}
+
+		ship ally_ship = ally.get_ship();
+		center_x += ally_ship.get_x();
+		center_y += ally_ship.get_y();
+		active_allies++;
+
+		if (ally_ship.distance_to(this_ship) < 25) {
+			nearby_allies.push_back(ally_ship);
+		}
+	}
+
+	int group_size = active_allies + 1;
+	center_x /= group_size;
+	center_y /= group_size;
+
+	// Move towards ally center when we are not nearby all allies.
+	if (nearby_allies.size() < active_allies) {
+		move_x = this_ship.get_x() < center_x ? 2 : -2;
+		move_y = this_ship.get_y() < center_y ? 2 : -2;
+	}
+
+	// Set position to avoid in order to keep outside enemy fire ranges, and equip
+	// the most beneficial flag.
+	int avoid_total_weight = 0;
+	int avoid_x = 0;
+	int avoid_y = 0;
+	bool avoid_in_use = false;
+	std::unordered_map<int, int> flag_weights;
+
+	for (ship& enemy_ship : enemy_ships) {
+		int weight = enemy_ship.get_final_damage(this_ship);
+
+		if (weight == 0) {
+			continue;
+		}
+
+		if (flag_weights.find(enemy_ship.get_flag()) == flag_weights.end()) {
+			std::pair<int, int> flag_weight(enemy_ship.get_flag(), 0);
+			flag_weights.insert(flag_weight);
+		}
+
+		flag_weights.at(enemy_ship.get_flag()) += weight;
+		avoid_x += weight * enemy_ship.get_x();
+		avoid_y += weight * enemy_ship.get_y();
+		avoid_total_weight += weight;
+		avoid_in_use = true;
+	}
+
+	if (avoid_total_weight > 0) {
+		avoid_x /= avoid_total_weight;
+		avoid_y /= avoid_total_weight;
+	}
+
+	int new_flag = 0;
+	int highest_flag_weight = 0;
+
+	for (auto& entry : flag_weights) {
+		if (highest_flag_weight >= entry.second) {
+			continue;
+		}
+
+		new_flag = entry.first;
+		highest_flag_weight = entry.second;
+	}
+
+	// Target crippled allies.
+	ship target;
+	int target_weight = 0;
+	bool target_found = false;
+
+	for (ship& ally_ship : nearby_allies) {
+		if (ally_ship.get_health() > 1) {
+			continue;
+		}
+
+		target = ally_ship;
+		target_found = true;
+	}
+
+	// Target weaker enemies when no crippled allies found, taking into account
+	// the firepower of nearby allies.
+	if (!target_found) {
+		for (ship& enemy_ship : enemy_ships) {
+			int weight = 0;
+
+			weight += this_ship.get_final_damage(enemy_ship);
+			weight += this_ship.get_range() > enemy_ship.get_range() ? 3 : -3;
+			weight += this_ship.get_range() / this_ship.distance_to(enemy_ship);
+
+			for (ship& ally_ship : nearby_allies) {
+				weight += ally_ship.get_final_damage(enemy_ship);
+				weight += ally_ship.get_range() > enemy_ship.get_range() ? 3 : -3;
+				weight += ally_ship.get_range() / ally_ship.distance_to(enemy_ship);
+			}
+
+			if (!target_found || target_weight < weight) {
+				target_weight = weight;
+				target = enemy_ship;
+				target_found = true;
+			}
+		}
+	}
+
+	if (target_found) {
+		if (this_ship.get_range() >= this_ship.distance_to(target)) {
+			fire(target.get_x(), target.get_y());
+		}
+	}
+
+	if (avoid_in_use) {
+		move_x = this_ship.get_x() > avoid_x ? 2 : -2;
+		move_y = this_ship.get_y() > avoid_y ? 2 : -2;
+	}
+
+	move(move_x, move_y);
+
+	if (highest_flag_weight > 0) {
+		flag(new_flag);
+	}
 }
 
 void bot::close() {

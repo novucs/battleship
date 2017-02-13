@@ -20,21 +20,21 @@ student identity(
 );
 
 std::vector<student> allies = {
-	student(
-		"16000587",
-		"Joshua", "Ramini",
-		"127.0.0.1"
-	),
-	student(
-		"15019771",
-		"Jacob", "Johnston",
-		"127.0.0.1"
-	),
-	student(
-		"16014980",
-		"Gareth", "Perry",
-		"127.0.0.1"
-	)
+	// student(
+	// 	"16000587",
+	// 	"Joshua", "Ramini",
+	// 	"127.0.0.1"
+	// ),
+	// student(
+	// 	"15019771",
+	// 	"Jacob", "Johnston",
+	// 	"127.0.0.1"
+	// ),
+	// student(
+	// 	"16014980",
+	// 	"Gareth", "Perry",
+	// 	"127.0.0.1"
+	// )
 };
 
 bool setup_networking() {

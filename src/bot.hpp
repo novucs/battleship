@@ -16,7 +16,7 @@ class bot {
 		connection hive_mind_connection = create_connection(hive_mind_port);
 		std::thread server_thread;
 		std::vector<std::thread> hive_mind_threads;
-		ship master_ship;
+		ship this_ship;
 		std::vector<ship> enemy_ships;
 		std::mutex loaded_ships_mutex;
 		std::vector<std::vector<ship>> loaded_ships;
@@ -24,7 +24,7 @@ class bot {
 	public:
 		void run();
 		bool setup();
-		void hive_mind_loop(int id, student ally, connection ally_connection);
+		void hive_mind_loop(int id);
 		void server_loop();
 		bool merge_ships();
 		bool is_ally(ship& to_check);
