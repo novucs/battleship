@@ -20,7 +20,7 @@ std::vector<ship> read_ships(bool convert, char* message) {
 		stream >> flag >> separator;
 
 		if (convert) {
-			type = identity.get_next_ship_type();
+			type = ship_type;
 			convert = false;
 		} else {
 			stream >> type >> separator;

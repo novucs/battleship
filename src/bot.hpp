@@ -1,7 +1,38 @@
 #pragma once
 
+#include <mutex>
+#include <thread>
+#include <vector>
+#include "bot.hpp"
+#include "connection.hpp"
+#include "main.hpp"
+#include "ship.hpp"
+#include "student.hpp"
+
 class bot {
+	private:
+		connection server_connection = create_connection(server_ip, server_port);
+		connection client_connection = create_connection(client_port);
+		connection hive_mind_connection = create_connection(hive_mind_port);
+		std::thread server_thread;
+		std::vector<std::thread> hive_mind_threads;
+		ship master_ship;
+		std::vector<ship> enemy_ships;
+		std::mutex loaded_ships_mutex;
+		std::vector<std::vector<ship>> loaded_ships;
+
 	public:
-		virtual ~bot() {}
-		virtual void run() = 0;
+		void run();
+		bool setup();
+		void hive_mind_loop(int id, student ally, connection ally_connection);
+		void server_loop();
+		bool merge_ships();
+		bool is_ally(ship& to_check);
+		bool is_enemy(ship& to_check);
+		void fire(int x, int y);
+		void move(int x, int y);
+		void flag(int flag);
+		void respawn();
+		void perform_tactics();
+		void close();
 };
