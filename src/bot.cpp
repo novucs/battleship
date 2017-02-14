@@ -222,7 +222,7 @@ void bot::perform_tactics() {
 		center_y += ally_ship.get_y();
 		active_ally_count++;
 
-		if (ally_ship.distance_to(this_ship) < 25) {
+		if (ally_ship.distance_to(this_ship) < 10) {
 			nearby_allies.push_back(ally_ship);
 		}
 	}
@@ -235,134 +235,44 @@ void bot::perform_tactics() {
 	if (nearby_allies.size() < active_ally_count) {
 		move_x = this_ship.get_x() < center_x ? 2 : -2;
 		move_y = this_ship.get_y() < center_y ? 2 : -2;
+
+		if (this_ship.get_x() == center_x) move_x = 0;
+		if (this_ship.get_y() == center_y) move_y = 0;
 	}
 
-	// Set position to avoid in order to keep outside enemy fire ranges, and equip
-	// the most beneficial flag.
-	int avoid_total_weight = 0;
-	int avoid_x = 0;
-	int avoid_y = 0;
-	std::unordered_map<int, int> flag_weights;
-
-	for (ship& enemy_ship : enemy_ships) {
-		int weight = enemy_ship.get_final_damage(this_ship);
-
-		if (weight == 0) {
-			continue;
-		}
-
-		if (flag_weights.find(enemy_ship.get_flag()) == flag_weights.end()) {
-			std::pair<int, int> flag_weight(enemy_ship.get_flag(), 0);
-			flag_weights.insert(flag_weight);
-		}
-
-		flag_weights.at(enemy_ship.get_flag()) += weight;
-		avoid_x += weight * enemy_ship.get_x();
-		avoid_y += weight * enemy_ship.get_y();
-		avoid_total_weight += weight;
-	}
-
-	if (avoid_total_weight > 0) {
-		avoid_x /= avoid_total_weight;
-		avoid_y /= avoid_total_weight;
-	}
-
-	int new_flag = 0;
-	int highest_flag_weight = 0;
-
-	for (auto& entry : flag_weights) {
-		if (highest_flag_weight >= entry.second) {
-			continue;
-		}
-
-		new_flag = entry.first;
-		highest_flag_weight = entry.second;
-	}
-
-	// Target crippled allies.
 	ship target;
-	int target_weight = 0;
+	double target_distance;
 	bool target_found = false;
 
-	for (ship& ally_ship : nearby_allies) {
-		if (ally_ship.get_health() > 1) {
-			continue;
-		}
-
-		target = ally_ship;
-		target_found = true;
-	}
-
-	// Target weaker enemies when no crippled allies found, taking into account
-	// the firepower of nearby allies.
-	if (!target_found) {
-		for (ship& enemy_ship : enemy_ships) {
-			int weight = 0;
-
-			weight += this_ship.get_final_damage(enemy_ship);
-			weight += this_ship.get_range() > enemy_ship.get_range() ? 3 : -3;
-			weight += this_ship.get_range() / this_ship.distance_to(enemy_ship);
-
-			for (ship& ally_ship : nearby_allies) {
-				weight += ally_ship.get_final_damage(enemy_ship);
-				weight += ally_ship.get_range() > enemy_ship.get_range() ? 3 : -3;
-				weight += ally_ship.get_range() / ally_ship.distance_to(enemy_ship);
-			}
-
-			if (!target_found || target_weight < weight) {
-				target_weight = weight;
-				target = enemy_ship;
-				target_found = true;
-			}
+	for (ship& enemy_ship : enemy_ships) {
+		if (!target_found || target_distance > enemy_ship.distance_to(this_ship)) {
+			target = enemy_ship;
+			target_distance = enemy_ship.distance_to(this_ship);
+			target_found = true;
 		}
 	}
-
-	int avoid_threshold = 0;
 
 	if (target_found) {
 		// Fire at target if theres a chance to damage.
 		if (this_ship.get_final_damage(target) > 0) {
+			std::cout << "Fired: " << time(0) << std::endl;
 			fire(target.get_x(), target.get_y());
 		}
 
-		// Move towards target if our range is larger than theirs and we'll be
-		// moving into a safe spot.
 		if (target.get_final_range() + 2 < this_ship.distance_to(target) &&
 				target.get_final_range() <= this_ship.get_final_range()) {
 			move_x = this_ship.get_x() < target.get_x() ? 2 : -2;
 			move_y = this_ship.get_y() < target.get_y() ? 2 : -2;
-			avoid_threshold += this_ship.get_final_damage(target);
 		}
 
 		// Otherwise move away.
 		else {
-			move_x = this_ship.get_x() > target.get_x() ? 2 : -2;
-			move_y = this_ship.get_y() > target.get_y() ? 2 : -2;
+			/*move_x = this_ship.get_x() > target.get_x() ? 2 : -2;
+			move_y = this_ship.get_y() > target.get_y() ? 2 : -2;*/
 		}
-	}
-
-	// Increase the avoid threshold when not fully grouped and movement is
-	// counter productive to the group.
-	if (nearby_allies.size() < active_ally_count) {
-		if (this_ship.get_x() > avoid_x && move_x < 0) {
-			avoid_threshold += 2;
-		}
-
-		if (this_ship.get_y() > avoid_y && move_y < 0) {
-			avoid_threshold += 2;
-		}
-	}
-
-	if (avoid_total_weight > avoid_threshold) {
-		move_x = this_ship.get_x() > avoid_x ? 2 : -2;
-		move_y = this_ship.get_y() > avoid_y ? 2 : -2;
 	}
 
 	move(move_x, move_y);
-
-	if (highest_flag_weight > 0) {
-		flag(new_flag);
-	}
 }
 
 void bot::close() {

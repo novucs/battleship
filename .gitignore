@@ -9,6 +9,8 @@ Makefile
 
 # VisualStudio
 src/Debug/
+src/battleship.sdf
+src/battleship.opensdf
 src/battleship.sln
 src/battleship.VC.db
 src/battleship.vcxproj
