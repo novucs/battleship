@@ -1,11 +1,16 @@
 #include "student.hpp"
 
-student::student(std::string id, std::string forename, std::string surname,
-		std::string ip) {
+student::student(int load_order, std::string id, std::string forename,
+		std::string surname, std::string ip) {
+	this->load_order = load_order;
 	this->id = id;
 	this->forename = forename;
 	this->surname = surname;
 	this->ip = ip;
+}
+
+int student::get_load_order() {
+	return load_order;
 }
 
 std::string student::get_id() {

@@ -79,7 +79,7 @@ void bot::hive_mind_loop(int id) {
 		loaded_ships_mutex.lock();
 
 		std::vector<ship> ships = read_ships(false, buffer);
-		loaded_ships.at(id + 1) = ships;
+		loaded_ships.at(ally.get_load_order()) = ships;
 
 		if (!ships.empty()) {
 			ally.set_connected(true);
@@ -110,10 +110,10 @@ void bot::server_loop() {
 		}
 
 		loaded_ships_mutex.lock();
-		loaded_ships.at(0) = read_ships(true, buffer);
+		loaded_ships.at(identity.get_load_order()) = read_ships(true, buffer);
 
 		for (student& ally : allies) {
-			ally.get_connection().send_ships(loaded_ships.at(0));
+			ally.get_connection().send_ships(loaded_ships.at(identity.get_load_order()));
 		}
 
 		loaded_ships_mutex.unlock();
@@ -140,11 +140,11 @@ void bot::server_loop() {
 bool bot::merge_ships() {
 	enemy_ships.clear();
 
-	if (loaded_ships.empty() || loaded_ships.at(0).empty()) {
+	if (loaded_ships.empty() || loaded_ships.at(identity.get_load_order()).empty()) {
 		return false;
 	}
 
-	this_ship = loaded_ships.at(0).at(0);
+	this_ship = loaded_ships.at(identity.get_load_order()).at(0);
 	identity.set_ship(std::move(this_ship));
 
 	for (std::vector<ship>& ships : loaded_ships) {

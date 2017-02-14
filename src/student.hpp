@@ -6,6 +6,7 @@
 
 class student {
 	private:
+		int load_order;
 		std::string id;
 		std::string forename;
 		std::string surname;
@@ -15,8 +16,9 @@ class student {
 		bool connected;
 
 	public:
-		student(std::string id, std::string forename, std::string surname,
-			std::string ip);
+		student(int load_order, std::string id, std::string forename,
+			std::string surname, std::string ip);
+		int get_load_order();
 		std::string get_id();
 		std::string get_forename();
 		std::string get_surname();
