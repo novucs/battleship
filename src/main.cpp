@@ -22,19 +22,19 @@ student identity(
 
 std::vector<student> allies = {
 	student(
-		1
+		1,
 		"16000587",
 		"Joshua", "Ramini",
 		"164.11.80.33"
 	),
 	student(
-		2
+		2,
 		"15019771",
 		"Jacob", "Johnston",
 		"164.11.80.65"
 	),
 	student(
-		3
+		3,
 		"16014980",
 		"Gareth", "Perry",
 		"164.11.80.26"
