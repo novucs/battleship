@@ -5,8 +5,7 @@
 #include "bot.hpp"
 #include "main.hpp"
 
-//std::string server_ip = "127.0.0.1";
-std::string server_ip = "164.11.80.69";
+std::string server_ip = "127.0.0.1";
 
 u_short server_port = 1924;
 u_short client_port = 1925;
@@ -15,27 +14,27 @@ u_short hive_mind_port = 13337;
 int ship_type = SHIP_TYPE_BATTLESHIP;
 
 student identity(
-	"16000587",
-	"Joshua", "Ramini",
-	"164.11.80.33"
+	"16002374",
+	"William", "Randall",
+	"127.0.0.1"
 );
 
 std::vector<student> allies = {
-	 //student(
-	//"16002374",
-	//"William", "Randall",
-	//"164.11.80."
+	// student(
+	// 	"16000587",
+	// 	"Joshua", "Ramini",
+	// 	"127.0.0.1"
 	// ),
-	 student(
-	 	"15019771",
-	 	"Jacob", "Johnston",
-	 	"164.11.80.65"
-	 ),
-	 student(
-	 	"16014980",
-	 	"Gareth", "Perry",
-	 	"164.11.80.32"
-	 )
+	// student(
+	// 	"15019771",
+	// 	"Jacob", "Johnston",
+	// 	"127.0.0.1"
+	// ),
+	// student(
+	// 	"16014980",
+	// 	"Gareth", "Perry",
+	// 	"127.0.0.1"
+	// )
 };
 
 bool setup_networking() {
