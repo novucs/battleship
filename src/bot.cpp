@@ -207,7 +207,7 @@ void bot::perform_tactics() {
 	// - number of connected allies
 	// - nearby allies
 	// - the overall center between all allies
-	std::size_t active_allies = 0;
+	std::size_t active_ally_count = 0;
 	std::vector<ship> nearby_allies;
 	int center_x = this_ship.get_x();
 	int center_y = this_ship.get_y();
@@ -220,19 +220,19 @@ void bot::perform_tactics() {
 		ship ally_ship = ally.get_ship();
 		center_x += ally_ship.get_x();
 		center_y += ally_ship.get_y();
-		active_allies++;
+		active_ally_count++;
 
 		if (ally_ship.distance_to(this_ship) < 25) {
 			nearby_allies.push_back(ally_ship);
 		}
 	}
 
-	int group_size = active_allies + 1;
+	int group_size = active_ally_count + 1;
 	center_x /= group_size;
 	center_y /= group_size;
 
 	// Move towards ally center when we are not nearby all allies.
-	if (nearby_allies.size() < active_allies) {
+	if (nearby_allies.size() < active_ally_count) {
 		move_x = this_ship.get_x() < center_x ? 2 : -2;
 		move_y = this_ship.get_y() < center_y ? 2 : -2;
 	}
@@ -343,7 +343,7 @@ void bot::perform_tactics() {
 
 	// Increase the avoid threshold when not fully grouped and movement is
 	// counter productive to the group.
-	if (nearby_allies.size() < active_allies) {
+	if (nearby_allies.size() < active_ally_count) {
 		if (this_ship.get_x() > avoid_x && move_x < 0) {
 			avoid_threshold += 2;
 		}
