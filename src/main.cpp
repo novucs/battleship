@@ -5,6 +5,14 @@
 #include "bot.hpp"
 #include "main.hpp"
 
+#define ROLE_NOT_SET 99//Arbitrary number, can be used to catch a potential error
+
+//Ship ID numbers
+#define BATTLESHIP1 11
+#define BATTLESHIP2 12
+#define FRIGATE1 21
+#define FRIGATE2 22
+
 std::string server_ip = "164.11.80.69";
 
 u_short server_port = 1924;
@@ -17,7 +25,10 @@ student identity(
 	0,
 	"16002374",
 	"William", "Randall",
-	"164.11.80.37"
+	"164.11.80.37",
+	BATTLESHIP1,
+	ROLE_NOT_SET
+
 );
 
 std::vector<student> allies = {
@@ -25,19 +36,25 @@ std::vector<student> allies = {
 		1,
 		"16000587",
 		"Joshua", "Ramini",
-		"164.11.80.33"
+		"164.11.80.33",
+		BATTLESHIP2,
+		ROLE_NOT_SET
 	),
 	student(
 		2,
 		"15019771",
 		"Jacob", "Johnston",
-		"164.11.80.65"
+		"164.11.80.65",
+		FRIGATE1,
+		ROLE_NOT_SET
 	),
 	student(
 		3,
 		"16014980",
 		"Gareth", "Perry",
-		"164.11.80.26"
+		"164.11.80.26",
+		FRIGATE2,
+		ROLE_NOT_SET
 	)
 };
 

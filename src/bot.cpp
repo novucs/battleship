@@ -198,6 +198,7 @@ void bot::respawn() {
 	identity.get_connection().send_respawn(id, forename, surname, ship_type);
 }
 
+
 void bot::perform_tactics() {
 	// Apply default movement: towards map center.
 	int move_x = this_ship.get_x() < 500 ? 2 : -2;

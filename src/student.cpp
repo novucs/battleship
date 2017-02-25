@@ -1,12 +1,14 @@
 #include "student.hpp"
 
 student::student(int load_order, std::string id, std::string forename,
-		std::string surname, std::string ip) {
+	std::string surname, std::string ip, int bsf_id, int role_id) {
 	this->load_order = load_order;
 	this->id = id;
 	this->forename = forename;
 	this->surname = surname;
 	this->ip = ip;
+	this->bsf_id = bsf_id;
+	this->role_id = role_id;
 }
 
 int student::get_load_order() {
@@ -52,3 +54,13 @@ bool student::is_connected() {
 void student::set_connected(bool connected) {
 	this->connected = connected;
 }
+
+int student::get_bsf_id() {
+	return bsf_id;
+}
+
+void student::set_role_id(int role_id)
+{
+	this->role_id = role_id;
+}
+

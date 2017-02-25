@@ -22,6 +22,7 @@ class ship {
 		int get_damage(ship& victim);
 		int get_final_damage(ship& victim);
 		double distance_to(ship& other);
+
 };
 
 bool operator==(ship& ship1, ship& ship2);
