@@ -9,6 +9,14 @@
 #define SHIP_TYPE_FRIGATE 1
 #define SHIP_TYPE_SUBMARINE 2
 
+#define ROLE_NOT_SET 99//Arbitrary number, can be used to catch a potential error
+
+//Ship ID numbers
+#define BATTLESHIP1 11
+#define BATTLESHIP2 12
+#define FRIGATE1 21
+#define FRIGATE2 22
+
 extern std::string server_ip;
 
 extern u_short server_port;

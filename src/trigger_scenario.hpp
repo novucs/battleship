@@ -1,10 +1,10 @@
 #pragma once
+#include "bot_role.hpp"
+#include "bot_id.hpp"
 #include "bot_id_collection.hpp"
-class scenario_trigger
-{
-private:
-	std::vector<bot_identity> bot_ids;
-public:
-	int trigger_scenario();
-};
-
+#include "bot.hpp"
+#include <iostream>
+#include <sstream>
+#include <string>
+static int scenario;
+int trigger_scenario(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships);

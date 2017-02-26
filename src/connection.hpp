@@ -9,6 +9,11 @@
 #include <ws2tcpip.h>
 #include "ship.hpp"
 
+#define RETREIVE_SUCCESS 0
+#define RETREIVE_FAIL 1
+#define RETREIVE_IGNORE 2
+
+
 class connection {
 	private:
 		int port;

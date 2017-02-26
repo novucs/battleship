@@ -9,6 +9,7 @@
 #include "ship.hpp"
 #include "student.hpp"
 
+
 class bot {
 	private:
 		connection server_connection = create_connection(server_ip, server_port);

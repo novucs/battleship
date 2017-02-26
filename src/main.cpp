@@ -5,13 +5,6 @@
 #include "bot.hpp"
 #include "main.hpp"
 
-#define ROLE_NOT_SET 99//Arbitrary number, can be used to catch a potential error
-
-//Ship ID numbers
-#define BATTLESHIP1 11
-#define BATTLESHIP2 12
-#define FRIGATE1 21
-#define FRIGATE2 22
 
 std::string server_ip = "164.11.80.69";
 

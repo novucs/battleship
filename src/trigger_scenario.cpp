@@ -1,59 +1,62 @@
 #include "trigger_scenario.hpp"
-#include "bot.hpp"
-#include <iostream>
-#include <sstream>
-#include <string>
 
 
-int scenario_trigger::trigger_scenario() {
-	int scenario = 0;
-	for (int i = 0; i <= 2; i++) {
-		ship& ally_ship = allies[i].get_ship();
-		for (int j = 0; i <= 3; i++) {
-			if (i != j) {
-				if (ally_ship.distance_to(allies[j].get_ship()) > 100) {//No ally bots are within 100 squares and...
-					if (allies[i].get_bsf_id() == 11) {//...ship ID 11 belongs to BattleShip 1, so..
-						allies[i].set_role_id(0); //...set bot role to "Battleship 1 - Lone Bot"...
-						bot_ids[0].set_active_role(true); //and finally set this role as active
-					}
-					if (allies[i].get_bsf_id() == 12) {
-						allies[i].set_role_id(1); //same as If statement above, only bsf_id 12 means this bot's role is "Battleship 2 - Lone Bot"
-						bot_ids[1].set_active_role(true);
-					}
-					if (allies[i].get_bsf_id() == 21) {
-						allies[i].set_role_id(2); //same as If statement above, only bsf_id 21 means this bot is "Frigate 1 - Lone Bot"
-						bot_ids[2].set_active_role(true);
-					}
-					if (allies[i].get_bsf_id() == 22) {
-						allies[i].set_role_id(3);  //same as If statement above, only bsf_id 21 means this bot is "Frigate 2 - Lone Bot"
-						bot_ids[3].set_active_role(true);
-					}
-				}
-			}
-		}
-	}
+int trigger_scenario(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships)
+{
+	int scenario_key = create_scenario_key(bot_ids, team_ships);
 
+	switch (scenario_key) {//so it can be used as a switch
 
-	
-	std::string active_roles = "";
-	for (int i = 0; i <= 21; i++) {
-		if (bot_ids[i].is_active_role()) {//this just interates through the bot_id_collection and records which roles are active...
-			active_roles = active_roles + std::to_string(i);//...by concatenating the role ID numbers to create a key....
-		}
-	}
-
-	std::istringstream buffer(active_roles);
-	int active_roles_num;
-	buffer >> active_roles_num;//which is then converted to an integer
-
-	switch (active_roles_num) {//so it can be used as a switch
-	case 0123://here is roles 0,1,2 and 3 being active. In this case that is 4 lone bots, so it triggers scenario 1.
-		scenario = 1;
+	case 45://BattleShip Pair
+		scenario = 2;
 		break;
-	default:
+	case 67://Frigate Pair
+		scenario = 3;
+		break;
+	case 89://Mixed Pair 1
+		scenario = 4;
+		break;
+	case 1011://Mixed Pair 2
+		scenario = 5;
+		break;
+	case 4567://Battleship Pair and Frigate Pair
+		scenario = 6;
+		break;
+	case 891011://Mixed Pair 1 and Mixed Pair 2
+		scenario = 7;
+		break;
+	case 121314://Trio of Two Battleships and One Frigate
+		scenario = 8;
+		break;
+	case 151617://Trio of Two Frigates and One Battleship
+		scenario = 9;
+		break;
+	case 18192021://Complete pack
+		scenario = 10;
+		break;
+
+	default://No pair/trio/pack, only lone bots
+		scenario = 1;
 		break;
 	}
 
 
 	return scenario;
 }
+
+int create_scenario_key(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships) {
+	check_all_roles(bot_ids, team_ships);
+	std::string active_roles = "";
+	for (int i = 4; i <= 21; i++) {
+		if (bot_ids[i].is_active_role()) {//this just interates through the bot_id_collection and records which pair/trio/pack roles are active...
+			active_roles = active_roles + std::to_string(bot_ids[i].get_role_id());//...by concatenating the role ID numbers to create a key....
+		}
+	}
+	std::istringstream buffer(active_roles);
+	int active_roles_num;
+	buffer >> active_roles_num;//which is then converted to an integer
+
+	return active_roles_num;
+}
+
+

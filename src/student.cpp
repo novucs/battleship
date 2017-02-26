@@ -7,7 +7,7 @@ student::student(int load_order, std::string id, std::string forename,
 	this->forename = forename;
 	this->surname = surname;
 	this->ip = ip;
-	this->bsf_id = bsf_id;
+	this->team_id = bsf_id;
 	this->role_id = role_id;
 }
 
@@ -55,8 +55,8 @@ void student::set_connected(bool connected) {
 	this->connected = connected;
 }
 
-int student::get_bsf_id() {
-	return bsf_id;
+int student::get_team_id() {
+	return team_id;
 }
 
 void student::set_role_id(int role_id)

@@ -4,6 +4,7 @@
 #include "connection.hpp"
 #include "protocol_utils.hpp"
 
+
 connection* inner_create_connection(u_long host, u_short port);
 
 connection::connection() {

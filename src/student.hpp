@@ -14,7 +14,7 @@ class student {
 		ship m_ship;
 		connection m_connection;
 		bool connected;
-		int bsf_id;
+		int team_id;
 		int role_id;
 
 	public:
@@ -31,6 +31,6 @@ class student {
 		void set_connection(connection connection);
 		bool is_connected();
 		void set_connected(bool connected);
-		int get_bsf_id();
-		void set_role_id(int role_id);
+		int get_team_id();
+		void student::set_role_id(int role_id);
 };

@@ -2,13 +2,14 @@
 #include "main.hpp"
 #include "ship.hpp"
 
-
 ship::ship(int x, int y, int health, int flag, int type) {
 	this->x = x;
 	this->y = y;
 	this->health = health;
 	this->flag = flag;
 	this->type = type;
+	this->team_id = 0;
+	this->role_id = ENEMYID;
 }
 
 int ship::get_x() {
@@ -35,6 +36,25 @@ double ship::distance_to(ship& other) {
 	int x = other.get_x() - this->x;
 	int y = other.get_y() - this->y;
 	return sqrt((x * x) + (y * y));
+}
+
+void ship::set_team_id(int team_id)
+{
+	this->team_id = team_id;
+}
+
+int ship::get_team_id()
+{
+	return team_id;
+}
+
+void ship::set_role_id(int role_id)
+{
+	this->role_id = role_id;
+}
+
+int ship::get_role_id() {
+	return role_id;
 }
 
 int ship::get_range() {
