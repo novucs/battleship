@@ -34,3 +34,5 @@ void bot_identity::set_active_role(bool active_role) {
 	this->active_role = active_role;
 }
 
+
+

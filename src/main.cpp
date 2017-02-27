@@ -6,7 +6,8 @@
 #include "main.hpp"
 
 
-std::string server_ip = "164.11.80.69";
+//std::string server_ip = "164.11.80.69";
+std::string server_ip = "127.0.0.1";
 
 u_short server_port = 1924;
 u_short client_port = 1925;

@@ -32,7 +32,7 @@ static int f2_pos = 4;
 
 bool is_near(ship check_ship, ship against_ship);
 bool is_near_any(int bot_pos, std::vector<ship> team_ships);
-std::vector<ship> build_active_team(std::vector<bot_identity> bot_ids);
+std::vector<ship> build_active_team();
 void check_lone_status(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships);//Sets active_roles 0,1,2,3
 void check_bship_pair(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships);//Sets active_roles 4,5
 void check_frigate_pair(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships);//Sets active_roles 6,7

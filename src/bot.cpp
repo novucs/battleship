@@ -5,6 +5,9 @@
 #include "bot.hpp"
 #include "main.hpp"
 #include "protocol_utils.hpp"
+#include "trigger_scenario.hpp"
+#include <vector>
+#include "bot_role.hpp"
 
 void bot::run() {
 	if (!setup()) {
@@ -200,164 +203,207 @@ void bot::respawn() {
 
 
 void bot::perform_tactics() {
-	// Apply default movement: towards map center.
-	int move_x = this_ship.get_x() < 500 ? 2 : -2;
-	int move_y = this_ship.get_y() < 500 ? 2 : -2;
+	std::vector<bot_identity> bot_ids = build_bot_ids();
+	std::vector<ship> team_ships = build_active_team();
+	int use_scenario = trigger_scenario(bot_ids, team_ships);
+	
+	switch (use_scenario)
+	{
+		case 1://No pair/trio/pack, only lone bots
+			printf_s("%s", bot_ids[this_ship.get_role_id() - 1].get_ship_role());
+			break;
+		case 2://BattleShip Pair
+			
+			break;
+		case 3://Frigate Pair
+			
+			break;
+		case 4://Mixed Pair 1
 
-	// Calculate:
-	// - number of connected allies
-	// - nearby allies
-	// - the overall center between all allies
-	std::size_t active_ally_count = 0;
-	std::vector<ship> nearby_allies;
-	int center_x = this_ship.get_x();
-	int center_y = this_ship.get_y();
+			break;
+		case 5://Mixed Pair 2
 
-	for (student& ally : allies) {
-		if (!ally.is_connected()) {
-			continue;
-		}
+			break;
+		case 6://Battleship Pair and Frigate Pair
 
-		ship ally_ship = ally.get_ship();
-		center_x += ally_ship.get_x();
-		center_y += ally_ship.get_y();
-		active_ally_count++;
+			break;
+		case 7://Mixed Pair 1 and Mixed Pair 2
 
-		if (ally_ship.distance_to(this_ship) < 25) {
-			nearby_allies.push_back(ally_ship);
-		}
+			break;
+		case 8://Trio of Two Battleships and One Frigate
+
+			break;
+		case 9://Trio of Two Frigates and One Battleship
+
+			break;
+		case 10://Complete pack
+
+			break;
+
+		default:
+			
+			break;
+		
 	}
 
-	int group_size = active_ally_count + 1;
-	center_x /= group_size;
-	center_y /= group_size;
+	//// Apply default movement: towards map center.
+	//int move_x = this_ship.get_x() < 500 ? 2 : -2;
+	//int move_y = this_ship.get_y() < 500 ? 2 : -2;
 
-	// Set position to avoid in order to keep outside enemy fire ranges, and equip
-	// the most beneficial flag.
-	int avoid_total_weight = 0;
-	int avoid_x = 0;
-	int avoid_y = 0;
-	std::unordered_map<int, int> flag_weights;
+	//// Calculate:
+	//// - number of connected allies
+	//// - nearby allies
+	//// - the overall center between all allies
+	//std::size_t active_ally_count = 0;
+	//std::vector<ship> nearby_allies;
+	//int center_x = this_ship.get_x();
+	//int center_y = this_ship.get_y();
 
-	for (ship& enemy_ship : enemy_ships) {
-		int weight = enemy_ship.get_final_damage(this_ship);
+	//for (student& ally : allies) {
+	//	if (!ally.is_connected()) {
+	//		continue;
+	//	}
 
-		if ((weight == 0) ||
-				(enemy_ship.get_type() == SHIP_TYPE_BATTLESHIP &&
-				this_ship.get_type() == SHIP_TYPE_SUBMARINE)) {
-			continue;
-		}
+	//	ship ally_ship = ally.get_ship();
+	//	center_x += ally_ship.get_x();
+	//	center_y += ally_ship.get_y();
+	//	active_ally_count++;
 
-		if (flag_weights.find(enemy_ship.get_flag()) == flag_weights.end()) {
-			std::pair<int, int> flag_weight(enemy_ship.get_flag(), 0);
-			flag_weights.insert(flag_weight);
-		}
+	//	if (ally_ship.distance_to(this_ship) < 25) {
+	//		nearby_allies.push_back(ally_ship);
+	//	}
+	//}
 
-		flag_weights.at(enemy_ship.get_flag()) += weight;
-		avoid_x += weight * enemy_ship.get_x();
-		avoid_y += weight * enemy_ship.get_y();
-		avoid_total_weight += weight;
-	}
+	//int group_size = active_ally_count + 1;
+	//center_x /= group_size;
+	//center_y /= group_size;
 
-	if (avoid_total_weight > 0) {
-		avoid_x /= avoid_total_weight;
-		avoid_y /= avoid_total_weight;
-	}
+	//// Set position to avoid in order to keep outside enemy fire ranges, and equip
+	//// the most beneficial flag.
+	//int avoid_total_weight = 0;
+	//int avoid_x = 0;
+	//int avoid_y = 0;
+	//std::unordered_map<int, int> flag_weights;
 
-	int new_flag = 0;
-	int highest_flag_weight = 0;
+	//for (ship& enemy_ship : enemy_ships) {
+	//	int weight = enemy_ship.get_final_damage(this_ship);
 
-	for (auto& entry : flag_weights) {
-		if (highest_flag_weight >= entry.second) {
-			continue;
-		}
+	//	if ((weight == 0) ||
+	//			(enemy_ship.get_type() == SHIP_TYPE_BATTLESHIP &&
+	//			this_ship.get_type() == SHIP_TYPE_SUBMARINE)) {
+	//		continue;
+	//	}
 
-		new_flag = entry.first;
-		highest_flag_weight = entry.second;
-	}
+	//	if (flag_weights.find(enemy_ship.get_flag()) == flag_weights.end()) {
+	//		std::pair<int, int> flag_weight(enemy_ship.get_flag(), 0);
+	//		flag_weights.insert(flag_weight);
+	//	}
 
-	// Target crippled allies.
-	ship target;
-	int target_weight = 0;
-	bool target_found = false;
+	//	flag_weights.at(enemy_ship.get_flag()) += weight;
+	//	avoid_x += weight * enemy_ship.get_x();
+	//	avoid_y += weight * enemy_ship.get_y();
+	//	avoid_total_weight += weight;
+	//}
 
-	for (ship& ally_ship : nearby_allies) {
-		if (ally_ship.get_health() > 3) {
-			continue;
-		}
+	//if (avoid_total_weight > 0) {
+	//	avoid_x /= avoid_total_weight;
+	//	avoid_y /= avoid_total_weight;
+	//}
 
-		target = ally_ship;
-		target_found = true;
-	}
+	//int new_flag = 0;
+	//int highest_flag_weight = 0;
 
-	// Target closer enemies when no crippled allies found.
-	if (!target_found) {
-		for (ship& enemy_ship : enemy_ships) {
-			int weight = 0;
+	//for (auto& entry : flag_weights) {
+	//	if (highest_flag_weight >= entry.second) {
+	//		continue;
+	//	}
 
-			// weight += this_ship.get_final_damage(enemy_ship);
-			// weight -= enemy_ship.get_final_damage(this_ship);
-			weight -= this_ship.distance_to(enemy_ship);
+	//	new_flag = entry.first;
+	//	highest_flag_weight = entry.second;
+	//}
 
-			for (ship& ally_ship : nearby_allies) {
-					// weight += this_ship.get_final_damage(ally_ship);
-					// weight -= ally_ship.get_final_damage(this_ship);
-					weight -= ally_ship.distance_to(enemy_ship);
-			}
+	//// Target crippled allies.
+	//ship target;
+	//int target_weight = 0;
+	//bool target_found = false;
 
-			if (!target_found || target_weight < weight) {
-				target_weight = weight;
-				target = enemy_ship;
-				target_found = true;
-			}
-		}
-	}
+	//for (ship& ally_ship : nearby_allies) {
+	//	if (ally_ship.get_health() > 3) {
+	//		continue;
+	//	}
 
-	int avoid_threshold = 0;
+	//	target = ally_ship;
+	//	target_found = true;
+	//}
 
-	if (target_found) {
-		// Fire at target if theres a chance to damage.
-		if (this_ship.get_final_damage(target) > 0) {
-			fire(target.get_x(), target.get_y());
-		}
+	//// Target closer enemies when no crippled allies found.
+	//if (!target_found) {
+	//	for (ship& enemy_ship : enemy_ships) {
+	//		int weight = 0;
 
-		// Move towards target if either:
-		// They are a battleship AND ...
-		if ((target.get_type() == SHIP_TYPE_BATTLESHIP &&
-				// ... we are not a frigate OR ...
-				this_ship.get_type() != SHIP_TYPE_FRIGATE) ||
-				// ... we are in a safe area AND ...
-				(target.get_final_range() < this_ship.distance_to(target) &&
-				// ... their range is less than ours.
-				target.get_final_range() < this_ship.get_final_range())) {
-			move_x = this_ship.get_x() < target.get_x() ? 2 : -2;
-			move_y = this_ship.get_y() < target.get_y() ? 2 : -2;
-			avoid_threshold += this_ship.get_final_damage(target);
-		}
+	//		// weight += this_ship.get_final_damage(enemy_ship);
+	//		// weight -= enemy_ship.get_final_damage(this_ship);
+	//		weight -= this_ship.distance_to(enemy_ship);
 
-		// Otherwise move away.
-		else {
-			move_x = this_ship.get_x() > target.get_x() ? 2 : -2;
-			move_y = this_ship.get_y() > target.get_y() ? 2 : -2;
-		}
-	}
+	//		for (ship& ally_ship : nearby_allies) {
+	//				// weight += this_ship.get_final_damage(ally_ship);
+	//				// weight -= ally_ship.get_final_damage(this_ship);
+	//				weight -= ally_ship.distance_to(enemy_ship);
+	//		}
 
-	if (avoid_total_weight > avoid_threshold) {
-		move_x = this_ship.get_x() > avoid_x ? 2 : -2;
-		move_y = this_ship.get_y() > avoid_y ? 2 : -2;
-	}
+	//		if (!target_found || target_weight < weight) {
+	//			target_weight = weight;
+	//			target = enemy_ship;
+	//			target_found = true;
+	//		}
+	//	}
+	//}
 
-	// Always move towards ally center when we are not nearby all allies.
-	if (nearby_allies.size() < active_ally_count) {
-		move_x = this_ship.get_x() < center_x ? 2 : -2;
-		move_y = this_ship.get_y() < center_y ? 2 : -2;
-	}
+	//int avoid_threshold = 0;
 
-	move(move_x, move_y);
+	//if (target_found) {
+	//	// Fire at target if theres a chance to damage.
+	//	if (this_ship.get_final_damage(target) > 0) {
+	//		fire(target.get_x(), target.get_y());
+	//	}
 
-	if (highest_flag_weight > 0) {
-		flag(new_flag);
-	}
+	//	// Move towards target if either:
+	//	// They are a battleship AND ...
+	//	if ((target.get_type() == SHIP_TYPE_BATTLESHIP &&
+	//			// ... we are not a frigate OR ...
+	//			this_ship.get_type() != SHIP_TYPE_FRIGATE) ||
+	//			// ... we are in a safe area AND ...
+	//			(target.get_final_range() < this_ship.distance_to(target) &&
+	//			// ... their range is less than ours.
+	//			target.get_final_range() < this_ship.get_final_range())) {
+	//		move_x = this_ship.get_x() < target.get_x() ? 2 : -2;
+	//		move_y = this_ship.get_y() < target.get_y() ? 2 : -2;
+	//		avoid_threshold += this_ship.get_final_damage(target);
+	//	}
+
+	//	// Otherwise move away.
+	//	else {
+	//		move_x = this_ship.get_x() > target.get_x() ? 2 : -2;
+	//		move_y = this_ship.get_y() > target.get_y() ? 2 : -2;
+	//	}
+	//}
+
+	//if (avoid_total_weight > avoid_threshold) {
+	//	move_x = this_ship.get_x() > avoid_x ? 2 : -2;
+	//	move_y = this_ship.get_y() > avoid_y ? 2 : -2;
+	//}
+
+	//// Always move towards ally center when we are not nearby all allies.
+	//if (nearby_allies.size() < active_ally_count) {
+	//	move_x = this_ship.get_x() < center_x ? 2 : -2;
+	//	move_y = this_ship.get_y() < center_y ? 2 : -2;
+	//}
+
+	//move(move_x, move_y);
+
+	//if (highest_flag_weight > 0) {
+	//	flag(new_flag);
+	//}
 }
 
 void bot::close() {

@@ -8,3 +8,4 @@
 #include <string>
 static int scenario;
 int trigger_scenario(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships);
+int create_scenario_key(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships);

@@ -36,9 +36,9 @@ bool is_near_any(int bot_pos, std::vector<ship> team_ships) {
 }
 
 
-std::vector<ship> build_active_team(std::vector<bot_identity> bot_ids) {
+std::vector<ship> build_active_team() {
 	std::vector<ship> team_ships = {};
-	for (thisI = 0; thisI < 4; thisI++) {//Builds vector of team ships currently with ID names.
+	for (thisI = 0; thisI < 2; thisI++) {//Builds vector of team ships currently with ID names.
 		if (allies[thisI].is_connected()) {
 			ally_ID = allies[thisI].get_team_id();
 			if (ally_ID == BATTLESHIP1) {
@@ -363,7 +363,6 @@ void check_complete_pack(std::vector<bot_identity> bot_ids, std::vector<ship> te
 
 void check_all_roles(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships)
 {
-	team_ships = build_active_team(bot_ids);
 	check_lone_status(bot_ids, team_ships);//Sets active_roles 0,1,2,3
 	check_bship_pair(bot_ids, team_ships);//Sets active_roles 4,5
 	check_frigate_pair(bot_ids, team_ships);//Sets active_roles 6,7

@@ -5,9 +5,9 @@
 
 
 //Initialises the default framework of all bot roles, their descriptions and by default activity is false.
-std::vector<bot_identity> bot_id_collection::get_bot_ids()
+std::vector<bot_identity> build_bot_ids()
 {
-	bot_ids = {
+	std::vector<bot_identity> bot_ids = {
 		bot_identity(
 			1,
 			std::string("Battleship 1 - Lone Bot"),
@@ -123,7 +123,7 @@ std::vector<bot_identity> bot_id_collection::get_bot_ids()
 }
 
 //sets the active role value of the input ID to true
-void bot_id_collection::set_role_active(int id_num)
+void set_role_active(int id_num, std::vector<bot_identity> bot_ids)
 {
 	for (int i = 1; i <= 22; i++) {
 		int role_id = bot_ids[i].get_role_id();

@@ -1,0 +1,2 @@
+﻿bot_id_collection.obj : error LNK2001: unresolved external symbol "private: static class std::vector<class bot_identity,class std::allocator<class bot_identity> > bot_id_collection::bot_ids" (?bot_ids@bot_id_collection@@0V?$vector@Vbot_identity@@V?$allocator@Vbot_identity@@@std@@@std@@A)
+D:\battleship\src\Debug\battleship.exe : fatal error LNK1120: 1 unresolved externals
