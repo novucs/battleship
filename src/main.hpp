@@ -4,6 +4,7 @@
 #include "connection.hpp"
 #include "ship.hpp"
 #include "student.hpp"
+#include "bot_id_collection.hpp"
 
 #define SHIP_TYPE_BATTLESHIP 0
 #define SHIP_TYPE_FRIGATE 1

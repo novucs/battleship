@@ -132,3 +132,46 @@ void set_role_active(int id_num, std::vector<bot_identity> bot_ids)
 		}
 	}
 }
+
+student get_identity(int id, std::vector<student> allies) {
+	return allies[id];
+}
+std::vector<student> build_allies() {
+	std::vector<student> allies = {
+		student(
+			0,
+			"16002374",
+			"William", "Randall",
+			"192.168.0.16",
+			BATTLESHIP1,
+			ROLE_NOT_SET
+
+		),
+		student(
+			1,
+			"16000587",
+			"Joshua", "Ramini",
+			"164.11.80.33",
+			BATTLESHIP2,
+			ROLE_NOT_SET
+		),
+		student(
+			2,
+			"15019771",
+			"Jacob", "Johnston",
+			"164.11.80.65",
+			FRIGATE1,
+			ROLE_NOT_SET
+		),
+		student(
+			3,
+			"16014980",
+			"Gareth", "Perry",
+			"192.168.0.17",
+			FRIGATE2,
+			ROLE_NOT_SET
+		)
+	};
+
+	return allies;
+}
