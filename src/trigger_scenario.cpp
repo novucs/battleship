@@ -3,8 +3,9 @@
 
 int trigger_scenario(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships)
 {
+	printf_s("\nDEBUG: trigger_scenario 1");
 	int scenario_key = create_scenario_key(bot_ids, team_ships);
-
+	printf_s("\nDEBUG: trigger_scenario 2");
 	switch (scenario_key) {//so it can be used as a switch
 
 	case 45://BattleShip Pair
@@ -48,6 +49,7 @@ int create_scenario_key(std::vector<bot_identity> bot_ids, std::vector<ship> tea
 	check_all_roles(bot_ids, team_ships);
 	std::string active_roles = "";
 	for (int i = 4; i <= 21; i++) {
+		printf_s("\nDEBUG: Create Scenario Key ID_bots index %d", i);
 		if (bot_ids[i].is_active_role()) {//this just interates through the bot_id_collection and records which pair/trio/pack roles are active...
 			active_roles = active_roles + std::to_string(bot_ids[i].get_role_id());//...by concatenating the role ID numbers to create a key....
 		}

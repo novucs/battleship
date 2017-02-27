@@ -203,45 +203,58 @@ void bot::respawn() {
 
 
 void bot::perform_tactics() {
+	printf_s("\nDEBUG: Perform Tactics 1");
 	std::vector<bot_identity> bot_ids = build_bot_ids();
+	printf_s("\nDEBUG: Perform Tactics 2");
 	std::vector<ship> team_ships = build_active_team();
+	printf_s("\nDEBUG: Perform Tactics 3");
 	int use_scenario = trigger_scenario(bot_ids, team_ships);
-	
+	printf_s("\nDEBUG: Perform Tactics 4");
 	switch (use_scenario)
 	{
 		case 1://No pair/trio/pack, only lone bots
-			printf_s("%s", bot_ids[this_ship.get_role_id() - 1].get_ship_role());
+			printf_s("\nDEBUG: SCENARIO 1");
 			break;
 		case 2://BattleShip Pair
-			
+			printf_s("\nDEBUG: SCENARIO 2");
+
 			break;
 		case 3://Frigate Pair
-			
+			printf_s("\nDEBUG: SCENARIO 3");
+
 			break;
 		case 4://Mixed Pair 1
+			printf_s("\nDEBUG: SCENARIO 4");
 
 			break;
 		case 5://Mixed Pair 2
+			printf_s("\nDEBUG: SCENARIO 5");
 
 			break;
 		case 6://Battleship Pair and Frigate Pair
+			printf_s("\nDEBUG: SCENARIO 6");
 
 			break;
 		case 7://Mixed Pair 1 and Mixed Pair 2
+			printf_s("\nDEBUG: SCENARIO 7");
 
 			break;
 		case 8://Trio of Two Battleships and One Frigate
+			printf_s("\nDEBUG: SCENARIO 8");
 
 			break;
 		case 9://Trio of Two Frigates and One Battleship
+			printf_s("\nDEBUG: SCENARIO 9");
 
 			break;
 		case 10://Complete pack
+			printf_s("\nDEBUG: SCENARIO 10");
 
 			break;
 
 		default:
-			
+			printf_s("\nDEBUG: SCENARIO DEFAULT");
+
 			break;
 		
 	}

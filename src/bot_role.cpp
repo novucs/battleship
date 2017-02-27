@@ -38,6 +38,10 @@ bool is_near_any(int bot_pos, std::vector<ship> team_ships) {
 
 std::vector<ship> build_active_team() {
 	std::vector<ship> team_ships = {};
+	bs1 = false;
+	bs2 = false;
+	f1 = false;
+	f2 = false;
 	for (thisI = 0; thisI < 2; thisI++) {//Builds vector of team ships currently with ID names.
 		if (allies[thisI].is_connected()) {
 			ally_ID = allies[thisI].get_team_id();
@@ -76,28 +80,36 @@ std::vector<ship> build_active_team() {
 
 void check_lone_status(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships) {
 	lone_count = 0;
+	printf_s("\nDEBUG: check_lone_status 1");
 	if (bs1) {//If BattleShip 1 is lone
 		if (is_near_any(bs1_pos, team_ships)) {//Checks position compared to active team bot positions
+			printf_s("\nDEBUG: check_lone_status 2.1");
 			bot_ids[0].set_active_role(true);//Sets "Battle Ship 1 - Lone Bot" role to active.
 			team_ships[bs1_pos].set_role_id(0);//Sets bot's role ID for use in Scenario
 			lone_count++;
 		}
 	}
+	printf_s("\nDEBUG: check_lone_status 2");
 	if (bs2) {//If Battleship 2 is lone - same procedure as "If BattleShip 1 is lone"
 		if (is_near_any(bs2_pos, team_ships)) {
+			printf_s("\nDEBUG: check_lone_status 2.2");
 			bot_ids[1].set_active_role(true);
 			team_ships[bs2_pos].set_role_id(1);
 			lone_count++;
 		}
 	}
+	printf_s("\nDEBUG: check_lone_status 3");
 	if (f1) {//If Frigate 1 is lone - same procedure as "If BattleShip 1 is lone"
+		printf_s("\nDEBUG: check_lone_status 2.3");
 		if (is_near_any(f1_pos, team_ships)) {
 			bot_ids[2].set_active_role(true);
 			team_ships[f1_pos].set_role_id(2);
 			lone_count++;
 		}
 	}
+	printf_s("\nDEBUG: check_lone_status 4");
 	if (f2) {//If Frigate 1 is lone - same procedure as "If BattleShip 1 is lone"
+		printf_s("\nDEBUG: check_lone_status 2.4");
 		if (is_near_any(f2_pos, team_ships)) {
 			bot_ids[3].set_active_role(true);
 			team_ships[f2_pos].set_role_id(3);
@@ -201,7 +213,7 @@ void check_mixed_pair1(std::vector<bot_identity> bot_ids, std::vector<ship> team
 				bot_ids[9].set_active_role(true);
 			}
 			if (frig_id == 0) {
-				printf_s("m_pair1 Error - Frigate ID not set.");
+				printf_s("\nDEBUG: check_mixed_pair1 Error - Frigate ID not set.");
 			}
 		}
 	}
@@ -237,7 +249,7 @@ void check_mixed_pair2(std::vector<bot_identity> bot_ids, std::vector<ship> team
 				bot_ids[11].set_active_role(true);
 			}
 			if (frig_id == 0) {
-				printf_s("m_pair2 Error - Frigate ID not set.");
+				printf_s("\nDEBUG: check_mixed_pair2 Error - Frigate ID not set.");
 			}
 		}
 	}
@@ -363,13 +375,21 @@ void check_complete_pack(std::vector<bot_identity> bot_ids, std::vector<ship> te
 
 void check_all_roles(std::vector<bot_identity> bot_ids, std::vector<ship> team_ships)
 {
+	printf_s("\nDEBUG: check_all_roles 1");
 	check_lone_status(bot_ids, team_ships);//Sets active_roles 0,1,2,3
+	printf_s("\nDEBUG: check_all_roles 2");
 	check_bship_pair(bot_ids, team_ships);//Sets active_roles 4,5
+	printf_s("\nDEBUG: check_all_roles 3");
 	check_frigate_pair(bot_ids, team_ships);//Sets active_roles 6,7
+	printf_s("\nDEBUG: check_all_roles 4");
 	check_mixed_pair1(bot_ids, team_ships);//Sets active_roles 8,9
+	printf_s("\nDEBUG: check_all_roles 5");
 	check_mixed_pair2(bot_ids, team_ships);//Sets active_roles 10,11
+	printf_s("\nDEBUG: check_all_roles 6");
 	check_BBF_trio(bot_ids, team_ships);//Sets active_roles 12,13,14
+	printf_s("\nDEBUG: check_all_roles 7");
 	check_BFF_trio(bot_ids, team_ships);//Sets active_roles 15,16,17
+	printf_s("\nDEBUG: check_all_roles 8");
 	check_complete_pack(bot_ids, team_ships);//Sets active_roles 18,19,20,21
 }
 
