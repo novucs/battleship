@@ -18,6 +18,7 @@ extern u_short client_port;
 extern u_short hive_mind_port;
 
 extern int ship_type;
+extern int offset;
 
 extern student identity;
 extern std::vector<student> allies;

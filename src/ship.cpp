@@ -52,6 +52,14 @@ int ship::get_final_range() {
 	return ((get_range() * health) / 8) + 1;
 }
 
+int ship::get_max_speed() {
+	return round(this_ship.get_health() * 2 / 10);
+}
+
+bool ship::is_crippled() {
+	return get_max_speed() == 0;
+}
+
 bool ship::can_damage(ship& victim) {
 	double distance = distance_to(victim);
 	int range = get_final_range();

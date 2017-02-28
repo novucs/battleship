@@ -18,6 +18,8 @@ class ship {
 		int get_type();
 		int get_range();
 		int get_final_range();
+		int get_max_speed();
+		bool is_crippled();
 		bool can_damage(ship& victim);
 		int get_damage(ship& victim);
 		int get_final_damage(ship& victim);

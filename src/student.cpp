@@ -1,8 +1,10 @@
 #include "student.hpp"
 
-student::student(int load_order, std::string id, std::string forename,
-		std::string surname, std::string ip) {
+student::student(int load_order, int offset_x, int offset_y, std::string id,
+		std::string forename, std::string surname, std::string ip) {
 	this->load_order = load_order;
+	this->offset_x = offset_x;
+	this->offset_y = offset_y;
 	this->id = id;
 	this->forename = forename;
 	this->surname = surname;
@@ -11,6 +13,14 @@ student::student(int load_order, std::string id, std::string forename,
 
 int student::get_load_order() {
 	return load_order;
+}
+
+int student::get_offset_x() {
+	return offset_x;
+}
+
+int student::get_offset_y() {
+	return offset_y;
 }
 
 std::string student::get_id() {

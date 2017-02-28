@@ -5,7 +5,7 @@
 #include "bot.hpp"
 #include "main.hpp"
 
-bool debug = true;
+bool debug = false;
 
 // std::string server_ip = "164.11.80.69";
 std::string server_ip = "127.0.0.1";
@@ -16,28 +16,29 @@ u_short hive_mind_port = 13337;
 
 int team_member_id = 0;
 int ship_type = SHIP_TYPE_BATTLESHIP;
+int offset = 5;
 
 std::vector<student> team = {
 	student(
-		0,
+		0, offset, offset,
 		"16002374",
 		"William", "Randall",
 		"164.11.80.37"
 	),
 	student(
-		1,
+		1, -offset, -offset,
 		"16014980",
 		"Gareth", "Perry",
 		"164.11.80.26"
 	),
 	student(
-		2,
+		2, -offset, offset,
 		"16000587",
 		"Joshua", "Ramini",
 		"164.11.80.33"
 	),
 	student(
-		3,
+		3, offset, -offset,
 		"15019771",
 		"Jacob", "Johnston",
 		"164.11.80.65"

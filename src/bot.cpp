@@ -236,10 +236,6 @@ void bot::respawn() {
 }
 
 void bot::perform_tactics() {
-	// Apply default movement: towards map center.
-	int move_x = this_ship.get_x() < 500 ? 2 : -2;
-	int move_y = this_ship.get_y() < 500 ? 2 : -2;
-
 	// Calculate:
 	// - number of connected allies
 	// - nearby allies
@@ -248,6 +244,7 @@ void bot::perform_tactics() {
 	std::vector<ship> nearby_allies;
 	int center_x = this_ship.get_x();
 	int center_y = this_ship.get_y();
+	bool slow_group = false;
 
 	for (student& ally : allies) {
 		if (!ally.is_connected()) {
@@ -259,20 +256,33 @@ void bot::perform_tactics() {
 		center_y += ally_ship.get_y();
 		active_ally_count++;
 
-		if (ally_ship.distance_to(this_ship) < 25) {
+		if (ally_ship.distance_to(this_ship) < ((offset * 2) + 2)) {
+			if (ally_ship.get_max_speed() == 1) {
+				slow_group = true;
+			}
+
 			nearby_allies.push_back(ally_ship);
 		}
 	}
 
+	// Calculate speed to accomodate for all ships.
+	int speed = 2;
+
+	if (slow_group && this_ship.get_max_speed() == 2) {
+		speed = 1;
+	}
+
+	// Apply default movement: towards map center.
+	int move_x = this_ship.get_x() < (500 + identity.get_offset_x()) ? speed : -speed;
+	int move_y = this_ship.get_y() < (500 + identity.get_offset_y()) ? speed : -speed;
+
 	int group_size = active_ally_count + 1;
 	center_x /= group_size;
 	center_y /= group_size;
+	center_x += identity.get_offset_x();
+	center_y += identity.get_offset_y();
 
-	// Set position to avoid in order to keep outside enemy fire ranges, and equip
-	// the most beneficial flag.
-	int avoid_total_weight = 0;
-	int avoid_x = 0;
-	int avoid_y = 0;
+	// Equip the most beneficial flag.
 	std::unordered_map<int, int> flag_weights;
 
 	for (ship& enemy_ship : enemy_ships) {
@@ -290,14 +300,6 @@ void bot::perform_tactics() {
 		}
 
 		flag_weights.at(enemy_ship.get_flag()) += weight;
-		avoid_x += weight * enemy_ship.get_x();
-		avoid_y += weight * enemy_ship.get_y();
-		avoid_total_weight += weight;
-	}
-
-	if (avoid_total_weight > 0) {
-		avoid_x /= avoid_total_weight;
-		avoid_y /= avoid_total_weight;
 	}
 
 	int new_flag = 0;
@@ -318,12 +320,10 @@ void bot::perform_tactics() {
 	bool target_found = false;
 
 	for (ship& ally_ship : nearby_allies) {
-		if (ally_ship.get_health() > 3) {
-			continue;
+		if (ally_ship.is_crippled()) {
+			target = ally_ship;
+			target_found = true;
 		}
-
-		target = ally_ship;
-		target_found = true;
 	}
 
 	// Target closer enemies when no crippled allies found.
@@ -349,38 +349,14 @@ void bot::perform_tactics() {
 		}
 	}
 
-	int avoid_threshold = 0;
-
 	if (target_found) {
 		// Fire at target if theres a chance to damage.
 		if (this_ship.get_final_damage(target) > 0) {
 			fire(target.get_x(), target.get_y());
 		}
 
-		// Move towards target if either:
-		// They are a battleship AND ...
-		if ((target.get_type() == SHIP_TYPE_BATTLESHIP &&
-				// ... we are not a frigate OR ...
-				this_ship.get_type() != SHIP_TYPE_FRIGATE) ||
-				// ... we are in a safe area AND ...
-				(target.get_final_range() < this_ship.distance_to(target) &&
-				// ... their range is less than ours.
-				target.get_final_range() < this_ship.get_final_range())) {
-			move_x = this_ship.get_x() < target.get_x() ? 2 : -2;
-			move_y = this_ship.get_y() < target.get_y() ? 2 : -2;
-			avoid_threshold += this_ship.get_final_damage(target);
-		}
-
-		// Otherwise move away.
-		else {
-			move_x = this_ship.get_x() > target.get_x() ? 2 : -2;
-			move_y = this_ship.get_y() > target.get_y() ? 2 : -2;
-		}
-	}
-
-	if (avoid_total_weight > avoid_threshold) {
-		move_x = this_ship.get_x() > avoid_x ? 2 : -2;
-		move_y = this_ship.get_y() > avoid_y ? 2 : -2;
+		move_x = this_ship.get_x() < target.get_x() ? speed : -speed;
+		move_y = this_ship.get_y() < target.get_y() ? speed : -speed;
 	}
 
 	// Always move towards ally center when we are not nearby all allies.
