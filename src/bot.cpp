@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <unordered_map>
 #include "bot.hpp"
@@ -260,10 +261,20 @@ void bot::perform_tactics() {
 	int center_x = this_ship.get_x();
 	int center_y = this_ship.get_y();
 	bool slow_group = false;
+	int highest_ally_score = std::numeric_limits<int>::min();
+	int lowest_ally_score = std::numeric_limits<int>::max();
 
 	for (student& ally : allies) {
 		if (!ally.is_connected()) {
 			continue;
+		}
+
+		if (ally.get_score() > highest_ally_score) {
+			highest_ally_score = ally.get_score();
+		}
+
+		if (ally.get_score() < lowest_ally_score) {
+			lowest_ally_score = ally.get_score();
 		}
 
 		ship ally_ship = ally.get_ship();
@@ -388,6 +399,23 @@ void bot::perform_tactics() {
 
 	if (highest_flag_weight > 0) {
 		flag(new_flag);
+	}
+
+	if (active_ally_count > 0) {
+		switch (ship_type) {
+			case SHIP_TYPE_BATTLESHIP:
+				if (identity.get_score() - 50 > highest_ally_score) {
+					ship_type = SHIP_TYPE_FRIGATE;
+					respawn();
+				}
+				break;
+			case SHIP_TYPE_FRIGATE:
+				if (identity.get_score() + 50 < lowest_ally_score) {
+					ship_type = SHIP_TYPE_BATTLESHIP;
+					respawn();
+				}
+				break;
+		}
 	}
 }
 
