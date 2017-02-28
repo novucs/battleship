@@ -53,7 +53,7 @@ int ship::get_final_range() {
 }
 
 int ship::get_max_speed() {
-	return round(this_ship.get_health() * 2 / 10);
+	return round(get_health() * 2 / 10);
 }
 
 bool ship::is_crippled() {

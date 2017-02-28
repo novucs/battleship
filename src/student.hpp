@@ -9,6 +9,7 @@ class student {
 		int load_order;
 		int offset_x;
 		int offset_y;
+		int score = 0;
 		std::string id;
 		std::string forename;
 		std::string surname;
@@ -23,6 +24,8 @@ class student {
 		int get_load_order();
 		int get_offset_x();
 		int get_offset_y();
+		int get_score();
+		void set_score(int score);
 		std::string get_id();
 		std::string get_forename();
 		std::string get_surname();

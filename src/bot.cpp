@@ -5,6 +5,7 @@
 #include "bot.hpp"
 #include "main.hpp"
 #include "protocol_utils.hpp"
+#include "tick_packet.hpp"
 
 void bot::run() {
 	if (!setup()) {
@@ -78,8 +79,10 @@ void bot::hive_mind_loop(int id) {
 
 		loaded_ships_mutex.lock();
 
-		std::vector<ship> ships = read_ships(false, buffer);
+		tick_packet packet = read_tick_packet(buffer);
+		std::vector<ship> ships = packet.get_ships();
 		loaded_ships.at(ally.get_load_order()) = ships;
+		ally.set_score(packet.get_score());
 
 		if (!ships.empty()) {
 			ally.set_connected(true);
@@ -110,10 +113,25 @@ void bot::server_loop() {
 		}
 
 		loaded_ships_mutex.lock();
-		loaded_ships.at(identity.get_load_order()) = read_ships(false, buffer);
+		std::vector<ship> ships = read_ships(false, buffer);
+		loaded_ships.at(identity.get_load_order()) = ships;
+
+		this_ship = ships.at(0);
+		identity.set_ship(std::move(this_ship));
+		int score = identity.get_score();
+
+		if (last_tick_health < this_ship.get_health()) {
+			score -= (last_tick_health + (this_ship.get_health() - 10));
+		} else if (last_tick_health > this_ship.get_health()) {
+			score -= (last_tick_health - this_ship.get_health());
+		}
+
+		identity.set_score(score);
+
+		tick_packet packet(score, ships);
 
 		for (student& ally : allies) {
-			ally.get_connection().send_ships(loaded_ships.at(identity.get_load_order()));
+			ally.get_connection().send_tick_packet(packet);
 		}
 
 		loaded_ships_mutex.unlock();
@@ -148,9 +166,6 @@ bool bot::merge_ships() {
 	if (loaded_ships.empty() || loaded_ships.at(identity.get_load_order()).empty()) {
 		return false;
 	}
-
-	this_ship = loaded_ships.at(identity.get_load_order()).at(0);
-	identity.set_ship(std::move(this_ship));
 
 	for (std::vector<ship>& ships : loaded_ships) {
 		for (ship& ship : ships) {
@@ -353,6 +368,10 @@ void bot::perform_tactics() {
 		// Fire at target if theres a chance to damage.
 		if (this_ship.get_final_damage(target) > 0) {
 			fire(target.get_x(), target.get_y());
+
+			// Increment our score.
+			int score = identity.get_score() + this_ship.get_final_damage(target);
+			identity.set_score(score);
 		}
 
 		move_x = this_ship.get_x() < target.get_x() ? speed : -speed;

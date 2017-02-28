@@ -20,6 +20,7 @@ class bot {
 		std::vector<ship> enemy_ships;
 		std::mutex loaded_ships_mutex;
 		std::vector<std::vector<ship>> loaded_ships;
+		int last_tick_health = 10;
 
 	public:
 		void run();

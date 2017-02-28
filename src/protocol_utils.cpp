@@ -2,6 +2,33 @@
 #include "main.hpp"
 #include "protocol_utils.hpp"
 
+tick_packet read_tick_packet(char* message) {
+	int score;
+	std::vector<ship> ships;
+	std::stringstream stream(message);
+
+	int x;
+	int y;
+	int health;
+	int flag;
+	int type = 0;
+	char separator;
+
+	stream >> score >> separator;
+
+	while (!stream.eof() && stream.good()) {
+		stream >> x >> separator;
+		stream >> y >> separator;
+		stream >> health >> separator;
+		stream >> flag >> separator;
+		stream >> type >> separator;
+
+		ships.push_back(ship(x, y, health, flag, type));
+	}
+
+	return tick_packet(score, ships);
+}
+
 std::vector<ship> read_ships(bool convert, char* message) {
 	std::vector<ship> ships;
 	std::stringstream stream(message);
@@ -59,6 +86,24 @@ std::string write_respawn(std::string id, std::string forename,
 	message << surname << ',';
 	message << ship_type;
 	return message.str();
+}
+
+std::string write_tick_packet(tick_packet packet) {
+	std::stringstream message;
+
+	message << packet.get_score() << '$';
+
+	for (ship& s : packet.get_ships()) {
+		message << s.get_x() << ',';
+		message << s.get_y() << ',';
+		message << s.get_health() << ',';
+		message << s.get_flag() << ',';
+		message << s.get_type() << '|';
+	}
+
+	std::string str = message.str();
+	str.pop_back();
+	return str;
 }
 
 std::string write_ships(std::vector<ship> ships) {

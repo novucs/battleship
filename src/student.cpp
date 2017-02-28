@@ -23,6 +23,14 @@ int student::get_offset_y() {
 	return offset_y;
 }
 
+int student::get_score() {
+	return score;
+}
+
+void student::set_score(int score) {
+	this->score = score;
+}
+
 std::string student::get_id() {
 	return id;
 }

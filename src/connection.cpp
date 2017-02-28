@@ -88,6 +88,11 @@ int connection::receive(connection from, char* buffer, int size) {
 	return RETREIVE_SUCCESS;
 }
 
+void connection::send_tick_packet(tick_packet packet) {
+	char* message = strdup(write_tick_packet(packet).c_str());
+	send(message);
+}
+
 void connection::send_ships(std::vector<ship> ships) {
 	char* message = strdup(write_ships(ships).c_str());
 	send(message);
