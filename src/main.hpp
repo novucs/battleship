@@ -9,6 +9,8 @@
 #define SHIP_TYPE_FRIGATE 1
 #define SHIP_TYPE_SUBMARINE 2
 
+extern bool debug;
+
 extern std::string server_ip;
 
 extern u_short server_port;

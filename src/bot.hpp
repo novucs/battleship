@@ -27,6 +27,7 @@ class bot {
 		void hive_mind_loop(int id);
 		void server_loop();
 		bool merge_ships();
+		void print_debug();
 		bool is_ally(ship& to_check);
 		bool is_enemy(ship& to_check);
 		void fire(int x, int y);

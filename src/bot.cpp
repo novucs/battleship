@@ -110,7 +110,7 @@ void bot::server_loop() {
 		}
 
 		loaded_ships_mutex.lock();
-		loaded_ships.at(identity.get_load_order()) = read_ships(true, buffer);
+		loaded_ships.at(identity.get_load_order()) = read_ships(false, buffer);
 
 		for (student& ally : allies) {
 			ally.get_connection().send_ships(loaded_ships.at(identity.get_load_order()));
@@ -119,11 +119,16 @@ void bot::server_loop() {
 		loaded_ships_mutex.unlock();
 
 		// Ghetto sleep to receive zombie data.
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+		std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
 		loaded_ships_mutex.lock();
+
 		if (!merge_ships()) {
 			continue;
+		}
+
+		if (debug) {
+			print_debug();
 		}
 
 		perform_tactics();
@@ -158,6 +163,38 @@ bool bot::merge_ships() {
 	loaded_ships.clear();
 	loaded_ships.resize(allies.size() + 1);
 	return true;
+}
+
+void bot::print_debug() {
+	std::cout << "allies:";
+
+	for (std::size_t i = 0; i < allies.size(); i++) {
+		student& ally = allies.at(i);
+		ship s = ally.get_ship();
+
+		if (!ally.is_connected()) {
+			continue;
+		}
+
+		std::cout << i << '-';
+		std::cout << s.get_x() << ',';
+		std::cout << s.get_y() << ',';
+		std::cout << s.get_health() << ',';
+		std::cout << s.get_flag() << ',';
+		std::cout << s.get_type() << '|';
+	}
+
+	std::cout << "enemies:";
+
+	for (ship& s : enemy_ships) {
+		std::cout << s.get_x() << ',';
+		std::cout << s.get_y() << ',';
+		std::cout << s.get_health() << ',';
+		std::cout << s.get_flag() << ',';
+		std::cout << s.get_type() << '|';
+	}
+
+	std::cout << std::endl;
 }
 
 bool bot::is_ally(ship& to_check) {

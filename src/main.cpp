@@ -5,41 +5,47 @@
 #include "bot.hpp"
 #include "main.hpp"
 
-std::string server_ip = "164.11.80.69";
+bool debug = true;
+
+// std::string server_ip = "164.11.80.69";
+std::string server_ip = "127.0.0.1";
 
 u_short server_port = 1924;
 u_short client_port = 1925;
 u_short hive_mind_port = 13337;
 
+int team_member_id = 0;
 int ship_type = SHIP_TYPE_BATTLESHIP;
 
-student identity(
-	0,
-	"16002374",
-	"William", "Randall",
-	"164.11.80.37"
-);
-
-std::vector<student> allies = {
+std::vector<student> team = {
+	student(
+		0,
+		"16002374",
+		"William", "Randall",
+		"164.11.80.37"
+	),
 	student(
 		1,
+		"16014980",
+		"Gareth", "Perry",
+		"164.11.80.26"
+	),
+	student(
+		2,
 		"16000587",
 		"Joshua", "Ramini",
 		"164.11.80.33"
 	),
 	student(
-		2,
+		3,
 		"15019771",
 		"Jacob", "Johnston",
 		"164.11.80.65"
-	),
-	student(
-		3,
-		"16014980",
-		"Gareth", "Perry",
-		"164.11.80.26"
 	)
 };
+
+student identity = team.at(team_member_id);
+std::vector<student> allies;
 
 bool setup_networking() {
 	WSADATA data;
@@ -47,6 +53,15 @@ bool setup_networking() {
 }
 
 int main(int argc, char* argv[]) {
+	for (std::size_t i = 0; i < team.size(); i++) {
+		if (i == (std::size_t) team_member_id) {
+			std::cout << i << std::endl;
+			continue;
+		}
+
+		allies.push_back(team.at(i));
+	}
+
 	if (!setup_networking()) {
 		std::cout << "Failed to initialize WinSock2: " << WSAGetLastError() << std::endl;
 	} else {
