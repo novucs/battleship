@@ -4,6 +4,7 @@
 #include "ship.hpp"
 #include "tick_packet.hpp"
 
+std::string xor_encrypt(std::string message);
 tick_packet read_tick_packet(char* message);
 std::vector<ship> read_ships(bool convert, char* message);
 std::string write_fire(std::string id, int x, int y);

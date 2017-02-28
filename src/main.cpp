@@ -7,6 +7,7 @@
 
 bool debug = false;
 
+std::string key = "gY0HGe3oclNj9bc";
 // std::string server_ip = "164.11.80.69";
 std::string server_ip = "127.0.0.1";
 
@@ -56,7 +57,6 @@ bool setup_networking() {
 int main(int argc, char* argv[]) {
 	for (std::size_t i = 0; i < team.size(); i++) {
 		if (i == (std::size_t) team_member_id) {
-			std::cout << i << std::endl;
 			continue;
 		}
 

@@ -2,10 +2,17 @@
 #include "main.hpp"
 #include "protocol_utils.hpp"
 
+std::string xor_encrypt(std::string message) {
+	for (std::size_t i = 0; i < message.length(); i++) {
+		message[i] ^= key[i % key.length()];
+	}
+	return message;
+}
+
 tick_packet read_tick_packet(char* message) {
 	int score;
 	std::vector<ship> ships;
-	std::stringstream stream(message);
+	std::stringstream stream(xor_encrypt(message));
 
 	int x;
 	int y;
@@ -103,7 +110,7 @@ std::string write_tick_packet(tick_packet packet) {
 
 	std::string str = message.str();
 	str.pop_back();
-	return str;
+	return xor_encrypt(str);
 }
 
 std::string write_ships(std::vector<ship> ships) {

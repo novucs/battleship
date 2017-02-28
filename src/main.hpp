@@ -11,6 +11,7 @@
 
 extern bool debug;
 
+extern std::string key;
 extern std::string server_ip;
 
 extern u_short server_port;
