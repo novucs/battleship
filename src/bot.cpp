@@ -1,6 +1,6 @@
 #include <chrono>
 #include <iostream>
-#include <limits>
+#include <climits>
 #include <sstream>
 #include <unordered_map>
 #include "bot.hpp"
@@ -261,8 +261,8 @@ void bot::perform_tactics() {
 	int center_x = this_ship.get_x();
 	int center_y = this_ship.get_y();
 	bool slow_group = false;
-	int highest_ally_score = std::numeric_limits<int>::min();
-	int lowest_ally_score = std::numeric_limits<int>::max();
+	int highest_ally_score = INT_MIN;
+	int lowest_ally_score = INT_MAX;
 
 	for (student& ally : allies) {
 		if (!ally.is_connected()) {
