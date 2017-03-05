@@ -162,21 +162,13 @@ int ship::get_damage(ship& victim) {
 		case SHIP_TYPE_FRIGATE:
 			switch (victim_ship_type) {
 				case SHIP_TYPE_BATTLESHIP:
-					return 1;
 				case SHIP_TYPE_FRIGATE:
 					return 1;
 				case SHIP_TYPE_SUBMARINE:
 					return 2;
 			}
 		case SHIP_TYPE_SUBMARINE:
-			switch (victim_ship_type) {
-				case SHIP_TYPE_BATTLESHIP:
-					return 2;
-				case SHIP_TYPE_FRIGATE:
-					return 2;
-				case SHIP_TYPE_SUBMARINE:
-					return 2;
-			}
+			return 2;
 	}
 
 	return 0;
