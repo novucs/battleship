@@ -1,3 +1,9 @@
+/*
+ * main.cpp
+ *
+ * Stores all program settings and implements both the main method and main.hpp.
+ */
+
 #pragma comment(lib, "wsock32.lib")
 #pragma comment(lib, "ws2_32.lib")
 
@@ -49,11 +55,21 @@ std::vector<student> team = {
 student identity = team.at(team_member_id);
 std::vector<student> allies;
 
+/**
+ * Sets up the Windows socket API for our program.
+ */
 bool setup_networking() {
 	WSADATA data;
 	return WSAStartup(MAKEWORD(2, 2), &data) == 0;
 }
 
+/**
+ * Program starts here.
+ *
+ * @param argc The argument count.
+ * @param argv The program arguments.
+ * @return the exit code.
+ */
 int main(int argc, char* argv[]) {
 	for (std::size_t i = 0; i < team.size(); i++) {
 		if (i == (std::size_t) team_member_id) {
@@ -67,7 +83,14 @@ int main(int argc, char* argv[]) {
 		std::cout << "Failed to initialize WinSock2: " << WSAGetLastError() << std::endl;
 	} else {
 		bot bot;
-		bot.run();
+
+		if (bot.setup()) {
+			bot.run();
+		} else {
+			std::cout << std::endl << "An error occured while initializing the bot." << std::endl;
+		}
+
+		bot.close();
 	}
 
 	system("pause");

@@ -1,3 +1,9 @@
+/*
+ * bot.cpp
+ *
+ * Implements all classes and methods defined in bot.hpp.
+ */
+
 #include <chrono>
 #include <iostream>
 #include <climits>
@@ -8,250 +14,10 @@
 #include "protocol_utils.hpp"
 #include "tick_packet.hpp"
 
-void bot::run() {
-	if (!setup()) {
-		return;
-	}
-
-	std::cout << std::endl << "==========================" << std::endl;
-	std::cout << std::endl << "   Hive mind bot loaded   " << std::endl;
-	std::cout << std::endl << "==========================" << std::endl;
-
-	// Wait for user input.
-	std::cout << std::endl << "Enter commands here, type '/help' for help." << std::endl;
-	getchar();
-
-	close();
-}
-
-bool bot::setup() {
-	if (!server_connection.create_socket() ||
-			!client_connection.create_socket() ||
-			!client_connection.attach() ||
-			!hive_mind_connection.create_socket() ||
-			!hive_mind_connection.attach()) {
-		return false;
-	}
-
-	loaded_ships.resize(allies.size() + 1);
-	identity.set_connection(std::move(server_connection));
-
-	for (std::vector<student>::size_type i = 0; i < allies.size(); i++) {
-		student& ally = allies.at(i);
-		connection ally_connection = create_connection(ally.get_ip(), hive_mind_port);
-
-		if (!ally_connection.create_socket()) {
-			continue;
-		}
-
-		ally.set_connection(std::move(ally_connection));
-
-		std::thread hive_mind_thread(&bot::hive_mind_loop, this, i);
-		hive_mind_threads.push_back(std::move(hive_mind_thread));
-	}
-
-	server_thread = std::thread(&bot::server_loop, this);
-
-	respawn();
-
-	return true;
-}
-
-void bot::hive_mind_loop(int id) {
-	char buffer[4096];
-	student& ally = allies.at(id);
-	connection ally_connection = ally.get_connection();
-
-	for (;;) {
-		memset(buffer, '\0', sizeof(buffer));
-
-		switch (hive_mind_connection.receive(ally_connection, buffer, sizeof(buffer))) {
-			case RETREIVE_SUCCESS:
-				break;
-			case RETREIVE_FAIL:
-				return;
-			case RETREIVE_IGNORE:
-				continue;
-		}
-
-		if (buffer[0] == 'M') {
-			continue;
-		}
-
-		loaded_ships_mutex.lock();
-
-		tick_packet packet = read_tick_packet(buffer);
-		std::vector<ship> ships = packet.get_ships();
-		loaded_ships.at(ally.get_load_order()) = ships;
-		ally.set_score(packet.get_score());
-
-		if (!ships.empty()) {
-			ally.set_connected(true);
-			ally.set_ship(std::move(ships.at(0)));
-		}
-
-		loaded_ships_mutex.unlock();
-	}
-}
-
-void bot::server_loop() {
-	char buffer[4096];
-
-	for (;;) {
-		memset(buffer, '\0', sizeof(buffer));
-
-		switch (client_connection.receive(server_connection, buffer, sizeof(buffer))) {
-			case RETREIVE_SUCCESS:
-				break;
-			case RETREIVE_FAIL:
-				return;
-			case RETREIVE_IGNORE:
-				continue;
-		}
-
-		if (buffer[0] == 'M') {
-			continue;
-		}
-
-		loaded_ships_mutex.lock();
-		std::vector<ship> ships = read_ships(false, buffer);
-		loaded_ships.at(identity.get_load_order()) = ships;
-
-		this_ship = ships.at(0);
-		identity.set_ship(std::move(this_ship));
-		int score = identity.get_score();
-
-		if (last_tick_health < this_ship.get_health()) {
-			score -= (last_tick_health + (this_ship.get_health() - 10));
-		} else if (last_tick_health > this_ship.get_health()) {
-			score -= (last_tick_health - this_ship.get_health());
-		}
-
-		identity.set_score(score);
-
-		tick_packet packet(score, ships);
-
-		for (student& ally : allies) {
-			ally.get_connection().send_tick_packet(packet);
-		}
-
-		loaded_ships_mutex.unlock();
-
-		// Ghetto sleep to receive zombie data.
-		std::this_thread::sleep_for(std::chrono::milliseconds(25));
-
-		loaded_ships_mutex.lock();
-
-		if (!merge_ships()) {
-			continue;
-		}
-
-		if (debug) {
-			print_debug();
-		}
-
-		perform_tactics();
-
-		// Flag allies as not connected for next tick, allowing them to correct this.
-		for (student& ally : allies) {
-			ally.set_connected(false);
-		}
-
-		loaded_ships_mutex.unlock();
-	}
-}
-
-bool bot::merge_ships() {
-	enemy_ships.clear();
-
-	if (loaded_ships.empty() || loaded_ships.at(identity.get_load_order()).empty()) {
-		return false;
-	}
-
-	for (std::vector<ship>& ships : loaded_ships) {
-		for (ship& ship : ships) {
-			if (!is_ally(ship) && !is_enemy(ship) && ship != this_ship) {
-				enemy_ships.push_back(ship);
-			}
-		}
-	}
-
-	loaded_ships.clear();
-	loaded_ships.resize(allies.size() + 1);
-	return true;
-}
-
-void bot::print_debug() {
-	std::cout << "allies:";
-
-	for (std::size_t i = 0; i < allies.size(); i++) {
-		student& ally = allies.at(i);
-		ship s = ally.get_ship();
-
-		if (!ally.is_connected()) {
-			continue;
-		}
-
-		std::cout << i << '-';
-		std::cout << s.get_x() << ',';
-		std::cout << s.get_y() << ',';
-		std::cout << s.get_health() << ',';
-		std::cout << s.get_flag() << ',';
-		std::cout << s.get_type() << '|';
-	}
-
-	std::cout << "enemies:";
-
-	for (ship& s : enemy_ships) {
-		std::cout << s.get_x() << ',';
-		std::cout << s.get_y() << ',';
-		std::cout << s.get_health() << ',';
-		std::cout << s.get_flag() << ',';
-		std::cout << s.get_type() << '|';
-	}
-
-	std::cout << std::endl;
-}
-
-bool bot::is_ally(ship& to_check) {
-	for (student& ally : allies) {
-		ship ship = ally.get_ship();
-		if (ship == to_check) {
-			return true;
-		}
-	}
-	return false;
-}
-
-bool bot::is_enemy(ship& to_check) {
-	for (ship& enemy : enemy_ships) {
-		if (enemy == to_check) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void bot::fire(int x, int y) {
-	identity.get_connection().send_fire(identity.get_id(), x, y);
-}
-
-void bot::move(int x, int y) {
-	identity.get_connection().send_move(identity.get_id(), x, y);
-}
-
-void bot::flag(int flag) {
-	identity.get_connection().send_flag(identity.get_id(), flag);
-}
-
-void bot::respawn() {
-	std::string id = identity.get_id();
-	std::string forename = identity.get_forename();
-	std::string surname = identity.get_surname();
-	identity.get_connection().send_respawn(id, forename, surname, ship_type);
-}
-
-void bot::perform_tactics() {
+/**
+ * Performs the tactics code for this tick.
+ */
+void bot::tactics() {
 	// Calculate:
 	// - number of connected allies
 	// - nearby allies
@@ -419,7 +185,311 @@ void bot::perform_tactics() {
 	}
 }
 
+/**
+ * Sends a fire packet to the server.
+ *
+ * @param x The X coordinate to fire at.
+ * @param y The Y coordinate to fire at.
+ */
+void bot::fire(int x, int y) {
+	identity.get_connection().send_fire(identity.get_id(), x, y);
+}
+
+/**
+ * Sends a movement packet to the server.
+ *
+ * @param x The speed X to move.
+ * @param y The speed Y to move.
+ */
+void bot::move(int x, int y) {
+	identity.get_connection().send_move(identity.get_id(), x, y);
+}
+
+/**
+ * Sends a flag change packet to the server.
+ *
+ * @param flag The new flag.
+ */
+void bot::flag(int flag) {
+	identity.get_connection().send_flag(identity.get_id(), flag);
+}
+
+/**
+ * Sends a respawn packet to the server, using the gloabal ship_type
+ * variable (defined in main.hpp) as the new ship type.
+ */
+void bot::respawn() {
+	std::string id = identity.get_id();
+	std::string forename = identity.get_forename();
+	std::string surname = identity.get_surname();
+	identity.get_connection().send_respawn(id, forename, surname, ship_type);
+}
+
+/**
+ * Starts the hive-mind loop, loading data sent from the ally.
+ *
+ * @param id The position this ally is stored in the global allies list.
+ */
+void bot::hive_mind_loop(int id) {
+	char buffer[4096];
+	student& ally = allies.at(id);
+	connection ally_connection = ally.get_connection();
+
+	for (;;) {
+		memset(buffer, '\0', sizeof(buffer));
+
+		switch (hive_mind_connection.receive(ally_connection, buffer, sizeof(buffer))) {
+			case RETREIVE_SUCCESS:
+				break;
+			case RETREIVE_FAIL:
+				return;
+			case RETREIVE_IGNORE:
+				continue;
+		}
+
+		if (buffer[0] == 'M') {
+			continue;
+		}
+
+		loaded_ships_mutex.lock();
+
+		tick_packet packet = read_tick_packet(buffer);
+		std::vector<ship> ships = packet.get_ships();
+		loaded_ships.at(ally.get_load_order()) = ships;
+		ally.set_score(packet.get_score());
+
+		if (!ships.empty()) {
+			ally.set_connected(true);
+			ally.set_ship(std::move(ships.at(0)));
+		}
+
+		loaded_ships_mutex.unlock();
+	}
+}
+
+/**
+ * Starts the main server loop. Used for retreiving data from the server,
+ * relaying that data to allies and then performing tactics code.
+ */
+void bot::server_loop() {
+	char buffer[4096];
+
+	for (;;) {
+		memset(buffer, '\0', sizeof(buffer));
+
+		switch (client_connection.receive(server_connection, buffer, sizeof(buffer))) {
+			case RETREIVE_SUCCESS:
+				break;
+			case RETREIVE_FAIL:
+				return;
+			case RETREIVE_IGNORE:
+				continue;
+		}
+
+		if (buffer[0] == 'M') {
+			continue;
+		}
+
+		loaded_ships_mutex.lock();
+		std::vector<ship> ships = read_ships(false, buffer);
+		loaded_ships.at(identity.get_load_order()) = ships;
+
+		this_ship = ships.at(0);
+		identity.set_ship(std::move(this_ship));
+		int score = identity.get_score();
+
+		if (last_tick_health < this_ship.get_health()) {
+			score -= (last_tick_health + (this_ship.get_health() - 10));
+		} else if (last_tick_health > this_ship.get_health()) {
+			score -= (last_tick_health - this_ship.get_health());
+		}
+
+		identity.set_score(score);
+
+		tick_packet packet(score, ships);
+
+		for (student& ally : allies) {
+			ally.get_connection().send_tick_packet(packet);
+		}
+
+		loaded_ships_mutex.unlock();
+
+		// Ghetto sleep to receive zombie data.
+		std::this_thread::sleep_for(std::chrono::milliseconds(25));
+
+		loaded_ships_mutex.lock();
+
+		if (!merge_ships()) {
+			continue;
+		}
+
+		if (debug) {
+			print_debug();
+		}
+
+		tactics();
+
+		// Flag allies as not connected for next tick, allowing them to correct this.
+		for (student& ally : allies) {
+			ally.set_connected(false);
+		}
+
+		loaded_ships_mutex.unlock();
+	}
+}
+
+/**
+ * Merges and sorts all loaded ships from hive-mind threads into enemies
+ * and allies.
+ */
+bool bot::merge_ships() {
+	enemy_ships.clear();
+
+	if (loaded_ships.empty() || loaded_ships.at(identity.get_load_order()).empty()) {
+		return false;
+	}
+
+	for (std::vector<ship>& ships : loaded_ships) {
+		for (ship& ship : ships) {
+			if (!is_ally(ship) && !is_enemy(ship) && ship != this_ship) {
+				enemy_ships.push_back(ship);
+			}
+		}
+	}
+
+	loaded_ships.clear();
+	loaded_ships.resize(allies.size() + 1);
+	return true;
+}
+
+/**
+ * Prints the debug message for this tick.
+ */
+void bot::print_debug() {
+	std::cout << "allies:";
+
+	for (std::size_t i = 0; i < allies.size(); i++) {
+		student& ally = allies.at(i);
+		ship s = ally.get_ship();
+
+		if (!ally.is_connected()) {
+			continue;
+		}
+
+		std::cout << i << '-';
+		std::cout << s.get_x() << ',';
+		std::cout << s.get_y() << ',';
+		std::cout << s.get_health() << ',';
+		std::cout << s.get_flag() << ',';
+		std::cout << s.get_type() << '|';
+	}
+
+	std::cout << "enemies:";
+
+	for (ship& s : enemy_ships) {
+		std::cout << s.get_x() << ',';
+		std::cout << s.get_y() << ',';
+		std::cout << s.get_health() << ',';
+		std::cout << s.get_flag() << ',';
+		std::cout << s.get_type() << '|';
+	}
+
+	std::cout << std::endl;
+}
+
+/**
+ * Returns if a ship is considered an ally.
+ *
+ * @param to_check The ship to check.
+ * @return {@code true} if the ship is an ally, otherwise {@code false}.
+ */
+bool bot::is_ally(ship& to_check) {
+	for (student& ally : allies) {
+		ship ship = ally.get_ship();
+		if (ship == to_check) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Returns if the ship is considered an enemy.
+ *
+ * @param to_check The ship to check.
+ * @return {@code true} if the ship is an enemy, otherwise {@code false}.
+ */
+bool bot::is_enemy(ship& to_check) {
+	for (ship& enemy : enemy_ships) {
+		if (enemy == to_check) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Initializes the bot state and connections.
+ */
+bool bot::setup() {
+	// Create server socket.
+	return server_connection.create_socket() &&
+
+		// Create and attach the client socket.
+		client_connection.create_socket() &&
+		client_connection.attach() &&
+
+		// Create and attach the hive mind socket.
+		hive_mind_connection.create_socket() &&
+		hive_mind_connection.attach();
+}
+
+/**
+ * Begins all the bot threads and awaits user input.
+ */
+void bot::run() {
+	// Print the startup messages.
+	std::cout << std::endl << "==========================" << std::endl;
+	std::cout << std::endl << "   Hive mind bot loaded   " << std::endl;
+	std::cout << std::endl << "==========================" << std::endl;
+	std::cout << std::endl << "Enter commands here, type '/help' for help." << std::endl;
+
+	// Prepare loaded_ships vector for ships to be loaded in.
+	loaded_ships.resize(allies.size() + 1);
+
+	// Set our identities connection to the server connection.
+	identity.set_connection(std::move(server_connection));
+
+	// Load and run each ally into their own hive-mind relay thread.
+	for (std::vector<student>::size_type i = 0; i < allies.size(); i++) {
+		student& ally = allies.at(i);
+		connection ally_connection = create_connection(ally.get_ip(), hive_mind_port);
+
+		if (!ally_connection.create_socket()) {
+			continue;
+		}
+
+		ally.set_connection(std::move(ally_connection));
+
+		std::thread hive_mind_thread(&bot::hive_mind_loop, this, i);
+		hive_mind_threads.push_back(std::move(hive_mind_thread));
+	}
+
+	// Create and run the server thread.
+	server_thread = std::thread(&bot::server_loop, this);
+
+	// Respawn our bot.
+	respawn();
+
+	// Wait for user input.
+	getchar();
+}
+
+/**
+ * Closes opened sockets and discontinues running connection threads.
+ */
 void bot::close() {
+	// Close server, client and hive-mind sockets.
 	server_connection.close_socket();
 	client_connection.close_socket();
 	hive_mind_connection.close_socket();
@@ -428,8 +498,10 @@ void bot::close() {
 		ally.get_connection().close_socket();
 	}
 
+	// Cleanup Windows socket API.
 	WSACleanup();
 
+	// Join all connection threads as they shutdown.
 	server_thread.join();
 
 	for (std::thread& hive_mind_thread : hive_mind_threads) {
