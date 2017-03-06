@@ -35,6 +35,9 @@ extern u_short server_port;
 extern u_short client_port;
 extern u_short hive_port;
 
+// The target number of allies to be frigates at one time.
+extern int frigate_count;
+
 // The current ship type.
 extern int ship_type;
 

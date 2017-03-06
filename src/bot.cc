@@ -43,6 +43,8 @@ void Bot::Tactics() {
   bool slow_group = false;
   int highest_ally_score = INT_MIN;
   int lowest_ally_score = INT_MAX;
+  int lowest_ally_frigate_score = INT_MAX;
+  int ally_frigate_count = 0;
 
   for (Student& ally : allies) {
     if (!ally.IsConnected()) {
@@ -61,6 +63,14 @@ void Bot::Tactics() {
     center_x += ally_ship.GetX();
     center_y += ally_ship.GetY();
     active_ally_count++;
+
+    if (ally_ship.GetType() == SHIP_TYPE_FRIGATE) {
+      ally_frigate_count++;
+
+      if (lowest_ally_frigate_score > ally.GetScore()) {
+        lowest_ally_frigate_score = ally.GetScore();
+      }
+    }
 
     if (ally_ship.DistanceTo(ship_) < ((offset * 2) + 2)) {
       if (ally_ship.GetMaxSpeed() == 1) {
@@ -187,13 +197,17 @@ void Bot::Tactics() {
   if (active_ally_count > 0) {
     switch (ship_type) {
       case SHIP_TYPE_BATTLESHIP:
-        if (identity.GetScore() - 50 > highest_ally_score) {
+        if (identity.GetScore() - 50 > highest_ally_score ||
+            (identity.GetScore() > highest_ally_score &&
+            ally_frigate_count < frigate_count)) {
           ship_type = SHIP_TYPE_FRIGATE;
           Respawn();
         }
         break;
       case SHIP_TYPE_FRIGATE:
-        if (identity.GetScore() + 50 < lowest_ally_score) {
+        if (identity.GetScore() < lowest_ally_score ||
+            (identity.GetScore() < lowest_ally_frigate_score &&
+            ally_frigate_count >= frigate_count)) {
           ship_type = SHIP_TYPE_BATTLESHIP;
           Respawn();
         }
