@@ -11,7 +11,7 @@ set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
 set(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32-g++)
 
 # Register all source files.
-file(GLOB_RECURSE sources src/*.cpp src/*.hpp)
+file(GLOB_RECURSE sources src/*.cc src/*.h)
 
 # Add executable from all source files.
 add_executable(battleship.exe ${sources})

@@ -1,15 +1,26 @@
 /*
- * protocol_utils.hpp
- *
- * Provides utility methods for encoding and decoding the battleship bots
- * protocol.
+ * Copyright (c) 2017 The Hive Bot project authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
-#pragma once
+/*
+ * protocol_utils.h - Protocol utils header.
+ *
+ * Provides a subset of protocol utilities for both the battleship bot and hive
+ * bot protocols.
+ */
 
+#ifndef HIVE_BOT_PROTOCOL_UTILS_H_
+#define HIVE_BOT_PROTOCOL_UTILS_H_
+
+#include <string>
 #include <vector>
-#include "ship.hpp"
-#include "tick_packet.hpp"
+
+#include "ship.h"
+#include "tick_packet.h"
+
+namespace hive_bot {
 
 /**
  * Encrypts and decrypts a message using XOR encryption.
@@ -17,7 +28,7 @@
  * @param message The message to encrypt.
  * @return the encrypted message.
  */
-std::string xor_encrypt(std::string message);
+std::string XorEncrypt(std::string message);
 
 /**
  * Reads in a tick packet.
@@ -25,7 +36,7 @@ std::string xor_encrypt(std::string message);
  * @param message The message to read.
  * @return the parsed tick packet.
  */
-tick_packet read_tick_packet(char* message);
+TickPacket ReadTickPacket(char* message);
 
 /**
  * Reads in a list of ships.
@@ -34,7 +45,7 @@ tick_packet read_tick_packet(char* message);
  * @param message The message to read.
  * @return the parsed list of ships.
  */
-std::vector<ship> read_ships(bool convert, char* message);
+std::vector<Ship> ReadShips(bool convert, char* message);
 
 /**
  * Writes a fire packet.
@@ -44,7 +55,7 @@ std::vector<ship> read_ships(bool convert, char* message);
  * @param y  The Y coordinate to fire at.
  * @return the fire packet.
  */
-std::string write_fire(std::string id, int x, int y);
+std::string WriteFire(std::string id, int x, int y);
 
 /**
  * Writes a movement packet.
@@ -54,7 +65,7 @@ std::string write_fire(std::string id, int x, int y);
  * @param y  The Y coordinate to fire at.
  * @return the movement packet.
  */
-std::string write_move(std::string id, int x, int y);
+std::string WriteMove(std::string id, int x, int y);
 
 /**
  * Writes a flag change packet.
@@ -63,7 +74,7 @@ std::string write_move(std::string id, int x, int y);
  * @param flag The new flag.
  * @return the flag change packet.
  */
-std::string write_flag(std::string id, int flag);
+std::string WriteFlag(std::string id, int flag);
 
 /**
  * Writes a respawn packet.
@@ -74,7 +85,7 @@ std::string write_flag(std::string id, int flag);
  * @param ship_type The new ship type.
  * @return the respawn packet.
  */
-std::string write_respawn(std::string id, std::string forename,
+std::string WriteRespawn(std::string id, std::string forename,
   std::string surname, int ship_type);
 
 /**
@@ -83,7 +94,7 @@ std::string write_respawn(std::string id, std::string forename,
  * @param packet The packet to write.
  * @return the tick packet.
  */
-std::string write_tick_packet(tick_packet packet);
+std::string WriteTickPacket(TickPacket packet);
 
 /**
  * Writes a ships packet.
@@ -91,4 +102,8 @@ std::string write_tick_packet(tick_packet packet);
  * @param ships The ships to write.
  * @return the ships packet.
  */
-std::string write_ships(std::vector<ship> ships);
+std::string WriteShips(std::vector<Ship> ships);
+
+} // namespace hive_bot
+
+#endif // HIVE_BOT_PROTOCOL_UTILS_H_

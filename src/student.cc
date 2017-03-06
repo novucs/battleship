@@ -1,10 +1,18 @@
 /*
- * student.cpp
- *
- * Implements student related classes and methods defined in student.hpp.
+ * Copyright (c) 2017 The Hive Bot project authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
-#include "student.hpp"
+/*
+ * student.cc - Student implementation.
+ *
+ * Student data type and utilities.
+ */
+
+#include "student.h"
+
+namespace hive_bot {
 
 /**
  * Constructs a new student.
@@ -17,15 +25,15 @@
  * @param surname    The students surname.
  * @param ip         The students IP address.
  */
-student::student(int load_order, int offset_x, int offset_y, std::string id,
-		std::string forename, std::string surname, std::string ip) {
-	this->load_order = load_order;
-	this->offset_x = offset_x;
-	this->offset_y = offset_y;
-	this->id = id;
-	this->forename = forename;
-	this->surname = surname;
-	this->ip = ip;
+Student::Student(int load_order, int offset_x, int offset_y, std::string id,
+    std::string forename, std::string surname, std::string ip) {
+  load_order_ = load_order;
+  offset_x_ = offset_x;
+  offset_y_ = offset_y;
+  id_ = id;
+  forename_ = forename;
+  surname_ = surname;
+  ip_ = ip;
 }
 
 /**
@@ -33,8 +41,8 @@ student::student(int load_order, int offset_x, int offset_y, std::string id,
  *
  * @return the load order.
  */
-int student::get_load_order() {
-	return load_order;
+int Student::GetLoadOrder() {
+  return load_order_;
 }
 
 /**
@@ -42,8 +50,8 @@ int student::get_load_order() {
  *
  * @return the X movement offset.
  */
-int student::get_offset_x() {
-	return offset_x;
+int Student::GetOffsetX() {
+  return offset_x_;
 }
 
 /**
@@ -51,8 +59,8 @@ int student::get_offset_x() {
  *
  * @return the Y movement offset.
  */
-int student::get_offset_y() {
-	return offset_y;
+int Student::GetOffsetY() {
+  return offset_y_;
 }
 
 /**
@@ -60,8 +68,8 @@ int student::get_offset_y() {
  *
  * @return the score.
  */
-int student::get_score() {
-	return score;
+int Student::GetScore() {
+  return score_;
 }
 
 /**
@@ -69,8 +77,8 @@ int student::get_score() {
  *
  * @param score The predicted score.
  */
-void student::set_score(int score) {
-	this->score = score;
+void Student::SetScore(int score) {
+  score_ = score;
 }
 
 /**
@@ -78,8 +86,8 @@ void student::set_score(int score) {
  *
  * @return the ID.
  */
-std::string student::get_id() {
-	return id;
+std::string Student::GetId() {
+  return id_;
 }
 
 /**
@@ -87,8 +95,8 @@ std::string student::get_id() {
  *
  * @return the forename.
  */
-std::string student::get_forename() {
-	return forename;
+std::string Student::GetForename() {
+  return forename_;
 }
 
 /**
@@ -96,8 +104,8 @@ std::string student::get_forename() {
  *
  * @return the surname.
  */
-std::string student::get_surname() {
-	return surname;
+std::string Student::GetSurname() {
+  return surname_;
 }
 
 /**
@@ -105,8 +113,8 @@ std::string student::get_surname() {
  *
  * @return the IP.
  */
-std::string student::get_ip() {
-	return ip;
+std::string Student::GetIp() {
+  return ip_;
 }
 
 /**
@@ -114,8 +122,8 @@ std::string student::get_ip() {
  *
  * @return the ship.
  */
-ship student::get_ship() {
-	return m_ship;
+Ship Student::GetShip() {
+  return ship_;
 }
 
 /**
@@ -123,8 +131,8 @@ ship student::get_ship() {
  *
  * @param ship The updated students ship details.
  */
-void student::set_ship(ship ship) {
-	m_ship = ship;
+void Student::SetShip(Ship ship) {
+  ship_ = ship;
 }
 
 /**
@@ -132,8 +140,8 @@ void student::set_ship(ship ship) {
  *
  * @return the connection;
  */
-connection student::get_connection() {
-	return m_connection;
+Connection Student::GetConnection() {
+  return connection_;
 }
 
 /**
@@ -141,8 +149,8 @@ connection student::get_connection() {
  *
  * @param connection The updated students connection.
  */
-void student::set_connection(connection connection) {
-	m_connection = connection;
+void Student::SetConnection(Connection connection) {
+  connection_ = connection;
 }
 
 /**
@@ -151,8 +159,8 @@ void student::set_connection(connection connection) {
  *
  * @return {@code true} if they're connected, otherwise {@code false}.
  */
-bool student::is_connected() {
-	return connected;
+bool Student::IsConnected() {
+  return connected_;
 }
 
 /**
@@ -161,6 +169,8 @@ bool student::is_connected() {
  * @param connected  {@code true} if they're connected, otherwise
  *                   {@code false}.
  */
-void student::set_connected(bool connected) {
-	this->connected = connected;
+void Student::SetConnected(bool connected) {
+  connected_ = connected;
 }
+
+} // namespace hive_bot
