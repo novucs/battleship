@@ -151,8 +151,8 @@ void bot::tactics() {
 			identity.set_score(score);
 		}
 
-		move_x = this_ship.get_x() < target.get_x() ? speed : -speed;
-		move_y = this_ship.get_y() < target.get_y() ? speed : -speed;
+		move_x = this_ship.get_x() + identity.get_offset_x() < target.get_x() ? speed : -speed;
+		move_y = this_ship.get_y() + identity.get_offset_y() < target.get_y() ? speed : -speed;
 	}
 
 	// Always move towards ally center when we are not nearby all allies.
