@@ -13,12 +13,12 @@
 #ifndef HIVE_BOT_SHIP_H_
 #define HIVE_BOT_SHIP_H_
 
-namespace hive_bot {
-
 // All ship types.
 #define SHIP_TYPE_BATTLESHIP 0
 #define SHIP_TYPE_FRIGATE 1
 #define SHIP_TYPE_SUBMARINE 2
+
+namespace hive_bot {
 
 /**
  * An immutable ship, participating in battleship bots.

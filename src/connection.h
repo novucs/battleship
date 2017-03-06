@@ -22,12 +22,12 @@
 #include "ship.h"
 #include "tick_packet.h"
 
-namespace hive_bot {
-
 // All retreive completion opcodes.
 #define RETREIVE_SUCCESS 0
 #define RETREIVE_FAIL 1
 #define RETREIVE_IGNORE 2
+
+namespace hive_bot {
 
 /**
  * Holds UDP connection information and provides simple battleship bot protocol
