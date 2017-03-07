@@ -198,17 +198,13 @@ void Bot::Tactics() {
   if (active_ally_count > 0) {
     switch (ship_type) {
       case SHIP_TYPE_BATTLESHIP:
-        if (identity.GetScore() - 50 > highest_ally_score ||
-            (identity.GetScore() > highest_ally_score &&
-            ally_frigate_count < frigate_count)) {
+        if (identity.GetScore() - 50 > highest_ally_score) {
           ship_type = SHIP_TYPE_FRIGATE;
           Respawn();
         }
         break;
       case SHIP_TYPE_FRIGATE:
-        if (identity.GetScore() < lowest_ally_score ||
-            (identity.GetScore() < lowest_ally_frigate_score &&
-            ally_frigate_count >= frigate_count)) {
+        if (identity.GetScore() + 50 < lowest_ally_score) {
           ship_type = SHIP_TYPE_BATTLESHIP;
           Respawn();
         }
