@@ -190,9 +190,7 @@ void Bot::Tactics() {
 
   Move(move_x, move_y);
 
-  new_flag = ship_.GetX();
-  new_flag = (new_flag << 16 ) + ship_.GetY();
-  new_flag = new_flag ^ '.';
+  new_flag = ship_.GetX() ^ '.';
   Flag(new_flag);
 
   if (active_ally_count > 0) {
@@ -471,13 +469,9 @@ int Bot::GetPreviousAllyId(Ship& to_check) {
  */
 bool Bot::IsAlly(Ship& to_check) {
 	int flag = to_check.GetFlag() ^ '.';
-	int right  = flag & 0xFFFF;
-	int left  = (flag >> 16) & 0xFFFF;
+	int difference_x = abs(flag - to_check.GetX());
 
-	int difference_x = abs(left - to_check.GetX());
-	int difference_y = abs(right - to_check.GetY());
-
-	if (difference_x < 3 && difference_y < 3) {
+	if (difference_x < 3) {
 		return true;
 	}
 
