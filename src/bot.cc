@@ -190,6 +190,13 @@ void Bot::Tactics() {
 
   Move(move_x, move_y);
 
+  int next_x = ship_.GetX() + move_x;
+  int next_y = ship_.GetY() + move_y;
+
+  if (speed == 2 && ship_.GetMaxSpeed() == 1) {
+    next_x -= move_x / 2;
+    next_y -= move_y / 2;
+  }
 
   new_flag = (ship_.GetX() * ship_.GetY()) ^ '.';
   Flag(new_flag);
