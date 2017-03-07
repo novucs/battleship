@@ -190,15 +190,9 @@ void Bot::Tactics() {
 
   Move(move_x, move_y);
 
-  int next_x = ship_.GetX() + move_x;
-  int next_y = ship_.GetY() + move_y;
-
-  if (speed == 2 && ship_.GetMaxSpeed() == 1) {
-    next_x -= move_x / 2;
-    next_y -= move_y / 2;
-  }
-
-  new_flag = (next_x * next_y) ^ '.';
+  new_flag = ship_.GetX();
+  new_flag = (new_flag << 16 ) + ship_.GetY();
+  new_flag = new_flag ^ '.';
   Flag(new_flag);
 
   if (active_ally_count > 0) {
@@ -480,9 +474,17 @@ int Bot::GetPreviousAllyId(Ship& to_check) {
  * @return {@code true} if the ship is an ally, otherwise {@code false}.
  */
 bool Bot::IsAlly(Ship& to_check) {
-  if ((to_check.GetFlag() ^ '.') / to_check.GetX() == to_check.GetY()) {
-    return true;
-  }
+	int flag = to_check.GetFlag() ^ '.';
+	int right  = flag & 0xFFFF;
+	int left  = (flag >> 16) & 0xFFFF;
+
+	int difference_x = abs(left - to_check.GetX());
+	int difference_y = abs(right - to_check.GetY());
+
+	if (difference_x < 3 && difference_y < 3) {
+		return true;
+	}
+
   for (Student& ally : allies) {
     Ship ship = ally.GetShip();
     if (ship == to_check) {
