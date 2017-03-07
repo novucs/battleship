@@ -468,12 +468,12 @@ int Bot::GetPreviousAllyId(Ship& to_check) {
  * @return {@code true} if the ship is an ally, otherwise {@code false}.
  */
 bool Bot::IsAlly(Ship& to_check) {
-	int flag = to_check.GetFlag() ^ '.';
-	int difference_x = abs(flag - to_check.GetX());
+  int flag = to_check.GetFlag() ^ '.';
+  int difference_x = abs(flag - to_check.GetX());
 
-	if (difference_x < 3) {
-		return true;
-	}
+  if (difference_x < 3) {
+    return true;
+  }
 
   for (Student& ally : allies) {
     Ship ship = ally.GetShip();
