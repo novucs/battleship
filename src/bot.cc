@@ -391,7 +391,9 @@ bool Bot::MergeShips() {
     for (Ship& ship : ships) {
       int ally_id = GetPreviousAllyId(ship);
       if (ally_id >= 0) {
-        allies.at(ally_id).SetShip(ship);
+        Student& ally = allies.at(ally_id);
+        ally.SetShip(ship);
+        ally.SetConnected(true);
       } else if (!IsAlly(ship) && !IsEnemy(ship) && ship != ship_) {
         enemy_ships_.push_back(ship);
       }
