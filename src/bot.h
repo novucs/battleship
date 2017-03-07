@@ -60,6 +60,9 @@ class Bot {
     // All loaded ships from the hive network.
     std::vector<std::vector<Ship>> ships_;
 
+    // All previous ally ships.
+    std::vector<Ship> previous_allies_;
+
     /**
      * Performs the tactics code for this tick.
      */
@@ -117,6 +120,15 @@ class Bot {
      * Prints the debug message for this tick.
      */
     void PrintDebug();
+
+    /**
+     * Checks if ship was probably an ally in the previous tick.
+     *
+     * @param to_check The ship to check.
+     * @return {@code true} if the ship was considered an ally, otherwise
+     *         {@code false}.
+     */
+    int GetPreviousAllyId(Ship& to_check);
 
     /**
      * Returns if a ship is considered an ally.

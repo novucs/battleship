@@ -389,10 +389,19 @@ bool Bot::MergeShips() {
 
   for (std::vector<Ship>& ships : ships_) {
     for (Ship& ship : ships) {
-      if (!IsAlly(ship) && !IsEnemy(ship) && ship != ship_) {
+      int ally_id = GetPreviousAllyId(ship);
+      if (ally_id >= 0) {
+        allies.at(ally_id).SetShip(ship);
+      } else if (!IsAlly(ship) && !IsEnemy(ship) && ship != ship_) {
         enemy_ships_.push_back(ship);
       }
     }
+  }
+
+  previous_allies_.clear();
+
+  for (Student& ally : allies) {
+    previous_allies_.push_back(ally.GetShip());
   }
 
   ships_.clear();
@@ -433,6 +442,26 @@ void Bot::PrintDebug() {
   }
 
   std::cout << std::endl;
+}
+
+/**
+ * Checks if ship was probably an ally in the previous tick.
+ *
+ * @param to_check The ship to check.
+ * @return {@code true} if the ship was considered an ally, otherwise
+ *         {@code false}.
+ */
+int Bot::GetPreviousAllyId(Ship& to_check) {
+  int i = 0;
+
+  for (Ship& ally : previous_allies_) {
+    if (ally.GetType() == to_check.GetType() &&
+        ally.DistanceTo(to_check) <= 3) {
+      return i;
+    }
+    i++;
+  }
+  return -1;
 }
 
 /**
