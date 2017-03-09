@@ -98,38 +98,6 @@ void Bot::Tactics() {
   center_x += identity.GetOffsetX();
   center_y += identity.GetOffsetY();
 
-  // Equip the most beneficial flag.
-  std::unordered_map<int, int> flag_weights;
-
-  for (Ship& enemy_ship : enemy_ships_) {
-    int weight = enemy_ship.GetFinalDamage(ship_);
-
-    if ((weight == 0) ||
-        (enemy_ship.GetType() == SHIP_TYPE_BATTLESHIP &&
-        ship_.GetType() == SHIP_TYPE_SUBMARINE)) {
-      continue;
-    }
-
-    if (flag_weights.find(enemy_ship.GetFlag()) == flag_weights.end()) {
-      std::pair<int, int> flag_weight(enemy_ship.GetFlag(), 0);
-      flag_weights.insert(flag_weight);
-    }
-
-    flag_weights.at(enemy_ship.GetFlag()) += weight;
-  }
-
-  int new_flag = 0;
-  int highest_flag_weight = 0;
-
-  for (auto& entry : flag_weights) {
-    if (highest_flag_weight >= entry.second) {
-      continue;
-    }
-
-    new_flag = entry.first;
-    highest_flag_weight = entry.second;
-  }
-
   // Target crippled allies.
   Ship target;
   int target_weight = 0;
