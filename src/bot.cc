@@ -158,7 +158,7 @@ void Bot::Tactics() {
 
   Move(move_x, move_y);
 
-  new_flag = ship_.GetX() ^ '.';
+  int new_flag = ship_.GetX() ^ '.';
   Flag(new_flag);
 
   if (active_ally_count > 0) {
