@@ -26,9 +26,9 @@ namespace hive_bot {
  * @return the encrypted message.
  */
 std::string XorEncrypt(std::string message) {
-  for (std::size_t i = 0; i < message.length(); i++) {
-    message[i] ^= key[i % key.length()];
-  }
+  // for (std::size_t i = 0; i < message.length(); i++) {
+  //   message[i] ^= key[i % key.length()];
+  // }
   return message;
 }
 
