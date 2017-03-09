@@ -152,12 +152,11 @@ int Connection::Receive(Connection from, char* buffer, int size) {
     return RETREIVE_FAIL;
   }
 
-  char* expected_address = inet_ntoa(from.GetAddress().sin_addr);
-  char* actual_address = inet_ntoa(address.sin_addr);
+  u_long expected_address = from.GetAddress().sin_addr.s_addr;
+  u_long actual_address = address.sin_addr.s_addr;
 
   // Spoof detected if not given the expected address.
-  if (strcmp(expected_address, "127.0.0.1") != 0 &&
-      strcmp(expected_address, actual_address) != 0) {
+  if (expected_address != actual_address) {
     return RETREIVE_IGNORE;
   }
 
