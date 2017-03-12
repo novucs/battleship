@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 
 #include "protocol_utils.h"
@@ -27,10 +28,18 @@ CommandManager::CommandManager(Bot* bot) {
 void CommandManager::PrintHelp(std::string message) {
   std::cout << "=====[ Hive Bot Help ]=====" << std::endl;
   std::cout << "h|help - Prints this help page" << std::endl;
-  std::cout << "e|exit - Turns off the bot" << std::endl;
+  std::cout << "q|quit - Turns off the bot" << std::endl;
   std::cout << "r|respawn - Sends the server a respawn packet" << std::endl;
   std::cout << "d|device - Selects which network to attack" << std::endl;
-  std::cout << "arp scan - Refresh all MAC addresses" << std::endl;
+  std::cout << "s|scan - Refresh all MAC addresses" << std::endl;
+  std::cout << "c|collect - Collect all student IDs" << std::endl;
+  std::cout << "ha|healallies - Heal all ally ARP caches" << std::endl;
+  std::cout << "he|healenemies - Heal all enemy ARP caches" << std::endl;
+  std::cout << "startpe - Start poisoning enemies" << std::endl;
+  std::cout << "stoppe - Stop poisoning enemies" << std::endl;
+  std::cout << "startps - Start poisoning the server" << std::endl;
+  std::cout << "stopps - Stop poisoning the server" << std::endl;
+  std::cout << "a|attack - Perform the automated attack" << std::endl;
 }
 
 void CommandManager::Respawn(std::string message) {
@@ -42,8 +51,50 @@ void CommandManager::Device(std::string message) {
   SelectDevice();
 }
 
-void CommandManager::ArpScan(std::string message) {
+void CommandManager::Scan(std::string message) {
   FetchMacs(server_ip);
+}
+
+void CommandManager::CollectIds(std::string message) {
+  // Poison enemies towards us
+
+  // Send server tick packet (1 enemy @ bottom left)
+
+  // Retrieve IDs from move packets
+}
+
+void CommandManager::HealAllies(std::string message) {
+  // Poison allies back to server
+}
+
+void CommandManager::HealEnemies(std::string message) {
+  // Poison enemies back to server
+}
+
+void CommandManager::StartPoisonEnemies(std::string message) {
+  // Start poisoning enemies towards dummy server
+}
+
+void CommandManager::StopPoisonEnemies(std::string message) {
+  // Stop poisoning enemies
+}
+
+void CommandManager::StartPoisonServer(std::string message) {
+  // Start poisoning the server (enemy IPs to our MAC)
+}
+
+void CommandManager::StopPoisonServer(std::string message) {
+  // Stop poisoning the server
+}
+
+void CommandManager::AutomatedAttack(std::string message) {
+  // Collect IDs
+
+  // Start poisoning enemies
+
+  // Start poisoning the server
+
+  // Listen and respond to server (using enemies as drones)
 }
 
 void CommandManager::Run() {
@@ -54,7 +105,20 @@ void CommandManager::Run() {
     {"r", &CommandManager::Respawn},
     {"device", &CommandManager::Device},
     {"d", &CommandManager::Device},
-    {"arp scan", &CommandManager::ArpScan},
+    {"scan", &CommandManager::Scan},
+    {"s", &CommandManager::Scan},
+    {"collect", &CommandManager::CollectIds},
+    {"c", &CommandManager::CollectIds},
+    {"healallies", &CommandManager::HealAllies},
+    {"ha", &CommandManager::HealAllies},
+    {"healenemies", &CommandManager::HealEnemies},
+    {"he", &CommandManager::HealEnemies},
+    {"startpe", &CommandManager::StartPoisonEnemies},
+    {"stoppe", &CommandManager::StopPoisonEnemies},
+    {"startps", &CommandManager::StartPoisonServer},
+    {"stopps", &CommandManager::StopPoisonServer},
+    {"attack", &CommandManager::AutomatedAttack},
+    {"a", &CommandManager::AutomatedAttack},
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";
@@ -65,7 +129,8 @@ void CommandManager::Run() {
     std::string message;
     std::getline(std::cin, message);
 
-    if (message == "exit" || message == "e") {
+    if (message == "exit" || message == "e" ||
+        message == "quit" || message == "q") {
       return;
     }
 
@@ -73,7 +138,10 @@ void CommandManager::Run() {
       continue;
     }
 
-    auto command_mapping = commands.find(message);
+    std::stringstream stream(message);
+    std::string first_argument;
+    stream >> first_argument;
+    auto command_mapping = commands.find(first_argument);
 
     if (command_mapping == commands.end()) {
       std::cout << "Command not found" << std::endl;
