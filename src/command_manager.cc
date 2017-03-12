@@ -55,6 +55,10 @@ void CommandManager::Run() {
       return;
     }
 
+    if (message == "") {
+      continue;
+    }
+
     auto command_mapping = commands.find(message);
 
     if (command_mapping == commands.end()) {
