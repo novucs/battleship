@@ -10,8 +10,9 @@
  * Stores all program settings and is the program startpoint.
  */
 
-#pragma comment(lib, "wsock32.lib")
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "x64/wpcap.lib")
 
 #include "main.h"
 

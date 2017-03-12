@@ -22,4 +22,4 @@ add_executable(battleship.exe ${sources})
 target_compile_options(battleship.exe PUBLIC -Wall -Wno-unknown-pragmas)
 
 # Link Windows libraries.
-target_link_libraries(battleship.exe wsock32 ws2_32 iphlpapi x64/wpcap)
+target_link_libraries(battleship.exe ws2_32 iphlpapi x64/wpcap)

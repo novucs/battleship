@@ -13,7 +13,6 @@
 
 #include "protocol_utils.h"
 
-#include <ws2tcpip.h>
 #include <iphlpapi.h>
 
 #include <iostream>

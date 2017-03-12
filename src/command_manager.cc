@@ -48,13 +48,13 @@ void CommandManager::ArpScan(std::string message) {
 
 void CommandManager::Run() {
   std::unordered_map<std::string, Command> commands = {
-    {"help", &(CommandManager::PrintHelp)},
-    {"h", &(CommandManager::PrintHelp)},
-    {"respawn", &(CommandManager::Respawn)},
-    {"r", &(CommandManager::Respawn)},
-    {"device", &(CommandManager::Device)},
-    {"d", &(CommandManager::Device)},
-    {"arp scan", &(CommandManager::ArpScan)},
+    {"help", &CommandManager::PrintHelp},
+    {"h", &CommandManager::PrintHelp},
+    {"respawn", &CommandManager::Respawn},
+    {"r", &CommandManager::Respawn},
+    {"device", &CommandManager::Device},
+    {"d", &CommandManager::Device},
+    {"arp scan", &CommandManager::ArpScan},
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";

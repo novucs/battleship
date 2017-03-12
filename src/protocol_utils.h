@@ -14,12 +14,12 @@
 #ifndef HIVE_BOT_PROTOCOL_UTILS_H_
 #define HIVE_BOT_PROTOCOL_UTILS_H_
 
-#include <stdio.h>
-#include <pcap.h>
-
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <ws2tcpip.h>
+#include <pcap.h>
 
 #include "ship.h"
 #include "tick_packet.h"
@@ -95,7 +95,8 @@ void WriteIpv4(u_short length,
                char* destination_mac,
                char* source_mac,
                char* sender_ip,
-               char* target_ip);
+               char* target_ip,
+               u_char protocol);
 
 void WriteUdp(u_short length,
               u_char* packet,
