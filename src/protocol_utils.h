@@ -14,13 +14,102 @@
 #ifndef HIVE_BOT_PROTOCOL_UTILS_H_
 #define HIVE_BOT_PROTOCOL_UTILS_H_
 
+#include <stdio.h>
+#include <pcap.h>
+
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ship.h"
 #include "tick_packet.h"
 
+#define IP unsigned long
+#define MAC unsigned long long
+
 namespace hive_bot {
+
+struct EthernetHeader {
+  u_char  destination[6];
+  u_char  source[6];
+  u_short protocol;
+};
+
+struct ArpHeader {
+  u_short hardware_type;
+  u_short protocol_type;
+  u_char  hardware_length;
+  u_char  protocol_length;
+  u_short operation;
+  u_char  sender_hardware_address[6];
+  u_char  sender_protocol_address[4];
+  u_char  target_hardware_address[6];
+  u_char  target_protocol_address[4];
+};
+
+struct Ipv4Header {
+  u_char header_length : 4;
+  u_char version : 4;
+  u_char type_of_service;
+  u_short total_length;
+  u_short id;
+  u_short flags;
+  u_char time_to_live;
+  u_char protocol;
+  u_short checksum;
+  u_int source_address;
+  u_int destination_address;
+};
+
+struct UdpHeader {
+  u_short source_port;
+  u_short destination_port;
+  u_short length;
+  u_short checksum;
+};
+
+extern char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+extern std::unordered_map<char*, char*> ally_arp_table;
+extern std::unordered_map<char*, char*> enemy_arp_table;
+
+void WriteMac(char* input, u_char* output);
+
+void WriteEthernet(u_char* packet,
+                   char* destination_mac,
+                   char* source_mac,
+                   u_short protocol);
+
+void WriteArp(u_char* packet,
+              char* destination_mac,
+              char* source_mac,
+              char* sender_mac,
+              char* target_mac,
+              char* sender_ip,
+              char* target_ip);
+
+u_short Ipv4Checksum(void* packet, size_t length);
+
+void WriteIpv4(u_short length,
+               u_char* packet,
+               char* destination_mac,
+               char* source_mac,
+               char* sender_ip,
+               char* target_ip);
+
+void WriteUdp(u_short length,
+              u_char* packet,
+              u_short source_port,
+              u_short destination_port,
+              char* destination_mac,
+              char* source_mac,
+              char* sender_ip,
+              char* target_ip);
+
+bool FetchMac(IP ip, MAC* mac);
+
+void FetchMacs(std::string c_network);
+
+int ChooseDevice(char* device);
 
 /**
  * Encrypts and decrypts a message using XOR encryption.
@@ -85,8 +174,10 @@ std::string WriteFlag(std::string id, int flag);
  * @param ship_type The new ship type.
  * @return the respawn packet.
  */
-std::string WriteRespawn(std::string id, std::string forename,
-  std::string surname, int ship_type);
+std::string WriteRespawn(std::string id,
+                         std::string forename,
+                         std::string surname,
+                         int ship_type);
 
 /**
  * Writes a tick packet.

@@ -26,6 +26,7 @@ class CommandManager {
 
     void PrintHelp(std::string message);
     void Respawn(std::string message);
+    void ArpScan(std::string message);
 
   public:
     CommandManager(Bot* bot);

@@ -16,6 +16,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "protocol_utils.h"
+
 namespace hive_bot {
 
 CommandManager::CommandManager(Bot* bot) {
@@ -35,12 +37,17 @@ void CommandManager::Respawn(std::string message) {
   std::cout << "Bot respawned" << std::endl;
 }
 
+void CommandManager::ArpScan(std::string message) {
+  FetchMacs(server_ip);
+}
+
 void CommandManager::Run() {
   std::unordered_map<std::string, Command> commands = {
     {"help", &(CommandManager::PrintHelp)},
     {"h", &(CommandManager::PrintHelp)},
     {"respawn", &(CommandManager::Respawn)},
     {"r", &(CommandManager::Respawn)},
+    {"arp scan", &(CommandManager::ArpScan)},
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";
