@@ -32,150 +32,163 @@ namespace hive_bot {
  * Performs the tactics code for this tick.
  */
 void Bot::Tactics() {
-  // Calculate:
-  // - number of connected allies
-  // - nearby allies
-  // - the overall center between all allies
-  std::size_t active_ally_count = 0;
-  std::vector<Ship> nearby_allies;
-  int center_x = ship_.GetX();
-  int center_y = ship_.GetY();
-  bool slow_group = false;
-  int highest_ally_score = INT_MIN;
-  int lowest_ally_score = INT_MAX;
-  int lowest_ally_frigate_score = INT_MAX;
-  int ally_frigate_count = 0;
+	// Apply default movement: towards map center.
+	int move_x = ship_.GetX() < 500 ? 2 : -2;
+	int move_y = ship_.GetY() < 500 ? 2 : -2;
 
-  for (Student& ally : allies) {
-    if (!ally.IsConnected()) {
-      continue;
-    }
+	// Calculate:
+	// - number of connected allies
+	// - nearby allies
+	// - the overall center between all allies
+	std::size_t active_ally_count = 0;
+	std::vector<Ship> nearby_allies;
+	int center_x = ship_.GetX();
+	int center_y = ship_.GetY();
 
-    if (ally.GetScore() > highest_ally_score) {
-      highest_ally_score = ally.GetScore();
-    }
+	for (Student& ally : allies) {
+		if (!ally.IsConnected()) {
+			continue;
+		}
 
-    if (ally.GetScore() < lowest_ally_score) {
-      lowest_ally_score = ally.GetScore();
-    }
+		Ship ally_ship = ally.GetShip();
+		center_x += ally_ship.GetX();
+		center_y += ally_ship.GetY();
+		active_ally_count++;
 
-    Ship ally_ship = ally.GetShip();
-    center_x += ally_ship.GetX();
-    center_y += ally_ship.GetY();
-    active_ally_count++;
+		if (ally_ship.DistanceTo(ship_) < 25) {
+			nearby_allies.push_back(ship_);
+		}
+	}
 
-    if (ally_ship.GetType() == SHIP_TYPE_FRIGATE) {
-      ally_frigate_count++;
+	int group_size = active_ally_count + 1;
+	center_x /= group_size;
+	center_y /= group_size;
 
-      if (lowest_ally_frigate_score > ally.GetScore()) {
-        lowest_ally_frigate_score = ally.GetScore();
-      }
-    }
+	// Set position to avoid in order to keep outside enemy fire ranges, and equip
+	// the most beneficial flag.
+	int avoid_total_weight = 0;
+	int avoid_x = 0;
+	int avoid_y = 0;
+	std::unordered_map<int, int> flag_weights;
 
-    if (ally_ship.DistanceTo(ship_) < ((offset * 2) + 2)) {
-      if (ally_ship.GetMaxSpeed() == 1) {
-        slow_group = true;
-      }
+	for (Ship& enemy_ship : enemy_ships_) {
+		int weight = enemy_ship.GetFinalDamage(ship_);
 
-      nearby_allies.push_back(ally_ship);
-    }
-  }
+		if ((weight == 0) ||
+				(enemy_ship.GetType() == SHIP_TYPE_BATTLESHIP &&
+				ship_.GetType() == SHIP_TYPE_SUBMARINE)) {
+			continue;
+		}
 
-  // Calculate speed to accomodate for all ships.
-  int speed = 2;
+		if (flag_weights.find(enemy_ship.GetFlag()) == flag_weights.end()) {
+			std::pair<int, int> flag_weight(enemy_ship.GetFlag(), 0);
+			flag_weights.insert(flag_weight);
+		}
 
-  if (slow_group && ship_.GetMaxSpeed() == 2) {
-    speed = 1;
-  }
+		flag_weights.at(enemy_ship.GetFlag()) += weight;
+		avoid_x += weight * enemy_ship.GetX();
+		avoid_y += weight * enemy_ship.GetY();
+		avoid_total_weight += weight;
+	}
 
-  // Apply default movement: towards map center.
-  int move_x = ship_.GetX() < (500 + identity.GetOffsetX()) ? speed : -speed;
-  int move_y = ship_.GetY() < (500 + identity.GetOffsetY()) ? speed : -speed;
+	if (avoid_total_weight > 0) {
+		avoid_x /= avoid_total_weight;
+		avoid_y /= avoid_total_weight;
+	}
 
-  int group_size = active_ally_count + 1;
-  center_x /= group_size;
-  center_y /= group_size;
-  center_x += identity.GetOffsetX();
-  center_y += identity.GetOffsetY();
+	int new_flag = 0;
+	int highest_flag_weight = 0;
 
-  // Target crippled allies.
-  Ship target;
-  int target_weight = 0;
-  bool target_found = false;
+	for (auto& entry : flag_weights) {
+		if (highest_flag_weight >= entry.second) {
+			continue;
+		}
 
-  for (Ship& ally_ship : nearby_allies) {
-    if (ally_ship.IsCrippled()) {
-      target = ally_ship;
-      target_found = true;
-    }
-  }
+		new_flag = entry.first;
+		highest_flag_weight = entry.second;
+	}
 
-  // Target closer enemies when no crippled allies found.
-  if (!target_found) {
-    for (Ship& enemy_ship : enemy_ships_) {
-      int weight = 0;
+	// Target crippled allies.
+	Ship target;
+	int target_weight = 0;
+	bool target_found = false;
 
-      // weight += ship_.get_final_damage(enemy_ship);
-      // weight -= enemy_ship.get_final_damage(ship_);
-      weight -= ship_.DistanceTo(enemy_ship);
+	for (Ship& ally_ship : nearby_allies) {
+		if (ally_ship.GetHealth() > 3) {
+			continue;
+		}
 
-      for (Ship& ally_ship : nearby_allies) {
-          // weight += ship_.get_final_damage(ally_ship);
-          // weight -= ally_ship.get_final_damage(ship_);
-          weight -= ally_ship.DistanceTo(enemy_ship);
-      }
+		target = ally_ship;
+		target_found = true;
+	}
 
-      if (!target_found || target_weight < weight) {
-        target_weight = weight;
-        target = enemy_ship;
-        target_found = true;
-      }
-    }
-  }
+	// Target closer enemies when no crippled allies found.
+	if (!target_found) {
+		for (Ship& enemy_ship : enemy_ships_) {
+			int weight = 0;
 
-  if (target_found) {
-    // Fire at target if theres a chance to damage.
-    if (ship_.GetFinalDamage(target) > 0) {
-      Fire(target.GetX(), target.GetY());
+			// weight += this_ship.get_final_damage(enemy_ship);
+			// weight -= enemy_ship.get_final_damage(this_ship);
+			weight -= ship_.DistanceTo(enemy_ship);
 
-      // Increment our score.
-      int score = identity.GetScore() + ship_.GetFinalDamage(target);
-      identity.SetScore(score);
-    }
+			for (Ship& ally_ship : nearby_allies) {
+					// weight += this_ship.get_final_damage(ally_ship);
+					// weight -= ally_ship.get_final_damage(this_ship);
+					weight -= ally_ship.DistanceTo(enemy_ship);
+			}
 
-    int target_x = target.GetX() + identity.GetOffsetX();
-    int target_y = target.GetY() + identity.GetOffsetY();
+			if (!target_found || target_weight < weight) {
+				target_weight = weight;
+				target = enemy_ship;
+				target_found = true;
+			}
+		}
+	}
 
-    move_x = ship_.GetX() < target_x ? speed : -speed;
-    move_y = ship_.GetY() < target_y ? speed : -speed;
-  }
+	int avoid_threshold = 0;
 
-  // Always move towards ally center when we are not nearby all allies.
-  if (nearby_allies.size() < active_ally_count) {
-    move_x = ship_.GetX() < center_x ? 2 : -2;
-    move_y = ship_.GetY() < center_y ? 2 : -2;
-  }
+	if (target_found) {
+		// Fire at target if theres a chance to damage.
+		if (ship_.GetFinalDamage(target) > 0) {
+			Fire(target.GetX(), target.GetY());
+		}
 
-  Move(move_x, move_y);
+		// Move towards target if either:
+		// They are a battleship AND ...
+		if ((target.GetType() == SHIP_TYPE_BATTLESHIP &&
+				// ... we are not a frigate OR ...
+				ship_.GetType() != SHIP_TYPE_FRIGATE) ||
+				// ... we are in a safe area AND ...
+				(target.GetFinalRange() < ship_.DistanceTo(target) &&
+				// ... their range is less than ours.
+				target.GetFinalRange() < ship_.GetFinalRange())) {
+			move_x = ship_.GetX() < target.GetX() ? 2 : -2;
+			move_y = ship_.GetY() < target.GetY() ? 2 : -2;
+			avoid_threshold += ship_.GetFinalDamage(target);
+		}
 
-  int new_flag = ship_.GetX() ^ '.';
-  Flag(new_flag);
+		// Otherwise move away.
+		else {
+			move_x = ship_.GetX() > target.GetX() ? 2 : -2;
+			move_y = ship_.GetY() > target.GetY() ? 2 : -2;
+		}
+	}
 
-  if (active_ally_count > 0) {
-    switch (ship_type) {
-      case SHIP_TYPE_BATTLESHIP:
-        if (identity.GetScore() - 50 > highest_ally_score) {
-          ship_type = SHIP_TYPE_FRIGATE;
-          Respawn();
-        }
-        break;
-      case SHIP_TYPE_FRIGATE:
-        if (identity.GetScore() + 50 < lowest_ally_score) {
-          ship_type = SHIP_TYPE_BATTLESHIP;
-          Respawn();
-        }
-        break;
-    }
+	if (avoid_total_weight > avoid_threshold) {
+		move_x = ship_.GetX() > avoid_x ? 2 : -2;
+		move_y = ship_.GetY() > avoid_y ? 2 : -2;
+	}
+
+	// Always move towards ally center when we are not nearby all allies.
+	if (nearby_allies.size() < active_ally_count) {
+		move_x = ship_.GetX() < center_x ? 2 : -2;
+		move_y = ship_.GetY() < center_y ? 2 : -2;
+	}
+
+	Move(move_x, move_y);
+
+	if (highest_flag_weight > 0) {
+		Flag(new_flag);
   }
 }
 
