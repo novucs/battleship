@@ -69,35 +69,6 @@ class Bot {
     void Tactics();
 
     /**
-     * Sends a fire packet to the server.
-     *
-     * @param x The X coordinate to fire at.
-     * @param y The Y coordinate to fire at.
-     */
-    void Fire(int x, int y);
-
-    /**
-     * Sends a movement packet to the server.
-     *
-     * @param x The speed X to move.
-     * @param y The speed Y to move.
-     */
-    void Move(int x, int y);
-
-    /**
-     * Sends a flag change packet to the server.
-     *
-     * @param flag The new flag.
-     */
-    void Flag(int flag);
-
-    /**
-     * Sends a respawn packet to the server, using the gloabal ship_type
-     * variable (defined in main.h) as the new ship type.
-     */
-    void Respawn();
-
-    /**
      * Starts the hive loop, loading data sent from the ally.
      *
      * @param id The position this ally is stored in the global allies list.
@@ -161,6 +132,35 @@ class Bot {
      * Closes opened sockets and discontinues running connection threads.
      */
     void Close();
+
+    /**
+     * Sends a fire packet to the server.
+     *
+     * @param x The X coordinate to fire at.
+     * @param y The Y coordinate to fire at.
+     */
+    void Fire(int x, int y);
+
+    /**
+     * Sends a movement packet to the server.
+     *
+     * @param x The speed X to move.
+     * @param y The speed Y to move.
+     */
+    void Move(int x, int y);
+
+    /**
+     * Sends a flag change packet to the server.
+     *
+     * @param flag The new flag.
+     */
+    void Flag(int flag);
+
+    /**
+     * Sends a respawn packet to the server, using the gloabal ship_type
+     * variable (defined in main.h) as the new ship type.
+     */
+    void Respawn();
 };
 
 } // namespace hive_bot

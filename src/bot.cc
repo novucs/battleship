@@ -22,6 +22,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "command_manager.h"
 #include "main.h"
 #include "protocol_utils.h"
 #include "tick_packet.h"
@@ -491,8 +492,6 @@ void Bot::Run() {
   std::cout << std::endl << "=====================" << std::endl;
   std::cout << std::endl << "   Hive Bot Loaded   " << std::endl;
   std::cout << std::endl << "=====================" << std::endl;
-  std::cout << std::endl << "Enter commands here, type '/help' for help.";
-  std::cout << std::endl;
 
   // Prepare ships_ vector for ships to be loaded in.
   ships_.resize(allies.size() + 1);
@@ -518,11 +517,9 @@ void Bot::Run() {
   // Create and run the server thread.
   server_thread_ = std::thread(&Bot::ServerLoop, this);
 
-  // Respawn our bot.
-  Respawn();
-
-  // Wait for user input.
-  getchar();
+  // Run the command manager.
+  CommandManager command_manager(this);
+  command_manager.Run();
 }
 
 /**
