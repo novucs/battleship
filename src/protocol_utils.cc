@@ -26,6 +26,7 @@
 namespace hive_bot {
 
 char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+char selected_device[64];
 std::unordered_map<char*, char*> ally_arp_table;
 std::unordered_map<char*, char*> enemy_arp_table;
 
@@ -244,7 +245,7 @@ void FetchMacs(std::string c_network) {
   threads.clear();
 }
 
-int ChooseDevice(char* device) {
+int SelectDevice() {
   pcap_if_t *devices;
 
   if (pcap_findalldevs(&devices, pcap_error_buffer) == -1) {
@@ -263,9 +264,11 @@ int ChooseDevice(char* device) {
   std::cout << "Which network do you wish to attack?" << std::endl;
 
   for (pcap_if_t *device = devices; device; device = device->next) {
-    std::cout << id++ << ") ";
-    std::cout << device->name;
-    std::cout << " (" << device->description << ")";
+    std::cout << ++id << ") ";
+    std::cout << (device->name);
+    if (device->description != NULL) {
+      std::cout << " (" << (device->description) << ")";
+    }
     std::cout << std::endl;
   }
 
@@ -286,12 +289,13 @@ int ChooseDevice(char* device) {
 
   for (pcap_if_t *device = devices; device; device = device->next) {
     if (++id == selected) {
-      memcpy(device, device->name, strlen(device->name) + 1);
+      memcpy(selected_device, device->name, strlen(device->name) + 1);
       break;
     }
   }
 
   pcap_freealldevs(devices);
+  std::cout << "Successfully selected " << selected_device << std::endl;
   return 0;
 }
 

@@ -29,12 +29,17 @@ void CommandManager::PrintHelp(std::string message) {
   std::cout << "h|help - Prints this help page" << std::endl;
   std::cout << "e|exit - Turns off the bot" << std::endl;
   std::cout << "r|respawn - Sends the server a respawn packet" << std::endl;
+  std::cout << "d|device - Selects which network to attack" << std::endl;
   std::cout << "arp scan - Refresh all MAC addresses" << std::endl;
 }
 
 void CommandManager::Respawn(std::string message) {
   bot_->Respawn();
   std::cout << "Bot respawned" << std::endl;
+}
+
+void CommandManager::Device(std::string message) {
+  SelectDevice();
 }
 
 void CommandManager::ArpScan(std::string message) {
@@ -47,6 +52,8 @@ void CommandManager::Run() {
     {"h", &(CommandManager::PrintHelp)},
     {"respawn", &(CommandManager::Respawn)},
     {"r", &(CommandManager::Respawn)},
+    {"device", &(CommandManager::Device)},
+    {"d", &(CommandManager::Device)},
     {"arp scan", &(CommandManager::ArpScan)},
   };
 

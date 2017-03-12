@@ -69,6 +69,7 @@ struct UdpHeader {
 };
 
 extern char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+extern char selected_device[64];
 extern std::unordered_map<char*, char*> ally_arp_table;
 extern std::unordered_map<char*, char*> enemy_arp_table;
 
@@ -109,7 +110,7 @@ bool FetchMac(IP ip, MAC* mac);
 
 void FetchMacs(std::string c_network);
 
-int ChooseDevice(char* device);
+int SelectDevice();
 
 /**
  * Encrypts and decrypts a message using XOR encryption.
