@@ -13,12 +13,12 @@
 #ifndef HIVE_BOT_POISON_TASK_H_
 #define HIVE_BOT_POISON_TASK_H_
 
+#include "protocol_utils.h"
+
 #include <atomic>
 #include <mutex>
 #include <unordered_map>
 #include <thread>
-
-#include "protocol_utils.h"
 
 namespace hive_bot {
 

