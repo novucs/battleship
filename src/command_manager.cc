@@ -98,6 +98,7 @@ void CommandManager::StopPoisonEnemies(std::string message) {
   // Stop poisoning enemies
   if (enemy_poison_task_ == nullptr || !enemy_poison_task_->IsRunning()) {
     std::cout << "No poison enemies task was running" << std::endl;
+    return;
   }
 
   std::cout << "Stopping poison enemies attack..." << std::endl;
