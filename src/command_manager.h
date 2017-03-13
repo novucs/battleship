@@ -16,6 +16,7 @@
 #include <string>
 
 #include "bot.h"
+#include "poison_task.h"
 
 namespace hive_bot {
 
@@ -23,6 +24,10 @@ class CommandManager {
 
   private:
     Bot* bot_;
+
+    PoisonTask* ally_poison_task_ = NULL;
+    PoisonTask* enemy_poison_task_ = NULL;
+    PoisonTask* server_poison_task_ = NULL;
 
     void PrintHelp(std::string message);
     void Respawn(std::string message);

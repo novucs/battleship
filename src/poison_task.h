@@ -14,7 +14,9 @@
 #define HIVE_BOT_POISON_TASK_H_
 
 #include <atomic>
+#include <mutex>
 #include <unordered_map>
+#include <thread>
 
 #include "protocol_utils.h"
 
@@ -24,25 +26,31 @@ class PoisonTask {
 
   private:
     // Victim addresses (IP to MAC).
-    std::unordered_map<char*, char*> victims_;
+    std::unordered_map<char*, char*> victim_addresses_;
 
-    // The IP address to spoof (127.0.0.1).
-    char* spoof_ip_;
-
-    // The MAC address to spoof (aabbccddeeff).
-    char* spoof_mac_;
+    // Spoof addresses (IP to MAC).
+    std::unordered_map<char*, char*> spoof_addresses_;
 
     // Duration in seconds to sleep before repoisoning.
     u_long sleep_duration_;
 
+    // The thread the poison task is running on.
+    std::thread task_thread_;
+
     // Determines if the task should still be running.
-    std::atomic<bool> running;
+    std::atomic<bool> running_ = { false };
+
+    // Ensures task is only ran once.
+    std::mutex mutex_;
+
+    void Loop();
 
   public:
-    PoisonTask(std::unordered_map<char*, char*> victims, char* spoof_ip,
-               char* spoof_mac, u_long sleep_duration);
+    PoisonTask(std::unordered_map<char*, char*> victim_addresses,
+               std::unordered_map<char*, char*> spoof_addresses_,
+               u_long sleep_duration);
 
-    void Run();
+    void Start();
 
     void Stop();
 };

