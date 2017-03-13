@@ -68,8 +68,9 @@ struct UdpHeader {
   u_short checksum;
 };
 
+extern pcap_t* pcap;
 extern char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-extern char selected_device[64];
+extern char* server_mac;
 extern std::unordered_map<char*, char*> ally_arp_table;
 extern std::unordered_map<char*, char*> enemy_arp_table;
 
@@ -107,11 +108,13 @@ void WriteUdp(u_short length,
               char* sender_ip,
               char* target_ip);
 
+bool IsAllyIp(std::string ip);
+
 bool FetchMac(IP ip, MAC* mac);
 
 void FetchMacs(std::string c_network);
 
-int SelectDevice();
+bool SelectDevice();
 
 /**
  * Encrypts and decrypts a message using XOR encryption.

@@ -24,8 +24,9 @@
 
 namespace hive_bot {
 
+pcap_t* pcap = NULL;
 char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-char selected_device[64];
+char* server_mac = NULL;
 std::unordered_map<char*, char*> ally_arp_table;
 std::unordered_map<char*, char*> enemy_arp_table;
 
@@ -147,20 +148,20 @@ void WriteUdp(u_short length,
   header->checksum = 0;
 }
 
-bool FetchMac(IP ip, MAC* mac) {
-  IPAddr source = 0;
-  u_long address_length = 6;
-  SendARP(ip, source, mac, &address_length);
-  return address_length == 0;
-}
-
-bool IsAlly(std::string ip) {
+bool IsAllyIp(std::string ip) {
   for (Student& ally : allies) {
     if (ally.GetIp() == ip) {
       return true;
     }
   }
   return false;
+}
+
+bool FetchMac(IP ip, MAC* mac) {
+  IPAddr source = 0;
+  u_long address_length = 6;
+  SendARP(ip, source, mac, &address_length);
+  return address_length == 0;
 }
 
 void FetchMacs(std::string c_network) {
@@ -187,7 +188,6 @@ void FetchMacs(std::string c_network) {
     load_mac_thread.join();
   }
 
-  std::unordered_map<char*, char*> target;
   std::cout << "Victims found: " << std::endl;
 
   for (int i = 0; i < 255; i++) {
@@ -224,7 +224,11 @@ void FetchMacs(std::string c_network) {
       mac_string << (int) mac[i];
     }
 
-    if (IsAlly(ip_string.str())) {
+    if (server_ip == ip_string.str()) {
+      server_mac = strdup(mac_string.str().c_str());
+    }
+
+    if (IsAllyIp(ip_string.str())) {
       ally_arp_table.insert({
         strdup(ip_string.str().c_str()),
         strdup(mac_string.str().c_str())
@@ -244,18 +248,18 @@ void FetchMacs(std::string c_network) {
   threads.clear();
 }
 
-int SelectDevice() {
+bool SelectDevice() {
   pcap_if_t *devices;
 
   if (pcap_findalldevs(&devices, pcap_error_buffer) == -1) {
     std::cout << "Could not open device list: " << pcap_error_buffer;
     std::cout << std::endl;
-    return -1;
+    return false;
   }
 
   if (!devices) {
     std::cout << "No devices found." << std::endl;
-    return -1;
+    return false;
   }
 
   int id = 0;
@@ -265,9 +269,11 @@ int SelectDevice() {
   for (pcap_if_t *device = devices; device; device = device->next) {
     std::cout << ++id << ") ";
     std::cout << (device->name);
+
     if (device->description != NULL) {
       std::cout << " (" << (device->description) << ")";
     }
+
     std::cout << std::endl;
   }
 
@@ -280,10 +286,11 @@ int SelectDevice() {
 
     try {
       selected = std::stoi(message);
+    } catch (std::invalid_argument& ignore) {
     }
-    catch (std::invalid_argument& ignore) {}
   }
 
+  char selected_device[128];
   id = 0;
 
   for (pcap_if_t *device = devices; device; device = device->next) {
@@ -294,8 +301,17 @@ int SelectDevice() {
   }
 
   pcap_freealldevs(devices);
+
+	if (!(pcap = pcap_open_live(selected_device, 65535, 1, 1,
+                              pcap_error_buffer))) {
+    pcap = NULL;
+		std::cout << "Could not open device " << selected_device << ": ";
+    std::cout << pcap_error_buffer << std::endl;
+		return false;
+  }
+
   std::cout << "Successfully selected " << selected_device << std::endl;
-  return 0;
+  return true;
 }
 
 /**
