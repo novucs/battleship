@@ -26,7 +26,7 @@ PoisonTask::PoisonTask(std::unordered_map<char*, char*> victim_addresses,
 
 void PoisonTask::Loop() {
   std::unique_lock<std::mutex> lock(mutex_);
-  std::cout << "Poisoning victims..." << std::endl;
+  running_ = true;
   const u_int packet_size = sizeof(EthernetHeader) + sizeof(ArpHeader);
   u_char packet_buffer[packet_size] = { 0 };
 
@@ -56,19 +56,23 @@ void PoisonTask::Loop() {
   running_ = false;
 }
 
-void PoisonTask::Start() {
+bool PoisonTask::IsRunning() {
+  return running_;
+}
+
+bool PoisonTask::Start() {
   if (running_) {
     std::cout << "Task already running!" << std::endl;
-    return;
+    return false;
   }
 
   if (pcap == NULL) {
     std::cout << "You must first choose a valid device" << std::endl;
-    return;
+    return false;
   }
 
-  running_ = true;
   task_thread_ = std::thread(&PoisonTask::Loop, this);
+  return true;
 }
 
 void PoisonTask::Stop() {

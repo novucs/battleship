@@ -50,7 +50,9 @@ class PoisonTask {
                std::unordered_map<char*, char*> spoof_addresses_,
                u_long sleep_duration);
 
-    void Start();
+    bool IsRunning();
+
+    bool Start();
 
     void Stop();
 };

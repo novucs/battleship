@@ -14,6 +14,7 @@
 #define HIVE_BOT_COMMAND_MANAGER_H_
 
 #include <string>
+#include <memory>
 
 #include "bot.h"
 #include "poison_task.h"
@@ -25,9 +26,9 @@ class CommandManager {
   private:
     Bot* bot_;
 
-    PoisonTask* ally_poison_task_ = NULL;
-    PoisonTask* enemy_poison_task_ = NULL;
-    PoisonTask* server_poison_task_ = NULL;
+    std::unique_ptr<PoisonTask> ally_poison_task_;
+    std::unique_ptr<PoisonTask> enemy_poison_task_;
+    std::unique_ptr<PoisonTask> server_poison_task_;
 
     void PrintHelp(std::string message);
     void Respawn(std::string message);

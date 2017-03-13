@@ -73,8 +73,9 @@ void CommandManager::HealEnemies(std::string message) {
 
 void CommandManager::StartPoisonEnemies(std::string message) {
   // Start poisoning enemies towards dummy server
-  if (enemy_poison_task_ != NULL) {
-    StopPoisonEnemies(message);
+  if (enemy_poison_task_ != nullptr && enemy_poison_task_->IsRunning()) {
+    std::cout << "Stopping previous poison enemies attack..." << std::endl;
+    enemy_poison_task_->Stop();
   }
 
   char* spoof_ip = strdup(server_ip.c_str());
@@ -84,15 +85,23 @@ void CommandManager::StartPoisonEnemies(std::string message) {
   };
   u_long duration = 5;
 
-  PoisonTask task(enemy_arp_table, spoof_addresses, duration);
-  enemy_poison_task_ = &task;
-  enemy_poison_task_->Start();
+
+  enemy_poison_task_ = std::unique_ptr<PoisonTask>(
+    new PoisonTask(enemy_arp_table, spoof_addresses, duration));
+
+  if (enemy_poison_task_->Start()) {
+    std::cout << "Poison enemies attack now running in background" << std::endl;
+  }
 }
 
 void CommandManager::StopPoisonEnemies(std::string message) {
   // Stop poisoning enemies
+  if (enemy_poison_task_ == nullptr || !enemy_poison_task_->IsRunning()) {
+    std::cout << "No poison enemies task was running" << std::endl;
+  }
+
+  std::cout << "Stopping poison enemies attack..." << std::endl;
   enemy_poison_task_->Stop();
-  enemy_poison_task_ = NULL;
 }
 
 void CommandManager::StartPoisonServer(std::string message) {
