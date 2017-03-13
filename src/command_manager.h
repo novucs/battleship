@@ -42,6 +42,7 @@ class CommandManager {
     void StartPoisonServer(std::string message);
     void StopPoisonServer(std::string message);
     void AutomatedAttack(std::string message);
+    void Flood(std::string message);
 
   public:
     CommandManager(Bot* bot);

