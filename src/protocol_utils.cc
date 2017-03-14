@@ -311,7 +311,7 @@ bool SelectDevice() {
 
   pcap_freealldevs(devices);
 
-	if (!(pcap = pcap_open_live(selected_device, 65535, 1, 1,
+	if (!(pcap = pcap_open_live(selected_device, 65535, 1, 20,
                               pcap_error_buffer))) {
     pcap = NULL;
 		std::cout << "Could not open device " << selected_device << ": ";

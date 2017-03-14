@@ -13,6 +13,7 @@
 #include "command_manager.h"
 
 #include <iostream>
+#include <regex>
 #include <string>
 #include <sstream>
 #include <unordered_map>
@@ -53,12 +54,86 @@ void CommandManager::Scan(std::string message) {
   FetchMacs(server_ip);
 }
 
+void PacketHandler(unsigned char *param, const struct pcap_pkthdr* header,
+                   const unsigned char* pkt_data);
+
 void CommandManager::CollectIds(std::string message) {
   // Poison enemies towards us
+  PoisonEnemies(message);
 
   // Send server tick packet (1 enemy @ bottom left)
 
   // Retrieve IDs from move packets
+  u_int netmask = 0xFFFFFF; // We're in a C class network.
+  char packet_filter[] = "ip and udp";
+  struct bpf_program filter_code;
+
+  if (pcap_compile(pcap, &filter_code, packet_filter, 1, netmask) < 0) {
+    std::cout << "Unable to compile the packet filter. Check the syntax.";
+    std::cout << std::endl;
+    return;
+  }
+
+  if (pcap_setfilter(pcap, &filter_code) < 0) {
+    std::cout << "Error setting the filter." << std::endl;
+    return;
+  }
+
+  pcap_loop(pcap, 0, PacketHandler, (u_char*)NULL);
+}
+
+void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
+                   const u_char* pkt_data) {
+  int source_ip_offset = 26;
+  u_char* source_ip = (u_char*) (pkt_data + source_ip_offset);
+  std::stringstream ip_stringstream;
+  ip_stringstream << (int) source_ip[0];
+
+  for (size_t i = 1; i < 4; i++) {
+    ip_stringstream << '.' << (int) source_ip[i];
+  }
+
+  std::string ip_string = ip_stringstream.str();
+
+  if (ip_string == identity.GetIp()) {
+    return;
+  }
+
+  int destination_port_offset = 36;
+  u_char* destination_port_split = (u_char*)
+                                   (pkt_data + destination_port_offset);
+  u_short destination_port = (((u_short) (destination_port_split[0])) << 8 |
+                                          destination_port_split[1]);
+  int message_offset = sizeof(EthernetHeader) + sizeof(Ipv4Header) +
+                       sizeof(UdpHeader);
+  char* message = (char*) (pkt_data + message_offset);
+  std::smatch match;
+  const std::string str(message);
+
+  if (destination_port == server_port) {
+    static const std::regex client_pattern(
+      "(Move|Flag|Fire|Register ) (([^,].)+),.*"
+    );
+
+    if (!std::regex_search(str.begin(), str.end(), match, client_pattern)) {
+      return;
+    }
+
+    std::cout << match[2] << " is at " << ip_string << std::endl;
+  }
+
+  if (destination_port != client_port || ip_string != server_ip) {
+    return;
+  }
+
+  static const std::regex server_pattern("(\\d+,\\d+,\\d+,\\d+,\\d+(\\||))+");
+
+  if (!std::regex_search(str.begin(), str.end(), match, server_pattern)) {
+    return;
+  }
+
+  std::cout << message << std::endl;
+  std::vector<Ship> ships = ReadShips(false, message);
 }
 
 void CommandManager::AutomatedAttack(std::string message) {
@@ -136,7 +211,7 @@ void CommandManager::PoisonEnemies(std::string message) {
   }
 
   char* spoof_ip = strdup(server_ip.c_str());
-  char* spoof_mac = (char*) "1337420b142e";
+  char* spoof_mac = our_mac;
   std::unordered_map<char*, char*> spoof_addresses = {
     {spoof_ip, spoof_mac}
   };
