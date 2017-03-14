@@ -26,19 +26,18 @@ CommandManager::CommandManager(Bot* bot) {
 }
 
 void CommandManager::PrintHelp(std::string message) {
-  std::cout << "=====[ Hive Bot Help ]=====" << std::endl;
-  std::cout << "h|help - Prints this help page" << std::endl;
-  std::cout << "q|quit - Turns off the bot" << std::endl;
-  std::cout << "r|respawn - Sends the server a respawn packet" << std::endl;
-  std::cout << "d|device - Selects which network to attack" << std::endl;
-  std::cout << "s|scan - Refresh all MAC addresses" << std::endl;
-  std::cout << "c|collect - Collect all student IDs" << std::endl;
-  std::cout << "a|attack - Perform the automated attack" << std::endl;
-  std::cout << "f|flood - Flood the server with spam bots" << std::endl;
-  std::cout << "ha|healallies - Heal all ally ARP caches" << std::endl;
-  std::cout << "he|healenemies - Heal all enemy ARP caches" << std::endl;
-  std::cout << "pe|poisonenemies - Toggle poisoning enemies" << std::endl;
-  std::cout << "ps|poisonserver - Toggle poisoning the server" << std::endl;
+  std::cout << "h,help           Prints this help page" << std::endl;
+  std::cout << "q,quit           Turns off the bot" << std::endl;
+  std::cout << "r,respawn        Respawns our battleship bot" << std::endl;
+  std::cout << "d,device         Selects which network to attack" << std::endl;
+  std::cout << "s,scan           Refresh all MAC addresses" << std::endl;
+  std::cout << "c,collect        Collect all student IDs" << std::endl;
+  std::cout << "a,attack         Perform the automated attack" << std::endl;
+  std::cout << "f,flood          Flood the server with spam bots" << std::endl;
+  std::cout << "ha,healallies    Heal all ally ARP caches" << std::endl;
+  std::cout << "he,healenemies   Heal all enemy ARP caches" << std::endl;
+  std::cout << "pe,poisonenemies Toggle poisoning enemies" << std::endl;
+  std::cout << "ps,poisonserver  Toggle poisoning the server" << std::endl;
 }
 
 void CommandManager::Respawn(std::string message) {
@@ -216,7 +215,7 @@ void CommandManager::Run() {
   std::cout << std::endl;
 
   for (;;) {
-    std::cout << "> ";
+    std::cout << identity.GetId() << " > ";
     std::string message;
     std::getline(std::cin, message);
 

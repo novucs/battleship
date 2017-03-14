@@ -489,9 +489,9 @@ bool Bot::Setup() {
  */
 void Bot::Run() {
   // Print the startup messages.
-  std::cout << std::endl << "=====================" << std::endl;
-  std::cout << std::endl << "   Hive Bot Loaded   " << std::endl;
-  std::cout << std::endl << "=====================" << std::endl;
+  std::cout << std::endl << "============================" << std::endl;
+  std::cout << std::endl << "   Hacked Hive Bot Loaded   " << std::endl;
+  std::cout << std::endl << "============================" << std::endl;
 
   // Prepare ships_ vector for ships to be loaded in.
   ships_.resize(allies.size() + 1);
