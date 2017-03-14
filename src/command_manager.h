@@ -35,14 +35,12 @@ class CommandManager {
     void Device(std::string message);
     void Scan(std::string message);
     void CollectIds(std::string message);
-    void HealAllies(std::string message);
-    void HealEnemies(std::string message);
-    void StartPoisonEnemies(std::string message);
-    void StopPoisonEnemies(std::string message);
-    void StartPoisonServer(std::string message);
-    void StopPoisonServer(std::string message);
     void AutomatedAttack(std::string message);
     void Flood(std::string message);
+    void HealAllies(std::string message);
+    void HealEnemies(std::string message);
+    void PoisonEnemies(std::string message);
+    void PoisonServer(std::string message);
 
   public:
     CommandManager(Bot* bot);

