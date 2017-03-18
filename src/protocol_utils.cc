@@ -16,6 +16,7 @@
 #include <iphlpapi.h>
 
 #include <iostream>
+#include <regex>
 #include <sstream>
 #include <thread>
 #include <unordered_set>
@@ -30,6 +31,91 @@ char* our_mac = NULL;
 char* server_mac = NULL;
 std::unordered_map<char*, char*> ally_arp_table;
 std::unordered_map<char*, char*> enemy_arp_table;
+WORD last_server_tick;
+std::vector<Ship> captured_ships;
+std::unordered_map<char*, char*> captured_ids;
+
+bool IsCapturedShip(Ship& ship) {
+  for (Ship& captured : captured_ships) {
+    if (captured == ship) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
+                   const u_char* pkt_data) {
+  int source_ip_offset = 26;
+  u_char* source_ip = (u_char*) (pkt_data + source_ip_offset);
+  std::stringstream ip_stringstream;
+  ip_stringstream << (int) source_ip[0];
+
+  for (size_t i = 1; i < 4; i++) {
+    ip_stringstream << '.' << (int) source_ip[i];
+  }
+
+  std::string ip_string = ip_stringstream.str();
+
+  if (ip_string == identity.GetIp()) {
+    return;
+  }
+
+  int destination_port_offset = 36;
+  u_char* destination_port_split = (u_char*)
+                                   (pkt_data + destination_port_offset);
+  u_short destination_port = (((u_short) (destination_port_split[0])) << 8 |
+                                          destination_port_split[1]);
+  int message_offset = sizeof(EthernetHeader) + sizeof(Ipv4Header) +
+                       sizeof(UdpHeader);
+  char* message = (char*) (pkt_data + message_offset);
+  std::smatch match;
+  const std::string str(message);
+
+  if (destination_port == server_port) {
+    static const std::regex client_pattern(
+      "(Move|Flag|Fire|Register ) (([^,].)+),.*"
+    );
+
+    if (!std::regex_search(str.begin(), str.end(), match, client_pattern)) {
+      return;
+    }
+
+    // std::cout << match[2] << " is at " << ip_string << std::endl;
+    captured_ids.insert({
+      strdup(ip_string.c_str()),
+      strdup(match[2].str().c_str())
+    });
+  }
+
+  if (destination_port != client_port || ip_string != server_ip) {
+    return;
+  }
+
+  static const std::regex server_pattern("(\\d+,\\d+,\\d+,\\d+,\\d+(\\||))+");
+
+  if (!std::regex_search(str.begin(), str.end(), match, server_pattern)) {
+    return;
+  }
+
+  std::cout << message << std::endl;
+  std::vector<Ship> ships = ReadShips(false, message);
+
+  SYSTEMTIME now;
+  GetSystemTime(&now);
+
+  if (last_server_tick + 25 < now.wMilliseconds) {
+    captured_ships.clear();
+  }
+
+  last_server_tick = now.wMilliseconds;
+
+  for (Ship& ship : ships) {
+    if (!IsCapturedShip(ship)) {
+      captured_ships.push_back(ship);
+    }
+  }
+}
 
 void WriteMac(char* input, u_char* output) {
   short* mac = (short*) output;

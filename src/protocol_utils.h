@@ -74,6 +74,14 @@ extern char* our_mac;
 extern char* server_mac;
 extern std::unordered_map<char*, char*> ally_arp_table;
 extern std::unordered_map<char*, char*> enemy_arp_table;
+extern WORD last_server_tick;
+extern std::vector<Ship> captured_ships;
+extern std::unordered_map<char*, char*> captured_ids;
+
+bool IsCapturedShip(Ship& ship);
+
+void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
+                   const u_char* pkt_data);
 
 void WriteMac(char* input, u_char* output);
 
