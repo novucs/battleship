@@ -67,6 +67,15 @@ std::vector<Student> team = {
 Student identity = team.at(team_member_id);
 std::vector<Student> allies;
 
+bool IsTeamIp(std::string ip) {
+  for (Student& member : team) {
+    if (member.GetIp() == ip) {
+      return true;
+    }
+  }
+  return false;
+}
+
 } // namespace hive_bot
 
 /**

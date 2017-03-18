@@ -50,6 +50,8 @@ extern Student identity;
 // All ally student identities.
 extern std::vector<Student> allies;
 
+bool IsTeamIp(std::string ip);
+
 } // namespace hive_bot
 
 #endif // HIVE_BOT_MAIN_H_
