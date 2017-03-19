@@ -34,7 +34,9 @@ std::unordered_map<char*, char*> ally_arp_table;
 std::unordered_map<char*, char*> enemy_arp_table;
 WORD last_server_tick;
 std::vector<Ship> captured_ships;
+std::unordered_map<char*, Ship> captured_student_ships;
 std::unordered_map<char*, char*> captured_ids;
+std::mutex packet_read_mutex;
 
 bool IsCapturedShip(Ship& ship) {
   for (Ship& captured : captured_ships) {
@@ -47,18 +49,19 @@ bool IsCapturedShip(Ship& ship) {
 
 void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
                    const u_char* pkt_data) {
+  std::unique_lock<std::mutex> lock(packet_read_mutex);
   int source_ip_offset = 26;
-  u_char* source_ip = (u_char*) (pkt_data + source_ip_offset);
-  std::stringstream ip_stringstream;
-  ip_stringstream << (int) source_ip[0];
+  u_char* source_ip_location = (u_char*) (pkt_data + source_ip_offset);
+  std::stringstream parser;
+  parser << (int) source_ip_location[0];
 
   for (size_t i = 1; i < 4; i++) {
-    ip_stringstream << '.' << (int) source_ip[i];
+    parser << '.' << (int) source_ip_location[i];
   }
 
-  std::string ip_string = ip_stringstream.str();
+  std::string source_ip = parser.str();
 
-  if (ip_string == identity.GetIp()) {
+  if (source_ip == identity.GetIp()) {
     return;
   }
 
@@ -82,14 +85,14 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
       return;
     }
 
-    // std::cout << match[2] << " is at " << ip_string << std::endl;
+    // std::cout << match[2] << " is at " << source_ip << std::endl;
     captured_ids.insert({
-      strdup(ip_string.c_str()),
+      strdup(source_ip.c_str()),
       strdup(match[2].str().c_str())
     });
   }
 
-  if (destination_port != client_port || ip_string != server_ip) {
+  if (destination_port != client_port || source_ip != server_ip) {
     return;
   }
 
@@ -99,17 +102,33 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
     return;
   }
 
-  std::cout << message << std::endl;
-  std::vector<Ship> ships = ReadShips(false, message);
+  int destination_ip_offset = 30;
+  u_char* destination_ip_location = (u_char*) (pkt_data +
+                                               destination_ip_offset);
+  parser.str(std::string());
+  parser.clear();
+  parser << (int) destination_ip_location[0];
 
+  for (size_t i = 1; i < 4; i++) {
+    parser << '.' << (int) destination_ip_location[i];
+  }
+
+  std::string destination_ip = parser.str();
+  std::vector<Ship> ships = ReadShips(false, message);
   SYSTEMTIME now;
   GetSystemTime(&now);
 
   if (last_server_tick + 25 < now.wMilliseconds) {
     captured_ships.clear();
+    captured_student_ships.clear();
   }
 
   last_server_tick = now.wMilliseconds;
+
+  captured_student_ships.insert({
+    strdup(destination_ip.c_str()),
+    ships.at(0)
+  });
 
   for (Ship& ship : ships) {
     if (!IsCapturedShip(ship)) {

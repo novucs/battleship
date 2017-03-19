@@ -14,6 +14,7 @@
 #ifndef HIVE_BOT_PROTOCOL_UTILS_H_
 #define HIVE_BOT_PROTOCOL_UTILS_H_
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -77,7 +78,9 @@ extern std::unordered_map<char*, char*> ally_arp_table;
 extern std::unordered_map<char*, char*> enemy_arp_table;
 extern WORD last_server_tick;
 extern std::vector<Ship> captured_ships;
+extern std::unordered_map<char*, Ship> captured_student_ships;
 extern std::unordered_map<char*, char*> captured_ids;
+extern std::mutex packet_handler_mutex;
 
 bool IsCapturedShip(Ship& ship);
 
