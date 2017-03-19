@@ -69,6 +69,7 @@ struct UdpHeader {
 };
 
 extern pcap_t* pcap;
+extern bool pcap_in_loop;
 extern char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 extern char* our_mac;
 extern char* server_mac;

@@ -26,6 +26,7 @@
 namespace hive_bot {
 
 pcap_t* pcap = NULL;
+bool pcap_in_loop = false;
 char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 char* our_mac = NULL;
 char* server_mac = NULL;

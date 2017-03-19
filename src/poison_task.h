@@ -47,7 +47,7 @@ class PoisonTask {
 
   public:
     PoisonTask(std::unordered_map<char*, char*> victim_addresses,
-               std::unordered_map<char*, char*> spoof_addresses_,
+               std::unordered_map<char*, char*> spoof_addresses,
                u_long sleep_duration);
 
     bool IsRunning();
