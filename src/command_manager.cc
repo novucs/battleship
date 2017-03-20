@@ -50,6 +50,7 @@ void CommandManager::Device(std::string message) {
   if (pcap_in_loop) {
     pcap_breakloop(pcap);
     pcap_in_loop = false;
+    pcap_loop_thread.join();
   }
 
   // Select the device.
@@ -73,8 +74,9 @@ void CommandManager::Device(std::string message) {
     return;
   }
 
-  pcap_loop(pcap, 0, PacketHandler, (u_char*)NULL);
   pcap_in_loop = true;
+  pcap_loop_thread = std::thread(pcap_loop, pcap, 0, PacketHandler,
+                                 (u_char*) NULL);
 }
 
 void CommandManager::Scan(std::string message) {
