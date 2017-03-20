@@ -121,7 +121,7 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
 
   static const std::regex server_pattern("(\\d+,\\d+,\\d+,\\d+,\\d+(\\||))+");
 
-  if (!std::regex_search(str.begin(), str.end(), match, server_pattern)) {
+  if (str.length() > 256 || !std::regex_search(str.begin(), str.end(), match, server_pattern)) {
     return;
   }
 
