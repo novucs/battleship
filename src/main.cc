@@ -17,7 +17,6 @@
 #include "main.h"
 
 #include <iostream>
-#include <regex>
 
 #include "bot.h"
 
