@@ -36,7 +36,7 @@ WORD last_server_tick;
 std::vector<Ship> captured_ships;
 std::unordered_map<char*, Ship> captured_student_ships;
 std::unordered_map<char*, char*> captured_ids;
-std::mutex packet_read_mutex;
+std::mutex packet_handler_mutex;
 
 bool IsCapturedShip(Ship& ship) {
   for (Ship& captured : captured_ships) {
@@ -47,9 +47,32 @@ bool IsCapturedShip(Ship& ship) {
   return false;
 }
 
+bool IsCapturedStudentShip(Ship& ship) {
+  int flag = ship.GetFlag() ^ '.';
+  int difference_x = abs(flag - ship.GetX());
+
+  if (difference_x < 3) {
+    return true;
+  }
+
+  flag = ship.GetFlag() ^ 0x41;
+  difference_x = abs(flag - ship.GetX());
+
+  if (difference_x < 3) {
+    return true;
+  }
+
+  for (auto& it : captured_student_ships) {
+    if (ship == it.second) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
                    const u_char* pkt_data) {
-  std::unique_lock<std::mutex> lock(packet_read_mutex);
+  std::unique_lock<std::mutex> lock(packet_handler_mutex);
   int source_ip_offset = 26;
   u_char* source_ip_location = (u_char*) (pkt_data + source_ip_offset);
   std::stringstream parser;
@@ -115,15 +138,6 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
 
   std::string destination_ip = parser.str();
   std::vector<Ship> ships = ReadShips(false, message);
-  SYSTEMTIME now;
-  GetSystemTime(&now);
-
-  if (last_server_tick + 25 < now.wMilliseconds) {
-    captured_ships.clear();
-    captured_student_ships.clear();
-  }
-
-  last_server_tick = now.wMilliseconds;
 
   captured_student_ships.insert({
     strdup(destination_ip.c_str()),

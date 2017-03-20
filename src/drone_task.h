@@ -38,6 +38,14 @@ class DroneTask {
 
     void Loop();
 
+    void SendMove(char* ip, char* id, int x, int y);
+
+    void SendFire(char* ip, char* id, int x, int y);
+
+    void SendFlag(char* ip, char* id, int flag);
+
+    void SendServerPacket(char* ip, char* payload);
+
   public:
     DroneTask(u_long sleep_duration);
 
