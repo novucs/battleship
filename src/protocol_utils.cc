@@ -113,13 +113,15 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
       strdup(source_ip.c_str()),
       strdup(match[2].str().c_str())
     });
+    return;
   }
 
   if (destination_port != client_port || source_ip != server_ip) {
     return;
   }
 
-  static const std::regex server_pattern("(\\d+,\\d+,\\d+,\\d+,\\d+(\\||))+");
+  static const std::regex server_pattern("(\\d{1,3},\\d{1,3},\\d{1,2}," \
+                                         "\\d{1,16},(-|)\\d(\\||)){1,256}");
 
   if (str.length() > 256 || !std::regex_search(str.begin(), str.end(), match, server_pattern)) {
     return;
