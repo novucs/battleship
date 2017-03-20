@@ -74,7 +74,7 @@ void DroneTask::Loop() {
     captured_student_ships.clear();
     captured_ships.clear();
     packet_handler_mutex.unlock();
-    std::this_thread::sleep_for(std::chrono::seconds(sleep_duration_));
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_duration_));
   }
 
   std::cout << "Drone task stopped" << std::endl;

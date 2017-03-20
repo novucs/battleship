@@ -124,13 +124,18 @@ void CommandManager::CollectIds(std::string message) {
 }
 
 void CommandManager::AutomatedAttack(std::string message) {
-  // Collect IDs
+  if (drone_task_ != nullptr && drone_task_->IsRunning()) {
+    std::cout << "Stopping previous drone task..." << std::endl;
+    drone_task_->Stop();
+    return;
+  }
 
-  // Start poisoning enemies
+  u_long duration = 100;
+  drone_task_ =  std::unique_ptr<DroneTask>(new DroneTask(duration));
 
-  // Start poisoning the server
-
-  // Listen and respond to server (using enemies as drones)
+  if (drone_task_->Start()) {
+    std::cout << "Drone task now running in background" << std::endl;
+  }
 }
 
 void CommandManager::Flood(std::string message) {
@@ -189,7 +194,7 @@ void CommandManager::HealEnemies(std::string message) {
 }
 
 void CommandManager::PoisonEnemies(std::string message) {
-  // Start poisoning enemies towards dummy server
+  // Start poisoning enemies (server IP to our MAC)
   if (enemy_poison_task_ != nullptr && enemy_poison_task_->IsRunning()) {
     std::cout << "Stopping previous poison enemies attack..." << std::endl;
     enemy_poison_task_->Stop();

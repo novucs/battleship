@@ -24,7 +24,7 @@ namespace hive_bot {
 class DroneTask {
 
   private:
-    // Duration in seconds to sleep before repoisoning.
+    // Duration in milliseconds to sleep between server ticks.
     u_long sleep_duration_;
 
     // The thread the poison task is running on.

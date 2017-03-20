@@ -18,6 +18,7 @@
 #include <thread>
 
 #include "bot.h"
+#include "drone_task.h"
 #include "poison_task.h"
 
 namespace hive_bot {
@@ -28,6 +29,8 @@ class CommandManager {
     Bot* bot_;
 
     std::thread pcap_loop_thread;
+
+    std::unique_ptr<DroneTask> drone_task_;
 
     std::unique_ptr<PoisonTask> ally_poison_task_;
 
