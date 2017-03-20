@@ -28,14 +28,14 @@ namespace hive_bot {
 pcap_t* pcap = NULL;
 bool pcap_in_loop = false;
 char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-char* our_mac = NULL;
-char* server_mac = NULL;
-std::unordered_map<char*, char*> ally_arp_table;
-std::unordered_map<char*, char*> enemy_arp_table;
+std::string our_mac = "";
+std::string server_mac = "";
+std::unordered_map<std::string, std::string> ally_arp_table;
+std::unordered_map<std::string, std::string> enemy_arp_table;
 WORD last_server_tick;
 std::vector<Ship> captured_ships;
-std::unordered_map<char*, Ship> captured_student_ships;
-std::unordered_map<char*, char*> captured_ids;
+std::unordered_map<std::string, Ship> captured_student_ships;
+std::unordered_map<std::string, std::string> captured_ids;
 std::mutex packet_handler_mutex;
 
 bool IsCapturedShip(Ship& ship) {
@@ -109,10 +109,7 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
     }
 
     // std::cout << match[2] << " is at " << source_ip << std::endl;
-    captured_ids.insert({
-      strdup(source_ip.c_str()),
-      strdup(match[2].str().c_str())
-    });
+    captured_ids[source_ip] = match[2].str();
     return;
   }
 
@@ -141,10 +138,7 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
   std::string destination_ip = parser.str();
   std::vector<Ship> ships = ReadShips(false, message);
 
-  captured_student_ships.insert({
-    strdup(destination_ip.c_str()),
-    ships.at(0)
-  });
+  captured_student_ships[destination_ip] = ships.at(0);
 
   for (Ship& ship : ships) {
     if (!IsCapturedShip(ship)) {
@@ -351,29 +345,23 @@ void FetchMacs(std::string c_network) {
     }
 
     if (((int) our_ip[3]) == i) {
-      our_mac = strdup(mac_string.str().c_str());
+      our_mac = mac_string.str();
       continue;
     }
 
     if (server_ip == ip_string.str()) {
-      server_mac = strdup(mac_string.str().c_str());
+      server_mac = mac_string.str();
     }
 
     if (IsAllyIp(ip_string.str())) {
-      ally_arp_table.insert({
-        strdup(ip_string.str().c_str()),
-        strdup(mac_string.str().c_str())
-      });
+      ally_arp_table[ip_string.str()] = mac_string.str();
       continue;
     }
 
     std::cout << "- " << ip_string.str() << " @ " << mac_string.str();
     std::cout << std::endl << std::dec << std::endl;
 
-    enemy_arp_table.insert({
-      strdup(ip_string.str().c_str()),
-      strdup(mac_string.str().c_str())
-    });
+    enemy_arp_table[ip_string.str()] = mac_string.str();
   }
 
   threads.clear();

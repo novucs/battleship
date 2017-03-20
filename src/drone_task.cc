@@ -37,8 +37,8 @@ void DroneTask::Loop() {
     }
 
     for (auto& user_data : captured_ids) {
-      char* ip = user_data.first;
-      char* id = user_data.second;
+      std::string ip = user_data.first;
+      std::string id = user_data.second;
       auto pos = captured_student_ships.find(ip);
 
       if (pos == captured_student_ships.end()) {
@@ -64,11 +64,11 @@ void DroneTask::Loop() {
       if (target_found) {
         int target_x = target.GetX();
         int target_y = target.GetY();
-        SendFire(ip, id, target_x, target_y);
+        SendFire(strdup(ip.c_str()), strdup(id.c_str()), target_x, target_y);
       }
 
-      SendMove(ip, id, move_x, move_y);
-      SendFlag(ip, id, flag);
+      SendMove(strdup(ip.c_str()), strdup(id.c_str()), move_x, move_y);
+      SendFlag(strdup(ip.c_str()), strdup(id.c_str()), flag);
     }
 
     captured_student_ships.clear();
@@ -109,8 +109,8 @@ void DroneTask::SendServerPacket(char* ip, char* payload) {
   u_char* message = packet + header_length;
   memcpy(message, payload, length);
 
-  WriteUdp(length, packet, client_port, server_port, server_mac,
-           our_mac, ip, strdup(server_ip.c_str()));
+  WriteUdp(length, packet, client_port, server_port, strdup(server_mac.c_str()),
+           strdup(our_mac.c_str()), ip, strdup(server_ip.c_str()));
 
   if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
     std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;

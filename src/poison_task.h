@@ -26,10 +26,10 @@ class PoisonTask {
 
   private:
     // Victim addresses (IP to MAC).
-    std::unordered_map<char*, char*> victim_addresses_;
+    std::unordered_map<std::string, std::string> victim_addresses_;
 
     // Spoof addresses (IP to MAC).
-    std::unordered_map<char*, char*> spoof_addresses_;
+    std::unordered_map<std::string, std::string> spoof_addresses_;
 
     // Duration in seconds to sleep before repoisoning.
     u_long sleep_duration_;
@@ -46,8 +46,8 @@ class PoisonTask {
     void Loop();
 
   public:
-    PoisonTask(std::unordered_map<char*, char*> victim_addresses,
-               std::unordered_map<char*, char*> spoof_addresses,
+    PoisonTask(std::unordered_map<std::string, std::string> victim_addresses,
+               std::unordered_map<std::string, std::string> spoof_addresses,
                u_long sleep_duration);
 
     bool IsRunning();

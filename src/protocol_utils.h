@@ -72,13 +72,13 @@ struct UdpHeader {
 extern pcap_t* pcap;
 extern bool pcap_in_loop;
 extern char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-extern char* our_mac;
-extern char* server_mac;
-extern std::unordered_map<char*, char*> ally_arp_table;
-extern std::unordered_map<char*, char*> enemy_arp_table;
+extern std::string our_mac;
+extern std::string server_mac;
+extern std::unordered_map<std::string, std::string> ally_arp_table;
+extern std::unordered_map<std::string, std::string> enemy_arp_table;
 extern std::vector<Ship> captured_ships;
-extern std::unordered_map<char*, Ship> captured_student_ships;
-extern std::unordered_map<char*, char*> captured_ids;
+extern std::unordered_map<std::string, Ship> captured_student_ships;
+extern std::unordered_map<std::string, std::string> captured_ids;
 extern std::mutex packet_handler_mutex;
 
 bool IsCapturedShip(Ship& ship);
