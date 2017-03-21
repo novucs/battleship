@@ -98,7 +98,7 @@ void CommandManager::CollectIds(std::string message) {
   int i = 0;
 
   for (auto& it : enemy_arp_table) {
-    if (IsTeamIp(it.first)) {
+    if (IsTeamIp(it.first) || server_ip == it.first) {
       continue;
     }
 
