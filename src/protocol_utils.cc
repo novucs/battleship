@@ -351,6 +351,7 @@ void FetchMacs(std::string c_network) {
 
     if (server_ip == ip_string.str()) {
       server_mac = mac_string.str();
+      continue;
     }
 
     if (IsAllyIp(ip_string.str())) {

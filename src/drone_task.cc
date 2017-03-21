@@ -38,14 +38,15 @@ void DroneTask::Loop() {
 
     for (auto& user_data : captured_ids) {
       std::string ip = user_data.first;
-      std::string id = user_data.second;
-      auto pos = captured_student_ships.find(ip);
+      auto mac_pos = enemy_arp_table.find(ip);
+      auto ship_pos = captured_student_ships.find(ip);
 
-      if (pos == captured_student_ships.end()) {
+      if (mac_pos == enemy_arp_table.end() ||
+          ship_pos == captured_student_ships.end()) {
         continue;
       }
 
-      Ship& ship = pos->second;
+      Ship& ship = ship_pos->second;
       Ship target;
       bool target_found = false;
       double closest_distance = 1000;
@@ -60,15 +61,18 @@ void DroneTask::Loop() {
       int move_x = ship.GetX() > 500 ? -2 : 2;
       int move_y = ship.GetY() > 500 ? -2 : 2;
       int flag = ship.GetX() ^ 0x41;
+      char* ip_c_str = strdup(ip.c_str());
+      char* id = strdup(user_data.second.c_str());
+      char* mac = strdup(mac_pos->second.c_str());
 
       if (target_found) {
         int target_x = target.GetX();
         int target_y = target.GetY();
-        SendFire(strdup(ip.c_str()), strdup(id.c_str()), target_x, target_y);
+        SendFire(ip_c_str, mac, id, target_x, target_y);
       }
 
-      SendMove(strdup(ip.c_str()), strdup(id.c_str()), move_x, move_y);
-      SendFlag(strdup(ip.c_str()), strdup(id.c_str()), flag);
+      SendMove(ip_c_str, mac, id, move_x, move_y);
+      SendFlag(ip_c_str, mac, id, flag);
     }
 
     captured_student_ships.clear();
@@ -81,25 +85,25 @@ void DroneTask::Loop() {
   running_ = false;
 }
 
-void DroneTask::SendMove(char* ip, char* id, int x, int y) {
+void DroneTask::SendMove(char* ip, char* mac, char* id, int x, int y) {
   static char payload[512];
   sprintf_s(payload, "Move %s,%d,%d", id, x, y);
-  SendServerPacket(ip, payload);
+  SendServerPacket(ip, mac, payload);
 }
 
-void DroneTask::SendFire(char* ip, char* id, int x, int y) {
+void DroneTask::SendFire(char* ip, char* mac, char* id, int x, int y) {
   static char payload[512];
   sprintf_s(payload, "Fire %s,%d,%d", id, x, y);
-  SendServerPacket(ip, payload);
+  SendServerPacket(ip, mac, payload);
 }
 
-void DroneTask::SendFlag(char* ip, char* id, int flag) {
+void DroneTask::SendFlag(char* ip, char* mac, char* id, int flag) {
   static char payload[512];
   sprintf_s(payload, "Flag %s,%d", id, flag);
-  SendServerPacket(ip, payload);
+  SendServerPacket(ip, mac, payload);
 }
 
-void DroneTask::SendServerPacket(char* ip, char* payload) {
+void DroneTask::SendServerPacket(char* ip, char* mac, char* payload) {
   static const u_short header_length = sizeof(struct UdpHeader) +
                                        sizeof(struct Ipv4Header) +
                                        sizeof(struct EthernetHeader);
@@ -110,7 +114,7 @@ void DroneTask::SendServerPacket(char* ip, char* payload) {
   memcpy(message, payload, length);
 
   WriteUdp(length, packet, client_port, server_port, strdup(server_mac.c_str()),
-           strdup(our_mac.c_str()), ip, strdup(server_ip.c_str()));
+           mac, ip, strdup(server_ip.c_str()));
 
   if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
     std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;
