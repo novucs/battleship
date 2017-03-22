@@ -42,10 +42,6 @@ class CommandManager {
 
     void Respawn(std::string message);
 
-    void Device(std::string message);
-
-    void Scan(std::string message);
-
     void CollectIds(std::string message);
 
     void AutomatedAttack(std::string message);
@@ -62,6 +58,10 @@ class CommandManager {
 
   public:
     CommandManager(Bot* bot);
+
+    void Device(std::string message);
+
+    void Scan(std::string message);
 
     void Run();
 };

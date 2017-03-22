@@ -495,6 +495,10 @@ void Bot::Run() {
   std::cout << std::endl << "   Hacked Hive Bot Loaded   " << std::endl;
   std::cout << std::endl << "============================" << std::endl;
 
+  CommandManager command_manager(this);
+  command_manager.Device("");
+  command_manager.Scan("");
+
   // Prepare ships_ vector for ships to be loaded in.
   ships_.resize(allies.size() + 1);
 
@@ -520,7 +524,6 @@ void Bot::Run() {
   server_thread_ = std::thread(&Bot::ServerLoop, this);
 
   // Run the command manager.
-  CommandManager command_manager(this);
   command_manager.Run();
 }
 
