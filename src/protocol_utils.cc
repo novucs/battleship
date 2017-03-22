@@ -117,12 +117,12 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
     return;
   }
 
-  static const std::regex server_pattern("(\\d{1,3},\\d{1,3},\\d{1,2}," \
-                                         "\\d{1,16},(-|)\\d(\\||)){1,256}");
-
-  if (str.length() > 256 || !std::regex_search(str.begin(), str.end(), match, server_pattern)) {
-    return;
-  }
+  // static const std::regex server_pattern("(\\d{1,3},\\d{1,3},\\d{1,2}," \
+  //                                        "\\d{1,16},(-|)\\d(\\||)){1,256}");
+  //
+  // if (str.length() > 256 || !std::regex_search(str.begin(), str.end(), match, server_pattern)) {
+  //   return;
+  // }
 
   int destination_ip_offset = 30;
   u_char* destination_ip_location = (u_char*) (pkt_data +
