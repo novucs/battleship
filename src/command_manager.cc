@@ -27,7 +27,6 @@ void CommandManager::PrintHelp(std::string message) {
   std::cout << "h|help - Prints this help page" << std::endl;
   std::cout << "e|exit - Turns off the bot" << std::endl;
   std::cout << "r|respawn - Sends the server a respawn packet" << std::endl;
-  std::cout << "arp scan - Refresh all MAC addresses" << std::endl;
 }
 
 void CommandManager::Respawn(std::string message) {
@@ -37,10 +36,10 @@ void CommandManager::Respawn(std::string message) {
 
 void CommandManager::Run() {
   std::unordered_map<std::string, Command> commands = {
-    {"help", &(CommandManager::PrintHelp)},
-    {"h", &(CommandManager::PrintHelp)},
-    {"respawn", &(CommandManager::Respawn)},
-    {"r", &(CommandManager::Respawn)},
+    {"help", &CommandManager::PrintHelp},
+    {"h", &CommandManager::PrintHelp},
+    {"respawn", &CommandManager::Respawn},
+    {"r", &CommandManager::Respawn},
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";
@@ -51,7 +50,8 @@ void CommandManager::Run() {
     std::string message;
     std::getline(std::cin, message);
 
-    if (message == "exit" || message == "e") {
+    if (message == "exit" || message == "e" ||
+        message == "quit" || message == "q") {
       return;
     }
 
