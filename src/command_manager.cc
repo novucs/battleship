@@ -21,10 +21,20 @@
 
 namespace hive_bot {
 
+/**
+ * Constructs a new command manager.
+ *
+ * @param bot The master bot.
+ */
 CommandManager::CommandManager(Bot* bot) {
   bot_ = bot;
 }
 
+/**
+ * Prints the command help page.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::PrintHelp(std::string message) {
   std::cout << "h,help           Prints this help page" << std::endl;
   std::cout << "q,quit           Turns off the bot" << std::endl;
@@ -40,49 +50,21 @@ void CommandManager::PrintHelp(std::string message) {
   std::cout << "ps,poisonserver  Toggle poisoning the server" << std::endl;
 }
 
+/**
+ * Respawns the battleship into the server.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::Respawn(std::string message) {
   bot_->Respawn();
   std::cout << "Bot respawned" << std::endl;
 }
 
-void CommandManager::Device(std::string message) {
-  // Break the network scanner loop.
-  if (pcap_in_loop) {
-    pcap_breakloop(pcap);
-    pcap_in_loop = false;
-    pcap_loop_thread.join();
-  }
-
-  // Select the device.
-  if (!SelectDevice()) {
-    return;
-  }
-
-  // Begin the network scanner loop.
-  u_int netmask = 0xFFFFFF; // We're in a C class network.
-  char packet_filter[] = "ip and udp";
-  struct bpf_program filter_code;
-
-  if (pcap_compile(pcap, &filter_code, packet_filter, 1, netmask) < 0) {
-    std::cout << "Unable to compile the packet filter. Check the syntax.";
-    std::cout << std::endl;
-    return;
-  }
-
-  if (pcap_setfilter(pcap, &filter_code) < 0) {
-    std::cout << "Error setting the filter." << std::endl;
-    return;
-  }
-
-  pcap_in_loop = true;
-  pcap_loop_thread = std::thread(pcap_loop, pcap, 0, PacketHandler,
-                                 (u_char*) NULL);
-}
-
-void CommandManager::Scan(std::string message) {
-  FetchMacs(server_ip);
-}
-
+/**
+ * Broadcasts a fake server packet, forcing poisoned clients to respond.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::CollectIds(std::string message) {
   // Send server tick packet (1 enemy @ middle)
   if (pcap == NULL) {
@@ -124,6 +106,11 @@ void CommandManager::CollectIds(std::string message) {
   std::cout << "Sent server packet to " << i << " victims" << std::endl;
 }
 
+/**
+ * Begins the drone task, controlling all poisoned enemies.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::AutomatedAttack(std::string message) {
   if (drone_task_ != nullptr && drone_task_->IsRunning()) {
     std::cout << "Stopping previous drone task..." << std::endl;
@@ -139,6 +126,11 @@ void CommandManager::AutomatedAttack(std::string message) {
   }
 }
 
+/**
+ * Floods the server with dummy bots that causes the server to halt.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::Flood(std::string message) {
   // Floods the server with spam bots
   if (pcap == NULL) {
@@ -187,14 +179,29 @@ void CommandManager::Flood(std::string message) {
   std::cout << "Server flooded" << std::endl;
 }
 
+/**
+ * Heals all allies from ARP poisoning.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::HealAllies(std::string message) {
   // Poison allies back to server
 }
 
+/**
+ * Heals all enemies from ARP poisoning.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::HealEnemies(std::string message) {
   // Poison enemies back to server
 }
 
+/**
+ * Poisons all enemies making them think we are the server.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::PoisonEnemies(std::string message) {
   // Start poisoning enemies (server IP to our MAC)
   if (enemy_poison_task_ != nullptr && enemy_poison_task_->IsRunning()) {
@@ -222,6 +229,11 @@ void CommandManager::PoisonEnemies(std::string message) {
   }
 }
 
+/**
+ * Poisons the server, making it think we are every client.
+ *
+ * @param message The command executed.
+ */
 void CommandManager::PoisonServer(std::string message) {
   // Start poisoning the server (enemy IPs to our MAC)
   if (server_poison_task_ != nullptr && server_poison_task_->IsRunning()) {
@@ -258,6 +270,57 @@ void CommandManager::PoisonServer(std::string message) {
   }
 }
 
+/**
+ * Selects which network device the attacks should be used on.
+ *
+ * @param message The command executed.
+ */
+void CommandManager::Device(std::string message) {
+  // Break the network scanner loop.
+  if (pcap_in_loop) {
+    pcap_breakloop(pcap);
+    pcap_in_loop = false;
+    pcap_loop_thread.join();
+  }
+
+  // Select the device.
+  if (!SelectDevice()) {
+    return;
+  }
+
+  // Begin the network scanner loop.
+  u_int netmask = 0xFFFFFF; // We're in a C class network.
+  char packet_filter[] = "ip and udp";
+  struct bpf_program filter_code;
+
+  if (pcap_compile(pcap, &filter_code, packet_filter, 1, netmask) < 0) {
+    std::cout << "Unable to compile the packet filter. Check the syntax.";
+    std::cout << std::endl;
+    return;
+  }
+
+  if (pcap_setfilter(pcap, &filter_code) < 0) {
+    std::cout << "Error setting the filter." << std::endl;
+    return;
+  }
+
+  pcap_in_loop = true;
+  pcap_loop_thread = std::thread(pcap_loop, pcap, 0, PacketHandler,
+                                 (u_char*) NULL);
+}
+
+/**
+ * Scans the network for all IP and MAC addresses.
+ *
+ * @param message The command executed.
+ */
+void CommandManager::Scan(std::string message) {
+  FetchMacs(server_ip);
+}
+
+/**
+ * Runs the command manager on the current thread.
+ */
 void CommandManager::Run() {
   std::unordered_map<std::string, Command> commands = {
     {"help", &CommandManager::PrintHelp},
