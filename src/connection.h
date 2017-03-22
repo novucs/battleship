@@ -36,8 +36,14 @@ namespace hive_bot {
 class Connection {
 
   private:
+    // Uses pcap for sending packets to the server.
+    bool use_pcap_ = false;
+
+    // The host name.
+    std::string hostname_;
+
     // The connection port.
-    int port_;
+    u_short port_;
 
     // The connection IP address.
     SOCKADDR_IN address_;
@@ -54,16 +60,25 @@ class Connection {
     /**
      * Constructs a new connection.
      *
+     * @param hostname The readable IP.
      * @param address The connection IP address.
+     * @param port The port.
      */
-    Connection(SOCKADDR_IN address);
+    Connection(std::string hostname, SOCKADDR_IN address, u_short port);
+
+    /**
+     * Updates the connection to use pcap for sending.
+     *
+     * @param use_pcap {@code true} if pcap should be used.
+     */
+    void SetUsePcap(bool use_pcap);
 
     /**
      * Gets the port.
      *
      * @return the port.
      */
-    int GetPort();
+    u_short GetPort();
 
     /**
      * Gets the socket.
@@ -170,10 +185,12 @@ class Connection {
 /**
  * Creates a new connection.
  *
+ * @param hostname The readable IP.
  * @param host The host this connection is on.
  * @param port The port this connection is on.
  */
-Connection* InnerCreateConnection(u_long host, u_short port);
+Connection* InnerCreateConnection(std::string hostname, u_long host,
+                                  u_short port);
 
 /**
  * Creates a new localhost connection.

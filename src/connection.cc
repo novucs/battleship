@@ -18,6 +18,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "main.h"
 #include "protocol_utils.h"
 
 namespace hive_bot {
@@ -31,10 +32,24 @@ Connection::Connection() {
 /**
  * Constructs a new connection.
  *
+ * @param hostname The readable IP.
  * @param address The connection IP address.
+ * @param port The port.
  */
-Connection::Connection(SOCKADDR_IN address) {
+Connection::Connection(std::string hostname, SOCKADDR_IN address,
+                       u_short port) {
   address_ = address;
+  port_ = port;
+  hostname_ = hostname;
+}
+
+/**
+ * Updates the connection to use pcap for sending.
+ *
+ * @param use_pcap {@code true} if pcap should be used.
+ */
+void Connection::SetUsePcap(bool use_pcap) {
+  use_pcap_ = use_pcap;
 }
 
 /**
@@ -42,7 +57,7 @@ Connection::Connection(SOCKADDR_IN address) {
  *
  * @return the port.
  */
-int Connection::GetPort() {
+u_short Connection::GetPort() {
   return port_;
 }
 
@@ -121,9 +136,32 @@ bool Connection::Attach() {
  *
  * @param message the message.
  */
-void Connection::Send(char* message) {
-  sendto(socket_, message, strlen(message), 0, (SOCKADDR *) &address_,
-         sizeof(SOCKADDR));
+void Connection::Send(char* payload) {
+  if (use_pcap_) {
+    const u_short header_length = sizeof(struct UdpHeader) +
+                                  sizeof(struct Ipv4Header) +
+                                  sizeof(struct EthernetHeader);
+
+    u_int length = strlen(payload);
+    u_char* packet = (u_char*) malloc(length + header_length);
+
+    u_char* message = packet + header_length;
+    memcpy(message, payload, length);
+
+    WriteUdp(length, packet, client_port, server_port,
+             strdup(server_mac.c_str()), strdup(our_mac.c_str()),
+             strdup(identity.GetIp().c_str()), strdup(server_ip.c_str()));
+
+    if (pcap_sendpacket(pcap, packet, length + header_length) != 0) {
+      std::cout << "Error sending packet: " << pcap_geterr(pcap) << std::endl;
+      return;
+    }
+
+    free(packet);
+  } else {
+    sendto(socket_, payload, strlen(payload), 0, (SOCKADDR *) &address_,
+           sizeof(SOCKADDR));
+  }
 }
 
 /**
@@ -239,13 +277,15 @@ void Connection::SendRespawn(std::string id, std::string forename,
  * @param host The host this connection is on.
  * @param port The port this connection is on.
  */
-Connection* InnerCreateConnection(u_long host, u_short port) {
+Connection* InnerCreateConnection(std::string hostname, u_long host,
+                                  u_short port) {
   SOCKADDR_IN address;
+  port = htons(port);
   memset(&address, 0, sizeof(address));
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = host;
   address.sin_port = port;
-  return new Connection(address);
+  return new Connection(hostname, address, port);
 }
 
 /**
@@ -254,8 +294,7 @@ Connection* InnerCreateConnection(u_long host, u_short port) {
  * @param port The port this connection is on.
  */
 Connection CreateConnection(u_short port) {
-  port = htons(port);
-  Connection* created = InnerCreateConnection(INADDR_ANY, port);
+  Connection* created = InnerCreateConnection("0.0.0.0", INADDR_ANY, port);
   return *created;
 }
 
@@ -267,8 +306,7 @@ Connection CreateConnection(u_short port) {
  */
 Connection CreateConnection(std::string hostname, u_short port) {
   u_long host = inet_addr(hostname.c_str());
-  port = htons(port);
-  Connection* created = InnerCreateConnection(host, port);
+  Connection* created = InnerCreateConnection(hostname, host, port);
   return *created;
 }
 

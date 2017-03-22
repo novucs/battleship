@@ -284,6 +284,8 @@ void CommandManager::Run() {
     {"ps", &CommandManager::PoisonServer}
   };
 
+  Device("");
+
   std::cout << std::endl << "Enter commands here, type 'help' for help.";
   std::cout << std::endl;
 

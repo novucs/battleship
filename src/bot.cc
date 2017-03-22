@@ -472,6 +472,8 @@ bool Bot::IsEnemy(Ship& to_check) {
  * Initializes the bot state and connections.
  */
 bool Bot::Setup() {
+  server_connection_.SetUsePcap(true);
+
   // Create server socket.
   return server_connection_.CreateSocket() &&
 
