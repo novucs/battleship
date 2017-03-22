@@ -21,6 +21,9 @@
 
 namespace hive_bot {
 
+/**
+ * Handles controlling all captured enemy bots.
+ */
 class DroneTask {
 
   private:
@@ -36,23 +39,77 @@ class DroneTask {
     // Ensures task is only ran once.
     std::mutex mutex_;
 
+    /**
+     * The main loop function.
+     */
     void Loop();
 
+    /**
+     * Spoofs a move packet to the server using pcap.
+     *
+     * @param ip The IP to spoof.
+     * @param mac The MAC to spoof.
+     * @param id The user ID.
+     * @param x The X velocity to move.
+     * @param y The Y velocity to move.
+     */
     void SendMove(char* ip, char* mac, char* id, int x, int y);
 
+    /**
+     * Spoofs a fire packet to the server using pcap.
+     *
+     * @param ip The IP to spoof.
+     * @param mac The MAC to spoof.
+     * @param id The user ID.
+     * @param x The X coordinate to shoot.
+     * @param y The Y coordinate to shoot.
+     */
     void SendFire(char* ip, char* mac, char* id, int x, int y);
 
+    /**
+     * Spoofs a flag packet to the server using pcap.
+     *
+     * @param ip The IP to spoof.
+     * @param mac The MAC to spoof.
+     * @param id The user ID.
+     * @param flag The new flag the ship should take.
+     */
     void SendFlag(char* ip, char* mac, char* id, int flag);
 
+    /**
+     * Sends a custom spoofed packet to the server.
+     *
+     * @param ip The IP to spoof.
+     * @param mac The MAC to spoof.
+     * @param payload The message to send.
+     */
     void SendServerPacket(char* ip, char* mac, char* payload);
 
   public:
+    /**
+     * Constructs a new drone task.
+     *
+     * @param sleep_duration How long to sleep before ticking again.
+     */
     DroneTask(u_long sleep_duration);
 
+    /**
+     * Checks if the drone task is running.
+     *
+     * @return {@code true} if currently running.
+     */
     bool IsRunning();
 
+    /**
+     * Starts a new drone task.
+     *
+     * @return {@code true} if successfully started.
+     */
     bool Start();
 
+    /**
+     * Stops the drone task.
+     */
     void Stop();
 };
 

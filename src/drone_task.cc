@@ -18,10 +18,18 @@
 
 namespace hive_bot {
 
+/**
+ * Constructs a new drone task.
+ *
+ * @param sleep_duration How long to sleep before ticking again.
+ */
 DroneTask::DroneTask(u_long sleep_duration) {
   sleep_duration_ = sleep_duration;
 }
 
+/**
+ * The main loop function.
+ */
 void DroneTask::Loop() {
   std::unique_lock<std::mutex> lock(mutex_);
   running_ = true;
@@ -85,24 +93,57 @@ void DroneTask::Loop() {
   running_ = false;
 }
 
+/**
+ * Spoofs a move packet to the server using pcap.
+ *
+ * @param ip The IP to spoof.
+ * @param mac The MAC to spoof.
+ * @param id The user ID.
+ * @param x The X velocity to move.
+ * @param y The Y velocity to move.
+ */
 void DroneTask::SendMove(char* ip, char* mac, char* id, int x, int y) {
   static char payload[512];
   sprintf_s(payload, "Move %s,%d,%d", id, x, y);
   SendServerPacket(ip, mac, payload);
 }
 
+/**
+ * Spoofs a fire packet to the server using pcap.
+ *
+ * @param ip The IP to spoof.
+ * @param mac The MAC to spoof.
+ * @param id The user ID.
+ * @param x The X coordinate to shoot.
+ * @param y The Y coordinate to shoot.
+ */
 void DroneTask::SendFire(char* ip, char* mac, char* id, int x, int y) {
   static char payload[512];
   sprintf_s(payload, "Fire %s,%d,%d", id, x, y);
   SendServerPacket(ip, mac, payload);
 }
 
+/**
+ * Spoofs a flag packet to the server using pcap.
+ *
+ * @param ip The IP to spoof.
+ * @param mac The MAC to spoof.
+ * @param id The user ID.
+ * @param flag The new flag the ship should take.
+ */
 void DroneTask::SendFlag(char* ip, char* mac, char* id, int flag) {
   static char payload[512];
   sprintf_s(payload, "Flag %s,%d", id, flag);
   SendServerPacket(ip, mac, payload);
 }
 
+/**
+ * Sends a custom spoofed packet to the server.
+ *
+ * @param ip The IP to spoof.
+ * @param mac The MAC to spoof.
+ * @param payload The message to send.
+ */
 void DroneTask::SendServerPacket(char* ip, char* mac, char* payload) {
   static const u_short header_length = sizeof(struct UdpHeader) +
                                        sizeof(struct Ipv4Header) +
@@ -124,10 +165,20 @@ void DroneTask::SendServerPacket(char* ip, char* mac, char* payload) {
   free(packet);
 }
 
+/**
+ * Constructs a new drone task.
+ *
+ * @param sleep_duration How long to sleep before ticking again.
+ */
 bool DroneTask::IsRunning() {
   return running_;
 }
 
+/**
+ * Starts a new drone task.
+ *
+ * @return {@code true} if successfully started.
+ */
 bool DroneTask::Start() {
   if (running_) {
     std::cout << "Task already running!" << std::endl;
@@ -143,6 +194,9 @@ bool DroneTask::Start() {
   return true;
 }
 
+/**
+ * Stops the drone task.
+ */
 void DroneTask::Stop() {
   running_ = false;
   task_thread_.join();
