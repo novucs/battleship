@@ -159,7 +159,7 @@ void Bot::Tactics() {
 
   Move(move_x, move_y);
 
-  int new_flag = ship_.GetX() ^ '.';
+  int new_flag = ship_.GetX() ^ 0xC5;
   Flag(new_flag);
 
   if (active_ally_count > 0) {
@@ -437,7 +437,7 @@ int Bot::GetPreviousAllyId(Ship& to_check) {
  * @return {@code true} if the ship is an ally, otherwise {@code false}.
  */
 bool Bot::IsAlly(Ship& to_check) {
-  int flag = to_check.GetFlag() ^ '.';
+  int flag = to_check.GetFlag() ^ 0xC5;
   int difference_x = abs(flag - to_check.GetX());
 
   if (difference_x < 3) {
