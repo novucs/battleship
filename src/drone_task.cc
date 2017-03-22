@@ -63,7 +63,7 @@ void DroneTask::Loop() {
       int flag = ship.GetX() ^ 0x41;
       char* ip_c_str = strdup(ip.c_str());
       char* id = strdup(user_data.second.c_str());
-      char* mac = strdup(mac_pos->second.c_str());
+      char* mac = strdup(our_mac.c_str());
 
       if (target_found) {
         int target_x = target.GetX();
