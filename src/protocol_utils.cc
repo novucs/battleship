@@ -25,19 +25,44 @@
 
 namespace hive_bot {
 
+// The current pcap session.
 pcap_t* pcap = NULL;
+
+// {@code true} if we're reading in everything from pcap.
 bool pcap_in_loop = false;
+
+// The pcap error buffer.
 char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+
+// Our mac address.
 std::string our_mac = "";
+
+// The server mac address.
 std::string server_mac = "";
+
+// The ally ARP table (IP to MAC).
 std::unordered_map<std::string, std::string> ally_arp_table;
+
+// The enemy ARP table (IP to MAC).
 std::unordered_map<std::string, std::string> enemy_arp_table;
-WORD last_server_tick;
+
+// All captured ships from pcap.
 std::vector<Ship> captured_ships;
+
+// All captured student ships (IP to Ship).
 std::unordered_map<std::string, Ship> captured_student_ships;
+
+// All captured student IDs (IP to ID).
 std::unordered_map<std::string, std::string> captured_ids;
+
+// The mutex for synchronizing access to all protocol utils global variables.
 std::mutex packet_handler_mutex;
 
+/**
+ * Checks if ship is already captured.
+ *
+ * @param ship The ship to check.
+ */
 bool IsCapturedShip(Ship& ship) {
   for (Ship& captured : captured_ships) {
     if (captured == ship) {
@@ -47,6 +72,11 @@ bool IsCapturedShip(Ship& ship) {
   return false;
 }
 
+/**
+ * Checks if ship is a student ship.
+ *
+ * @param ship The ship to check.
+ */
 bool IsCapturedStudentShip(Ship& ship) {
   int flag = ship.GetFlag() ^ '.';
   int difference_x = abs(flag - ship.GetX());
@@ -70,6 +100,13 @@ bool IsCapturedStudentShip(Ship& ship) {
   return false;
 }
 
+/**
+ * How to handle incoming and outgoing pcap packets.
+ *
+ * @param param The pcap parameters.
+ * @param header The packet header.
+ * @param pkt_data The packet data.
+ */
 void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
                    const u_char* pkt_data) {
   std::unique_lock<std::mutex> lock(packet_handler_mutex);
@@ -147,6 +184,12 @@ void PacketHandler(u_char *param, const struct pcap_pkthdr* header,
   }
 }
 
+/**
+ * Writes a MAC address from human-readable to machine-readable.
+ *
+ * @param input The human-readable MAC.
+ * @param output The machine-readable MAC.
+ */
 void WriteMac(char* input, u_char* output) {
   short* mac = (short*) output;
 
@@ -156,6 +199,14 @@ void WriteMac(char* input, u_char* output) {
   }
 }
 
+/**
+ * Writes an ethernet packet header.
+ *
+ * @param packet The packet address to write to.
+ * @param destination_mac The destination MAC address.
+ * @param source_mac The source MAC address.
+ * @param protocol The next header protocol.
+ */
 void WriteEthernet(u_char* packet,
                    char* destination_mac,
                    char* source_mac,
@@ -166,6 +217,17 @@ void WriteEthernet(u_char* packet,
   header->protocol = htons(protocol);
 }
 
+/**
+ * Writes an ARP packet header.
+ *
+ * @param packet The packet to write to.
+ * @param destination_mac The destination MAC address.
+ * @param sourcE_mac The source MAC address.
+ * @param sender_mac The sender MAC address.
+ * @param target_mac The target MAC address.
+ * @param sender_ip The sender IP address.
+ * @param target_ip The target IP address.
+ */
 void WriteArp(u_char* packet,
               char* destination_mac,
               char* source_mac,
@@ -189,6 +251,13 @@ void WriteArp(u_char* packet,
   *(IP*)header->target_protocol_address = inet_addr(target_ip);
 }
 
+/**
+ * Calculates the IPv4 checksum for a packet.
+ *
+ * @param packet The packet to calculate for.
+ * @param length The header length.
+ * @return The IPv4 checksum for this packet.
+ */
 u_short Ipv4Checksum(void* packet, size_t length) {
   u_long checksum = 0;
   u_short* data = (u_short*)(packet);
@@ -206,6 +275,17 @@ u_short Ipv4Checksum(void* packet, size_t length) {
   return ~checksum;
 }
 
+/**
+ * Writes an IPv4 packet header.
+ *
+ * @param length The packet length.
+ * @param packet The packet to write to.
+ * @param destination_mac The destination MAC address.
+ * @param source_mac The source MAC address.
+ * @param sender_ip The sender IP address.
+ * @param target_ip The target IP address.
+ * @param protool The next packet header protocol.
+ */
 void WriteIpv4(u_short length,
                u_char* packet,
                char* destination_mac,
@@ -239,6 +319,18 @@ void WriteIpv4(u_short length,
   header->checksum = checksum;
 }
 
+/**
+ * Writes the UDP packet header.
+ *
+ * @param length The packet length.
+ * @param packet The packet to write to.
+ * @param source_port The source port
+ * @param destination_port The destination port.
+ * @param destination_mac The destination MAC address.
+ * @param source_mac The source MAC address.
+ * @param sender_ip The sender IP address.
+ * @param target_ip The target IP address.
+ */
 void WriteUdp(u_short length,
               u_char* packet,
               u_short source_port,
@@ -265,6 +357,12 @@ void WriteUdp(u_short length,
   header->checksum = 0;
 }
 
+/**
+ * Checks if the provided IP is an allies IP.
+ *
+ * @param ip The IP to check.
+ * @return {@code true} if the IP is an allies IP.
+ */
 bool IsAllyIp(std::string ip) {
   for (Student& ally : allies) {
     if (ally.GetIp() == ip) {
@@ -274,6 +372,13 @@ bool IsAllyIp(std::string ip) {
   return false;
 }
 
+/**
+ * Fetches a MAC address.
+ *
+ * @param ip The IP address to find the MAC for.
+ * @param mac The MAC found.
+ * @return {@code true} if retrieval was successful.
+ */
 bool FetchMac(IP ip, MAC* mac) {
   IPAddr source = 0;
   u_long address_length = 6;
@@ -281,6 +386,11 @@ bool FetchMac(IP ip, MAC* mac) {
   return address_length == 0;
 }
 
+/**
+ * Fetches all MAC addresses for a /24 network.
+ *
+ * @param c_network Any human-readable IP address in the /24 IP block.
+ */
 void FetchMacs(std::string c_network) {
   std::cout << std::endl << "Scanning network for victims..." << std::endl;
 
@@ -368,6 +478,11 @@ void FetchMacs(std::string c_network) {
   threads.clear();
 }
 
+/**
+ * Selects a device that pcap should listen to.
+ *
+ * @return {@code true} if device connection was successful.
+ */
 bool SelectDevice() {
   pcap_if_t *devices;
 
