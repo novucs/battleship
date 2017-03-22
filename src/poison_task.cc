@@ -16,6 +16,13 @@
 
 namespace hive_bot {
 
+/**
+ * Constructs a new poison task.
+ *
+ * @param victim_addresses Who to poison.
+ * @param spoof_addresses What the attack should be.
+ * @param sleep_duration How long between poisoning attacks (in seconds).
+ */
 PoisonTask::PoisonTask(std::unordered_map<std::string, std::string> v_addresses,
                        std::unordered_map<std::string, std::string> s_addresses,
                        u_long sleep_duration) {
@@ -24,6 +31,9 @@ PoisonTask::PoisonTask(std::unordered_map<std::string, std::string> v_addresses,
   sleep_duration_ = sleep_duration;
 }
 
+/**
+ * The main poison loop.
+ */
 void PoisonTask::Loop() {
   std::unique_lock<std::mutex> lock(mutex_);
   running_ = true;
@@ -56,10 +66,20 @@ void PoisonTask::Loop() {
   running_ = false;
 }
 
+/**
+ * Checks if this task is running.
+ *
+ * @return {@code} true if it is running.
+ */
 bool PoisonTask::IsRunning() {
   return running_;
 }
 
+/**
+ * Starts the poison task.
+ *
+ * @return {@code true} if successful.
+ */
 bool PoisonTask::Start() {
   if (running_) {
     std::cout << "Task already running!" << std::endl;
@@ -75,6 +95,9 @@ bool PoisonTask::Start() {
   return true;
 }
 
+/**
+ * Stops the poison task.
+ */
 void PoisonTask::Stop() {
   running_ = false;
   task_thread_.join();

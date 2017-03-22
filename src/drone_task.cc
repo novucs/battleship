@@ -166,9 +166,9 @@ void DroneTask::SendServerPacket(char* ip, char* mac, char* payload) {
 }
 
 /**
- * Constructs a new drone task.
+ * Checks if the drone task is running.
  *
- * @param sleep_duration How long to sleep before ticking again.
+ * @return {@code true} if currently running.
  */
 bool DroneTask::IsRunning() {
   return running_;

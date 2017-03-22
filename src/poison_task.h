@@ -22,6 +22,9 @@
 
 namespace hive_bot {
 
+/**
+ * Regularly ARP poisons a specified victim.
+ */
 class PoisonTask {
 
   private:
@@ -43,17 +46,40 @@ class PoisonTask {
     // Ensures task is only ran once.
     std::mutex mutex_;
 
+    /**
+     * The main poison loop.
+     */
     void Loop();
 
   public:
+    /**
+     * Constructs a new poison task.
+     *
+     * @param victim_addresses Who to poison.
+     * @param spoof_addresses What the attack should be.
+     * @param sleep_duration How long between poisoning attacks (in seconds).
+     */
     PoisonTask(std::unordered_map<std::string, std::string> victim_addresses,
                std::unordered_map<std::string, std::string> spoof_addresses,
                u_long sleep_duration);
 
+    /**
+     * Checks if this task is running.
+     *
+     * @return {@code} true if it is running.
+     */
     bool IsRunning();
 
+    /**
+     * Starts the poison task.
+     *
+     * @return {@code true} if successful.
+     */
     bool Start();
 
+    /**
+     * Stops the poison task.
+     */
     void Stop();
 };
 
