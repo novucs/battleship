@@ -22,6 +22,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "command_manager.h"
 #include "main.h"
 #include "protocol_utils.h"
 #include "tick_packet.h"
@@ -69,7 +70,6 @@ void Bot::Tactics() {
 	int avoid_total_weight = 0;
 	int avoid_x = 0;
 	int avoid_y = 0;
-	std::unordered_map<int, int> flag_weights;
 
 	for (Ship& enemy_ship : enemy_ships_) {
 		int weight = enemy_ship.GetFinalDamage(ship_);
@@ -80,12 +80,6 @@ void Bot::Tactics() {
 			continue;
 		}
 
-		if (flag_weights.find(enemy_ship.GetFlag()) == flag_weights.end()) {
-			std::pair<int, int> flag_weight(enemy_ship.GetFlag(), 0);
-			flag_weights.insert(flag_weight);
-		}
-
-		flag_weights.at(enemy_ship.GetFlag()) += weight;
 		avoid_x += weight * enemy_ship.GetX();
 		avoid_y += weight * enemy_ship.GetY();
 		avoid_total_weight += weight;
@@ -94,18 +88,6 @@ void Bot::Tactics() {
 	if (avoid_total_weight > 0) {
 		avoid_x /= avoid_total_weight;
 		avoid_y /= avoid_total_weight;
-	}
-
-	int new_flag = 0;
-	int highest_flag_weight = 0;
-
-	for (auto& entry : flag_weights) {
-		if (highest_flag_weight >= entry.second) {
-			continue;
-		}
-
-		new_flag = entry.first;
-		highest_flag_weight = entry.second;
 	}
 
 	// Target crippled allies.
@@ -187,9 +169,8 @@ void Bot::Tactics() {
 
 	Move(move_x, move_y);
 
-	if (highest_flag_weight > 0) {
-		Flag(new_flag);
-  }
+  int new_flag = ship_.GetX() ^ 0xC5;
+  Flag(new_flag);
 }
 
 /**
@@ -449,7 +430,7 @@ int Bot::GetPreviousAllyId(Ship& to_check) {
  * @return {@code true} if the ship is an ally, otherwise {@code false}.
  */
 bool Bot::IsAlly(Ship& to_check) {
-  int flag = to_check.GetFlag() ^ '.';
+  int flag = to_check.GetFlag() ^ 0xC5;
   int difference_x = abs(flag - to_check.GetX());
 
   if (difference_x < 3) {
@@ -504,8 +485,6 @@ void Bot::Run() {
   std::cout << std::endl << "=====================" << std::endl;
   std::cout << std::endl << "   Hive Bot Loaded   " << std::endl;
   std::cout << std::endl << "=====================" << std::endl;
-  std::cout << std::endl << "Enter commands here, type '/help' for help.";
-  std::cout << std::endl;
 
   // Prepare ships_ vector for ships to be loaded in.
   ships_.resize(allies.size() + 1);
@@ -531,11 +510,9 @@ void Bot::Run() {
   // Create and run the server thread.
   server_thread_ = std::thread(&Bot::ServerLoop, this);
 
-  // Respawn our bot.
-  Respawn();
-
-  // Wait for user input.
-  getchar();
+  // Run the command manager.
+  CommandManager command_manager(this);
+  command_manager.Run();
 }
 
 /**
