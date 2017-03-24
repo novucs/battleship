@@ -73,7 +73,7 @@ void Bot::Tactics() {
       }
     }
 
-    if (ally_ship.DistanceTo(ship_) < ((offset * 2) + 2)) {
+    if (ally_ship.DistanceTo(ship_) < ((offset * 3) + 2)) {
       if (ally_ship.GetMaxSpeed() == 1) {
         slow_group = true;
       }
@@ -161,23 +161,6 @@ void Bot::Tactics() {
 
   int new_flag = ship_.GetX() ^ 0xC5;
   Flag(new_flag);
-
-  if (active_ally_count > 0) {
-    switch (ship_type) {
-      case SHIP_TYPE_BATTLESHIP:
-        if (identity.GetScore() - 50 > highest_ally_score) {
-          ship_type = SHIP_TYPE_FRIGATE;
-          Respawn();
-        }
-        break;
-      case SHIP_TYPE_FRIGATE:
-        if (identity.GetScore() + 50 < lowest_ally_score) {
-          ship_type = SHIP_TYPE_BATTLESHIP;
-          Respawn();
-        }
-        break;
-    }
-  }
 }
 
 /**
