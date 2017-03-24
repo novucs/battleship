@@ -46,7 +46,7 @@ void CommandManager::Run() {
   std::cout << std::endl;
 
   for (;;) {
-    std::cout << "> ";
+    std::cout << identity.GetId() << " > ";
     std::string message;
     std::getline(std::cin, message);
 
