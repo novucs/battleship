@@ -35,14 +35,20 @@ extern u_short server_port;
 extern u_short client_port;
 extern u_short hive_port;
 
-// The target number of allies to be frigates at one time.
-extern int frigate_count;
+// Our team member ID.
+extern int team_member_id;
 
 // The current ship type.
 extern int ship_type;
 
 // How far to offset ships.
 extern int offset;
+
+// Duration in seconds to be a frigate for.
+extern int frigate_time;
+
+// All team members.
+extern std::vector<Student> team;
 
 // Our current student identity.
 extern Student identity;

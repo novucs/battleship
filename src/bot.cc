@@ -245,6 +245,14 @@ void Bot::HiveLoop(int id) {
     mutex_.lock();
 
     TickPacket packet = ReadTickPacket(buffer);
+
+		if (packet.GetNextFrigate() == team_member_id &&
+				ship_type != SHIP_TYPE_FRIGATE) {
+			ship_type = SHIP_TYPE_FRIGATE;
+			frigate_end = time(0) + frigate_time;
+			Respawn();
+		}
+
     std::vector<Ship> ships = packet.GetShips();
     ships_.at(ally.GetLoadOrder()) = ships;
     ally.SetScore(packet.GetScore());
@@ -301,7 +309,28 @@ void Bot::ServerLoop() {
 
     identity.SetScore(score);
 
-    TickPacket packet(score, ships);
+		int next_frigate = -1;
+
+		if (frigate_end != 0 && time(0) >= frigate_end) {
+			next_frigate = team_member_id + 1;
+
+			if ((std::size_t) next_frigate >= team.size()) {
+				next_frigate = 0;
+			}
+
+			if (ship_type != SHIP_TYPE_BATTLESHIP) {
+				ship_type = SHIP_TYPE_BATTLESHIP;
+				Respawn();
+			}
+		}
+
+		for (Ship& ally_ship : previous_allies_) {
+			if (ally_ship.GetType() == SHIP_TYPE_FRIGATE) {
+				frigate_end = 0;
+			}
+		}
+
+    TickPacket packet(next_frigate, score, ships);
 
     for (Student& ally : allies) {
       ally.GetConnection().SendTickPacket(packet);
@@ -465,6 +494,10 @@ bool Bot::IsEnemy(Ship& to_check) {
  * Initializes the bot state and connections.
  */
 bool Bot::Setup() {
+	if (ship_type == SHIP_TYPE_FRIGATE) {
+		frigate_end = time(0) + frigate_time;
+	}
+
   // Create server socket.
   return server_connection_.CreateSocket() &&
 

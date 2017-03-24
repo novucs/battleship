@@ -16,6 +16,7 @@
 #ifndef HIVE_BOT_BOT_H_
 #define HIVE_BOT_BOT_H_
 
+#include <ctime>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -62,6 +63,9 @@ class Bot {
 
     // All previous ally ships.
     std::vector<Ship> previous_allies_;
+
+    // Time to stop being a frigate.
+    time_t frigate_end = { 0 };
 
     /**
      * Performs the tactics code for this tick.
