@@ -78,7 +78,7 @@ bool IsCapturedShip(Ship& ship) {
  * @param ship The ship to check.
  */
 bool IsCapturedStudentShip(Ship& ship) {
-  int flag = ship.GetFlag() ^ '.';
+  int flag = ship.GetFlag() ^ 0xC5;
   int difference_x = abs(flag - ship.GetX());
 
   if (difference_x < 3) {
