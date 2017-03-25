@@ -25,9 +25,6 @@ namespace hive_bot {
 class TickPacket {
 
   private:
-    // Determines the next ally who should be a frigate.
-    int next_frigate_;
-
     // Predicted score.
     int score_;
 
@@ -38,18 +35,10 @@ class TickPacket {
     /**
      * Constructs a new tick packet.
      *
-     * @param next_frigate Who the next frigate should be.
      * @param score The current predicted score of this ally.
      * @param ships All viewed ships, index 0 being the ally.
      */
-    TickPacket(int next_frigate, int score, std::vector<Ship> ships);
-
-    /**
-     * Gets if this ship should become the next frigate.
-     *
-     * @return the next frigate player ID.
-     */
-    int GetNextFrigate();
+    TickPacket(int score, std::vector<Ship> ships);
 
     /**
      * Gets the current predicted score.

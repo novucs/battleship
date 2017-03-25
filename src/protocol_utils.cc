@@ -40,7 +40,6 @@ std::string XorEncrypt(std::string message) {
  */
 TickPacket ReadTickPacket(char* message) {
   int score;
-  int next_frigate;
 
   std::vector<Ship> ships;
   std::stringstream stream(XorEncrypt(message));
@@ -52,7 +51,6 @@ TickPacket ReadTickPacket(char* message) {
   int type = 0;
   char separator;
 
-  stream >> next_frigate >> separator;
   stream >> score >> separator;
 
   while (!stream.eof() && stream.good()) {
@@ -65,7 +63,7 @@ TickPacket ReadTickPacket(char* message) {
     ships.push_back(Ship(x, y, health, flag, type));
   }
 
-  return TickPacket(next_frigate, score, ships);
+  return TickPacket(score, ships);
 }
 
 /**
@@ -175,7 +173,6 @@ std::string WriteRespawn(std::string id, std::string forename,
 std::string WriteTickPacket(TickPacket packet) {
   std::stringstream message;
 
-  message << packet.GetNextFrigate() << "$";
   message << packet.GetScore() << '$';
 
   for (Ship& s : packet.GetShips()) {

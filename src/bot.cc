@@ -29,6 +29,7 @@
 
 namespace hive_bot {
 
+namespace {
 int locations[4][2] = {
   {750, 750},
   {750, 250},
@@ -38,6 +39,10 @@ int locations[4][2] = {
 
 int last_updated = 0;
 int location_id = 0;
+
+// Time to start being a frigate.
+time_t change_ship_type = 0;
+}
 
 /**
  * Performs the tactics code for this tick.
@@ -99,16 +104,32 @@ void Bot::Tactics() {
     speed = 1;
   }
 
-  int seconds = time(0);
+  int current_time = time(0);
 
-  if (seconds % 60 == 0 && seconds != last_updated) {
-    location_id++;
+  if (current_time != last_updated) {
+    if (current_time % 60 == 0) {
+      location_id++;
 
-		if (location_id > 3) {
-			location_id = 0;
-		}
+  		if (location_id > 3) {
+  			location_id = 0;
+  		}
+    }
 
-    last_updated = seconds;
+    if (change_ship_type == 0) {
+      change_ship_type = current_time + (team_member_id * frigate_time);
+    } else if (current_time >= change_ship_type) {
+      if (ship_type == SHIP_TYPE_FRIGATE) {
+        change_ship_type = current_time + ((team.size() - 1) * frigate_time);
+        ship_type = SHIP_TYPE_BATTLESHIP;
+      } else {
+        change_ship_type = current_time + frigate_time;
+        ship_type = SHIP_TYPE_FRIGATE;
+      }
+
+      Respawn();
+    }
+
+    last_updated = current_time;
   }
 
   // Apply default movement: towards map center.
@@ -258,13 +279,6 @@ void Bot::HiveLoop(int id) {
 
     TickPacket packet = ReadTickPacket(buffer);
 
-    if (packet.GetNextFrigate() == team_member_id &&
-        ship_type != SHIP_TYPE_FRIGATE) {
-      ship_type = SHIP_TYPE_FRIGATE;
-      frigate_end = time(0) + frigate_time;
-      Respawn();
-    }
-
     std::vector<Ship> ships = packet.GetShips();
     ships_.at(ally.GetLoadOrder()) = ships;
     ally.SetScore(packet.GetScore());
@@ -321,28 +335,7 @@ void Bot::ServerLoop() {
 
     identity.SetScore(score);
 
-    int next_frigate = -1;
-
-    if (frigate_end != 0 && time(0) >= frigate_end) {
-      next_frigate = team_member_id + 1;
-
-      if ((std::size_t) next_frigate >= team.size()) {
-        next_frigate = 0;
-      }
-
-      if (ship_type != SHIP_TYPE_BATTLESHIP) {
-        ship_type = SHIP_TYPE_BATTLESHIP;
-        Respawn();
-      }
-    }
-
-    for (Ship& ally_ship : previous_allies_) {
-      if (ally_ship.GetType() == SHIP_TYPE_FRIGATE) {
-        frigate_end = 0;
-      }
-    }
-
-    TickPacket packet(next_frigate, score, ships);
+    TickPacket packet(score, ships);
 
     for (Student& ally : allies) {
       ally.GetConnection().SendTickPacket(packet);
@@ -506,10 +499,6 @@ bool Bot::IsEnemy(Ship& to_check) {
  * Initializes the bot state and connections.
  */
 bool Bot::Setup() {
-  if (ship_type == SHIP_TYPE_FRIGATE) {
-    frigate_end = time(0) + frigate_time;
-  }
-
   // Create server socket.
   return server_connection_.CreateSocket() &&
 

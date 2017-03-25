@@ -64,9 +64,6 @@ class Bot {
     // All previous ally ships.
     std::vector<Ship> previous_allies_;
 
-    // Time to stop being a frigate.
-    time_t frigate_end = { 0 };
-
     /**
      * Performs the tactics code for this tick.
      */
