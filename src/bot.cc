@@ -502,7 +502,7 @@ bool Bot::IsEnemy(Ship& to_check) {
  * @param id The ID used on the attack.
  * @return the attack value.
  */
-int GetAttackValue(int id) {
+int Bot::GetAttackValue(int id) {
   switch (id) {
     case 0:
       return 2;
