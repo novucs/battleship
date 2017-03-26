@@ -118,6 +118,14 @@ class Bot {
      */
     bool IsEnemy(Ship& to_check);
 
+    /**
+     * Gets the attack value.
+     *
+     * @param id The ID used on the attack.
+     * @return the attack value.
+     */
+     int GetAttackValue(int id);
+
   public:
     /**
      * Initializes the bot state and connections.

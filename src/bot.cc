@@ -61,6 +61,7 @@ void Bot::Tactics() {
   int lowest_ally_score = INT_MAX;
   int lowest_ally_frigate_score = INT_MAX;
   int ally_frigate_count = 0;
+  int attack_val = GetAttackValue(team_member_id);
 
   for (Student& ally : allies) {
     if (!ally.IsConnected()) {
@@ -116,7 +117,7 @@ void Bot::Tactics() {
     }
 
     if (change_ship_type == 0) {
-      change_ship_type = current_time + (team_member_id * frigate_time);
+      change_ship_type = current_time + (attack_val * frigate_time);
     } else if (current_time >= change_ship_type) {
       if (ship_type == SHIP_TYPE_FRIGATE) {
         change_ship_type = current_time + ((team.size() - 1) * frigate_time);
@@ -493,6 +494,26 @@ bool Bot::IsEnemy(Ship& to_check) {
     }
   }
   return false;
+}
+
+/**
+ * Gets the attack value.
+ *
+ * @param id The ID used on the attack.
+ * @return the attack value.
+ */
+int GetAttackValue(int id) {
+  switch (id) {
+    case 0:
+      return 2;
+    case 1:
+      return 3;
+    case 2:
+      return 1;
+    case 3:
+      return 0;
+  }
+  return 0;
 }
 
 /**
