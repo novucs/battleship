@@ -570,6 +570,7 @@ std::string XorEncrypt(std::string message) {
  */
 TickPacket ReadTickPacket(char* message) {
   int score;
+
   std::vector<Ship> ships;
   std::stringstream stream(XorEncrypt(message));
 

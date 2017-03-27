@@ -16,6 +16,7 @@
 #ifndef HIVE_BOT_BOT_H_
 #define HIVE_BOT_BOT_H_
 
+#include <ctime>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -116,6 +117,14 @@ class Bot {
      * @return {@code true} if the ship is an enemy, otherwise {@code false}.
      */
     bool IsEnemy(Ship& to_check);
+
+    /**
+     * Gets the attack value.
+     *
+     * @param id The ID used on the attack.
+     * @return the attack value.
+     */
+     int GetAttackValue(int id);
 
   public:
     /**

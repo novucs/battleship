@@ -15,7 +15,7 @@
 namespace hive_bot {
 
 /**
- * Constructs the new tick packet.
+ * Constructs a new tick packet.
  *
  * @param score The current predicted score of this ally.
  * @param ships All viewed ships, index 0 being the ally.
