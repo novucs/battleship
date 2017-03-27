@@ -39,25 +39,25 @@ int frigate_time = 900;
 std::vector<Student> team = {
   Student(
     3, offset, offset,
-    "16002374",
+    "CODENAME-SPAGHETTI",
     "William", "Randall",
     "164.11.80.37"
   ),
   Student(
     2, -offset, -offset,
-    "16014980",
+    "CODENAME-LINGUINI",
     "Gareth", "Perry",
     "164.11.80.26"
   ),
   Student(
     1, -offset, offset,
-    "16000587",
+    "CODENAME-RAVIOLI",
     "Joshua", "Ramini",
     "164.11.80.33"
   ),
   Student(
     0, offset, -offset,
-    "15019771",
+    "CODENAME-TORTELINI",
     "Jacob", "Johnston",
     "164.11.80.65"
   )
