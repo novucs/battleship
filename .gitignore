@@ -13,3 +13,8 @@ src/battleship.sln
 src/battleship.VC.db
 src/battleship.vcxproj
 src/battleship.vcxproj.filters
+
+# Vim
+*.swp
+*.swo
+
