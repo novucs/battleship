@@ -48,6 +48,7 @@ void CommandManager::PrintHelp(std::string message) {
   std::cout << "he,healenemies   Heal all enemy ARP caches" << std::endl;
   std::cout << "pe,poisonenemies Toggle poisoning enemies" << std::endl;
   std::cout << "ps,poisonserver  Toggle poisoning the server" << std::endl;
+  std::cout << "rd,respawndrones Forces all drones to respawn" << std::endl;
 }
 
 /**
@@ -319,6 +320,26 @@ void CommandManager::Scan(std::string message) {
 }
 
 /**
+ * Toggles whether the current drone task should respawn drones.
+ *
+ * @param message The command executed.
+ */
+void CommandManager::RespawnDrones(std::string message) {
+  if (drone_task_ == nullptr) {
+    std::cout << "No drone task is currently running" << std::endl;
+    return;
+  }
+
+  if (drone_task_->IsRespawningDrones()) {
+    drone_task_->SetRespawningDrones(false);
+    std::cout << "Drone task no longer respawning drones" << std::endl;
+  } else {
+    drone_task_->SetRespawningDrones(true);
+    std::cout << "Drone task now respawning drones" << std::endl;
+  }
+}
+
+/**
  * Runs the command manager on the current thread.
  */
 void CommandManager::Run() {
@@ -344,7 +365,9 @@ void CommandManager::Run() {
     {"poisonenemies", &CommandManager::PoisonEnemies},
     {"pe", &CommandManager::PoisonEnemies},
     {"poisonserver", &CommandManager::PoisonServer},
-    {"ps", &CommandManager::PoisonServer}
+    {"ps", &CommandManager::PoisonServer},
+    {"respawndrones", &CommandManager::RespawnDrones},
+    {"rd", &CommandManager::RespawnDrones}
   };
 
   std::cout << std::endl << "Enter commands here, type 'help' for help.";

@@ -39,10 +39,22 @@ class DroneTask {
     // Ensures task is only ran once.
     std::mutex mutex_;
 
+    // Determines whether this task should respawn drones.
+    std::atomic<bool> respawn_drones_ = { false };
+
     /**
      * The main loop function.
      */
     void Loop();
+
+    /**
+     * Spoofs a respawn packet to the server using pcap.
+     *
+     * @param ip The IP to spoof.
+     * @param mac The MAC to spoof.
+     * @param id The user ID.
+     */
+    void SendRespawn(char* ip, char* mac, char* id);
 
     /**
      * Spoofs a move packet to the server using pcap.
@@ -92,6 +104,20 @@ class DroneTask {
      * @param sleep_duration How long to sleep before ticking again.
      */
     DroneTask(u_long sleep_duration);
+
+    /**
+     * Checks if this task is currently respawning drones.
+     *
+     * @return {@code true} if this task should respawn drones.
+     */
+    bool IsRespawningDrones();
+
+    /**
+     * Toggles whether this task should respawn drones.
+     *
+     * @param respawn_drones {@code true} if this task should respawn drones.
+     */
+    void SetRespawningDrones(bool respawn_drones);
 
     /**
      * Checks if the drone task is running.

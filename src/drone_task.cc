@@ -81,6 +81,10 @@ void DroneTask::Loop() {
 
       SendMove(ip_c_str, mac, id, move_x, move_y);
       SendFlag(ip_c_str, mac, id, flag);
+
+      if (respawn_drones_) {
+        SendRespawn(ip_c_str, mac, id);
+      }
     }
 
     captured_student_ships.clear();
@@ -91,6 +95,19 @@ void DroneTask::Loop() {
 
   std::cout << "Drone task stopped" << std::endl;
   running_ = false;
+}
+
+/**
+ * Spoofs a respawn packet to the server using pcap.
+ *
+ * @param ip The IP to spoof.
+ * @param mac The MAC to spoof.
+ * @param id The user ID.
+ */
+void DroneTask::SendRespawn(char* ip, char* mac, char* id) {
+  static char payload[512];
+  sprintf_s(payload, "Respawn  %s,Blanked,Name,-1", id);
+  SendServerPacket(ip, mac, payload);
 }
 
 /**
@@ -163,6 +180,24 @@ void DroneTask::SendServerPacket(char* ip, char* mac, char* payload) {
   }
 
   free(packet);
+}
+
+/**
+ * Checks if this task is currently respawning drones.
+ *
+ * @return {@code true} if this task should respawn drones.
+ */
+bool DroneTask::IsRespawningDrones() {
+  return respawn_drones_;
+}
+
+/**
+ * Toggles whether this task should respawn drones.
+ *
+ * @param respawn_drones {@code true} if this task should respawn drones.
+ */
+void DroneTask::SetRespawningDrones(bool respawn_drones) {
+  respawn_drones_ = respawn_drones;
 }
 
 /**

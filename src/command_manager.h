@@ -110,6 +110,13 @@ class CommandManager {
      */
     void PoisonServer(std::string message);
 
+    /**
+     * Toggles whether the current drone task should respawn drones.
+     *
+     * @param message The command executed.
+     */
+    void RespawnDrones(std::string message);
+
   public:
     /**
      * Constructs a new command manager.
