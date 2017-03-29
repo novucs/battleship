@@ -11,8 +11,6 @@ set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
 set(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32-g++)
 
 # Register all source files.
-include_directories(${CMAKE_SOURCE_DIR}/include)
-link_directories(${CMAKE_SOURCE_DIR}/lib)
 file(GLOB_RECURSE sources src/*.cc src/*.h)
 
 # Add executable from all source files.
@@ -22,4 +20,4 @@ add_executable(battleship.exe ${sources})
 target_compile_options(battleship.exe PUBLIC -Wall -Wno-unknown-pragmas)
 
 # Link Windows libraries.
-target_link_libraries(battleship.exe wsock32 ws2_32 iphlpapi x64/wpcap)
+target_link_libraries(battleship.exe wsock32 ws2_32 iphlpapi)

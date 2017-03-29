@@ -95,9 +95,9 @@ void Bot::Tactics() {
     if (current_time % 60 == 0) {
       location_id_++;
 
-  		if (location_id_ > (locations.size() - 1)) {
-  			location_id_ = 0;
-  		}
+      if (location_id_ > (locations.size() - 1)) {
+        location_id_ = 0;
+      }
     }
 
     if (change_ship_type_ == 0) {
