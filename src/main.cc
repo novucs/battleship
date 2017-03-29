@@ -66,6 +66,13 @@ std::vector<Student> team = {
 Student identity = team.at(team_member_id);
 std::vector<Student> allies;
 
+std::vector<std::vector<int>> locations = {
+  {750, 750},
+  {750, 250},
+  {250, 750},
+  {250, 250}
+};
+
 } // namespace hive_bot
 
 /**
