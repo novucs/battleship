@@ -89,9 +89,12 @@ void Bot::Tactics() {
     speed = 1;
   }
 
+  // Manage time-sensitive tactics.
   int current_time = time(0);
 
+  // Only perform code here once per second.
   if (current_time != last_second_ticked_) {
+    // Every minute update the group target location.
     if (current_time % 60 == 0) {
       location_id_++;
 
@@ -100,13 +103,21 @@ void Bot::Tactics() {
       }
     }
 
+    // Set the first time to switch to a frigate if not already set.
     if (change_ship_type_ == 0) {
       change_ship_type_ = current_time + (team_member_id * frigate_time);
-    } else if (current_time >= change_ship_type_) {
+    }
+
+    // Otherwise check if this ship should change ship type.
+    else if (current_time >= change_ship_type_) {
+      // If we're a frigate, change to a battleship.
       if (ship_type == SHIP_TYPE_FRIGATE) {
         change_ship_type_ = current_time + ((team.size() - 1) * frigate_time);
         ship_type = SHIP_TYPE_BATTLESHIP;
-      } else {
+      }
+
+      // Otherwise change to a frigate.
+      else {
         change_ship_type_ = current_time + frigate_time;
         ship_type = SHIP_TYPE_FRIGATE;
       }
@@ -114,6 +125,7 @@ void Bot::Tactics() {
       Respawn();
     }
 
+    // Mark this second as ticked for future time-sensitive tactics.
     last_second_ticked_ = current_time;
   }
 
@@ -189,6 +201,7 @@ void Bot::Tactics() {
 
   Move(move_x, move_y);
 
+  // Encrypt our ship flag.
   int new_flag = ship_.GetX() ^ 0xC5;
   Flag(new_flag);
 }
