@@ -56,6 +56,15 @@ extern Student identity;
 // All ally student identities.
 extern std::vector<Student> allies;
 
+// Locations the bot group should move between.
+extern std::vector<std::vector<int>> locations;
+
+/**
+ * Checks whether an IP is a team members IP.
+ *
+ * @param ip The IP to check.
+ * @return {@code true} if the IP is a team members.
+ */
 bool IsTeamIp(std::string ip);
 
 } // namespace hive_bot

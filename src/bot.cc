@@ -29,21 +29,6 @@
 
 namespace hive_bot {
 
-namespace {
-int locations[4][2] = {
-  {750, 750},
-  {750, 250},
-  {250, 750},
-  {250, 250}
-};
-
-int last_updated = 0;
-int location_id = 0;
-
-// Time to start being a frigate.
-time_t change_ship_type = 0;
-}
-
 /**
  * Performs the tactics code for this tick.
  */
@@ -61,7 +46,6 @@ void Bot::Tactics() {
   int lowest_ally_score = INT_MAX;
   int lowest_ally_frigate_score = INT_MAX;
   int ally_frigate_count = 0;
-  int attack_val = GetAttackValue(team_member_id);
 
   for (Student& ally : allies) {
     if (!ally.IsConnected()) {
@@ -107,35 +91,37 @@ void Bot::Tactics() {
 
   int current_time = time(0);
 
-  if (current_time != last_updated) {
+  if (current_time != last_second_ticked_) {
     if (current_time % 60 == 0) {
-      location_id++;
+      location_id_++;
 
-  		if (location_id > 3) {
-  			location_id = 0;
-  		}
+      if (location_id_ > (locations.size() - 1)) {
+        location_id_ = 0;
+      }
     }
 
-    if (change_ship_type == 0) {
-      change_ship_type = current_time + (attack_val * frigate_time);
-    } else if (current_time >= change_ship_type) {
+    if (change_ship_type_ == 0) {
+      change_ship_type_ = current_time + (team_member_id * frigate_time);
+    } else if (current_time >= change_ship_type_) {
       if (ship_type == SHIP_TYPE_FRIGATE) {
-        change_ship_type = current_time + ((team.size() - 1) * frigate_time);
+        change_ship_type_ = current_time + ((team.size() - 1) * frigate_time);
         ship_type = SHIP_TYPE_BATTLESHIP;
       } else {
-        change_ship_type = current_time + frigate_time;
+        change_ship_type_ = current_time + frigate_time;
         ship_type = SHIP_TYPE_FRIGATE;
       }
 
       Respawn();
     }
 
-    last_updated = current_time;
+    last_second_ticked_ = current_time;
   }
 
   // Apply default movement: towards map center.
-  int move_x = ship_.GetX() < (locations[location_id][0] + identity.GetOffsetX()) ? speed : -speed;
-  int move_y = ship_.GetY() < (locations[location_id][1] + identity.GetOffsetY()) ? speed : -speed;
+  int target_x = locations.at(location_id_).at(0);
+  int target_y = locations.at(location_id_).at(1);
+  int move_x = ship_.GetX() < (target_x + identity.GetOffsetX()) ? speed : -speed;
+  int move_y = ship_.GetY() < (target_y + identity.GetOffsetY()) ? speed : -speed;
 
   int group_size = active_ally_count + 1;
   center_x /= group_size;
@@ -188,8 +174,8 @@ void Bot::Tactics() {
       identity.SetScore(score);
     }
 
-    int target_x = target.GetX() + identity.GetOffsetX();
-    int target_y = target.GetY() + identity.GetOffsetY();
+    target_x = target.GetX() + identity.GetOffsetX();
+    target_y = target.GetY() + identity.GetOffsetY();
 
     move_x = ship_.GetX() < target_x ? speed : -speed;
     move_y = ship_.GetY() < target_y ? speed : -speed;
@@ -494,26 +480,6 @@ bool Bot::IsEnemy(Ship& to_check) {
     }
   }
   return false;
-}
-
-/**
- * Gets the attack value.
- *
- * @param id The ID used on the attack.
- * @return the attack value.
- */
-int Bot::GetAttackValue(int id) {
-  switch (id) {
-    case 0:
-      return 2;
-    case 1:
-      return 3;
-    case 2:
-      return 1;
-    case 3:
-      return 0;
-  }
-  return 0;
 }
 
 /**
