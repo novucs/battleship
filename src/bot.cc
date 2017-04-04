@@ -116,18 +116,20 @@ void Bot::Tactics() {
   		}
     }
 
-    if (change_ship_type == 0) {
-      change_ship_type = current_time + (attack_val * frigate_time);
-    } else if (current_time >= change_ship_type) {
-      if (ship_type == SHIP_TYPE_FRIGATE) {
-        change_ship_type = current_time + ((team.size() - 1) * frigate_time);
-        ship_type = SHIP_TYPE_BATTLESHIP;
-      } else {
-        change_ship_type = current_time + frigate_time;
-        ship_type = SHIP_TYPE_FRIGATE;
-      }
+    if (frigate_time > 0) {
+      if (change_ship_type == 0) {
+        change_ship_type = current_time + (attack_val * frigate_time);
+      } else if (current_time >= change_ship_type) {
+        if (ship_type == SHIP_TYPE_FRIGATE) {
+          change_ship_type = current_time + ((team.size() - 1) * frigate_time);
+          ship_type = SHIP_TYPE_BATTLESHIP;
+        } else {
+          change_ship_type = current_time + frigate_time;
+          ship_type = SHIP_TYPE_FRIGATE;
+        }
 
-      Respawn();
+        Respawn();
+      }
     }
 
     last_updated = current_time;
@@ -505,11 +507,11 @@ bool Bot::IsEnemy(Ship& to_check) {
 int Bot::GetAttackValue(int id) {
   switch (id) {
     case 0:
-      return 2;
-    case 1:
       return 3;
+    case 1:
+      return 0;
     case 2:
-      return 1;
+      return 3;
     case 3:
       return 0;
   }

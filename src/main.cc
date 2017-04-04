@@ -34,7 +34,8 @@ u_short hive_port = 13337;
 int team_member_id = 0;
 int ship_type = SHIP_TYPE_BATTLESHIP;
 int offset = 5;
-int frigate_time = 900;
+//int frigate_time = 1800;
+int frigate_time = -1;
 
 std::vector<Student> team = {
   Student(
