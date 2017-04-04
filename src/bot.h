@@ -64,15 +64,6 @@ class Bot {
     // All previous ally ships.
     std::vector<Ship> previous_allies_;
 
-    // The location to move towards.
-    u_int location_id_ = 0;
-
-    // Last second that the tactics code has ticked.
-    time_t last_second_ticked_ = 0;
-
-    // Time to start being a frigate.
-    time_t change_ship_type_ = 0;
-
     /**
      * Performs the tactics code for this tick.
      */
@@ -126,6 +117,14 @@ class Bot {
      * @return {@code true} if the ship is an enemy, otherwise {@code false}.
      */
     bool IsEnemy(Ship& to_check);
+
+    /**
+     * Gets the attack value.
+     *
+     * @param id The ID used on the attack.
+     * @return the attack value.
+     */
+     int GetAttackValue(int id);
 
   public:
     /**

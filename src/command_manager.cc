@@ -18,20 +18,10 @@
 
 namespace hive_bot {
 
-/**
- * Constructs a new command manager.
- *
- * @param bot The master bot.
- */
 CommandManager::CommandManager(Bot* bot) {
   bot_ = bot;
 }
 
-/**
- * Prints the command help page.
- *
- * @param message The command executed.
- */
 void CommandManager::PrintHelp(std::string message) {
   std::cout << "=====[ Hive Bot Help ]=====" << std::endl;
   std::cout << "h|help - Prints this help page" << std::endl;
@@ -39,19 +29,11 @@ void CommandManager::PrintHelp(std::string message) {
   std::cout << "r|respawn - Sends the server a respawn packet" << std::endl;
 }
 
-/**
- * Respawns the battleship into the server.
- *
- * @param message The command executed.
- */
 void CommandManager::Respawn(std::string message) {
   bot_->Respawn();
   std::cout << "Bot respawned" << std::endl;
 }
 
-/**
- * Runs the command manager on the current thread.
- */
 void CommandManager::Run() {
   std::unordered_map<std::string, Command> commands = {
     {"help", &CommandManager::PrintHelp},

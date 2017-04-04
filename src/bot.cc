@@ -29,6 +29,21 @@
 
 namespace hive_bot {
 
+namespace {
+int locations[4][2] = {
+  {750, 750},
+  {750, 250},
+  {250, 750},
+  {250, 250}
+};
+
+int last_updated = 0;
+int location_id = 0;
+
+// Time to start being a frigate.
+time_t change_ship_type = 0;
+}
+
 /**
  * Performs the tactics code for this tick.
  */
@@ -46,6 +61,7 @@ void Bot::Tactics() {
   int lowest_ally_score = INT_MAX;
   int lowest_ally_frigate_score = INT_MAX;
   int ally_frigate_count = 0;
+  int attack_val = GetAttackValue(team_member_id);
 
   for (Student& ally : allies) {
     if (!ally.IsConnected()) {
@@ -89,51 +105,37 @@ void Bot::Tactics() {
     speed = 1;
   }
 
-  // Manage time-sensitive tactics.
   int current_time = time(0);
 
-  // Only perform code here once per second.
-  if (current_time != last_second_ticked_) {
-    // Every minute update the group target location.
+  if (current_time != last_updated) {
     if (current_time % 60 == 0) {
-      location_id_++;
+      location_id++;
 
-      if (location_id_ > (locations.size() - 1)) {
-        location_id_ = 0;
-      }
+  		if (location_id > 3) {
+  			location_id = 0;
+  		}
     }
 
-    // Set the first time to switch to a frigate if not already set.
-    if (change_ship_type_ == 0) {
-      change_ship_type_ = current_time + (team_member_id * frigate_time);
-    }
-
-    // Otherwise check if this ship should change ship type.
-    else if (current_time >= change_ship_type_) {
-      // If we're a frigate, change to a battleship.
+    if (change_ship_type == 0) {
+      change_ship_type = current_time + (attack_val * frigate_time);
+    } else if (current_time >= change_ship_type) {
       if (ship_type == SHIP_TYPE_FRIGATE) {
-        change_ship_type_ = current_time + ((team.size() - 1) * frigate_time);
+        change_ship_type = current_time + ((team.size() - 1) * frigate_time);
         ship_type = SHIP_TYPE_BATTLESHIP;
-      }
-
-      // Otherwise change to a frigate.
-      else {
-        change_ship_type_ = current_time + frigate_time;
+      } else {
+        change_ship_type = current_time + frigate_time;
         ship_type = SHIP_TYPE_FRIGATE;
       }
 
       Respawn();
     }
 
-    // Mark this second as ticked for future time-sensitive tactics.
-    last_second_ticked_ = current_time;
+    last_updated = current_time;
   }
 
   // Apply default movement: towards map center.
-  int target_x = locations.at(location_id_).at(0);
-  int target_y = locations.at(location_id_).at(1);
-  int move_x = ship_.GetX() < (target_x + identity.GetOffsetX()) ? speed : -speed;
-  int move_y = ship_.GetY() < (target_y + identity.GetOffsetY()) ? speed : -speed;
+  int move_x = ship_.GetX() < (locations[location_id][0] + identity.GetOffsetX()) ? speed : -speed;
+  int move_y = ship_.GetY() < (locations[location_id][1] + identity.GetOffsetY()) ? speed : -speed;
 
   int group_size = active_ally_count + 1;
   center_x /= group_size;
@@ -186,8 +188,8 @@ void Bot::Tactics() {
       identity.SetScore(score);
     }
 
-    target_x = target.GetX() + identity.GetOffsetX();
-    target_y = target.GetY() + identity.GetOffsetY();
+    int target_x = target.GetX() + identity.GetOffsetX();
+    int target_y = target.GetY() + identity.GetOffsetY();
 
     move_x = ship_.GetX() < target_x ? speed : -speed;
     move_y = ship_.GetY() < target_y ? speed : -speed;
@@ -201,7 +203,6 @@ void Bot::Tactics() {
 
   Move(move_x, move_y);
 
-  // Encrypt our ship flag.
   int new_flag = ship_.GetX() ^ 0xC5;
   Flag(new_flag);
 }
@@ -493,6 +494,26 @@ bool Bot::IsEnemy(Ship& to_check) {
     }
   }
   return false;
+}
+
+/**
+ * Gets the attack value.
+ *
+ * @param id The ID used on the attack.
+ * @return the attack value.
+ */
+int Bot::GetAttackValue(int id) {
+  switch (id) {
+    case 0:
+      return 2;
+    case 1:
+      return 3;
+    case 2:
+      return 1;
+    case 3:
+      return 0;
+  }
+  return 0;
 }
 
 /**

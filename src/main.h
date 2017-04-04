@@ -56,9 +56,6 @@ extern Student identity;
 // All ally student identities.
 extern std::vector<Student> allies;
 
-// Locations the bot group should move between.
-extern std::vector<std::vector<int>> locations;
-
 } // namespace hive_bot
 
 #endif // HIVE_BOT_MAIN_H_
